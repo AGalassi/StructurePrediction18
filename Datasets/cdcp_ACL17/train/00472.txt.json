@@ -1,0 +1,494 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (PRP I))\n    (VP (VBP agree))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "agree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "agree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "agree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "agree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 1,
+          "pos": "PRP",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "agree",
+          "originalText": "agree",
+          "lemma": "agree",
+          "characterOffsetBegin": 2,
+          "characterOffsetEnd": 7,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 3,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 7,
+          "characterOffsetEnd": 8,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (S\n      (NP (PRP I))\n      (VP (VBP 've)\n        (VP (VBN heard)\n          (PP (IN of)\n            (NP\n              (NP (DT this))\n              (VP (VBG happening)))))))\n    (CC and)\n    (S\n      (NP (PRP it))\n      (VP (VBZ 's)\n        (ADJP (JJ unjust))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "heard"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 2,
+          "dependentGloss": "'ve"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "this",
+          "dependent": 4,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 5,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 6,
+          "dependentGloss": "happening"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 7,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 8,
+          "dependentGloss": "it"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 9,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "conj",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 10,
+          "dependentGloss": "unjust"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 11,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "heard"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 2,
+          "dependentGloss": "'ve"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "this",
+          "dependent": 4,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 5,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 6,
+          "dependentGloss": "happening"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 7,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 8,
+          "dependentGloss": "it"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 9,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 10,
+          "dependentGloss": "unjust"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 11,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "heard"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 2,
+          "dependentGloss": "'ve"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "this",
+          "dependent": 4,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 5,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 6,
+          "dependentGloss": "happening"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 7,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 8,
+          "dependentGloss": "it"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "unjust",
+          "dependent": 9,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 10,
+          "dependentGloss": "unjust"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "heard",
+          "dependent": 11,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 9,
+          "characterOffsetEnd": 10,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 2,
+          "word": "'ve",
+          "originalText": "'ve",
+          "lemma": "have",
+          "characterOffsetBegin": 10,
+          "characterOffsetEnd": 13,
+          "pos": "VBP",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "heard",
+          "originalText": "heard",
+          "lemma": "hear",
+          "characterOffsetBegin": 14,
+          "characterOffsetEnd": 19,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 20,
+          "characterOffsetEnd": 22,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "this",
+          "originalText": "this",
+          "lemma": "this",
+          "characterOffsetBegin": 23,
+          "characterOffsetEnd": 27,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "happening",
+          "originalText": "happening",
+          "lemma": "happen",
+          "characterOffsetBegin": 28,
+          "characterOffsetEnd": 37,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": "  "
+        },
+        {
+          "index": 7,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 39,
+          "characterOffsetEnd": 42,
+          "pos": "CC",
+          "ner": "O",
+          "before": "  ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "it",
+          "originalText": "it",
+          "lemma": "it",
+          "characterOffsetBegin": 43,
+          "characterOffsetEnd": 45,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 9,
+          "word": "'s",
+          "originalText": "'s",
+          "lemma": "be",
+          "characterOffsetBegin": 45,
+          "characterOffsetEnd": 47,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "unjust",
+          "originalText": "unjust",
+          "lemma": "unjust",
+          "characterOffsetBegin": 48,
+          "characterOffsetEnd": 54,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 11,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 54,
+          "characterOffsetEnd": 55,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

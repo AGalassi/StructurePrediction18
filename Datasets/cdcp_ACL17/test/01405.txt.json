@@ -1,0 +1,732 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (PRP I))\n    (VP (VBP disagree))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "disagree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "disagree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "disagree"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 1,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "disagree",
+          "dependent": 3,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 1,
+          "pos": "PRP",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "disagree",
+          "originalText": "disagree",
+          "lemma": "disagree",
+          "characterOffsetBegin": 2,
+          "characterOffsetEnd": 10,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 3,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 10,
+          "characterOffsetEnd": 11,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (SINV\n    (VP (VBG Keeping)\n      (NP (DT a) (NN paper) (NN trail)))\n    (VP (VBZ protects))\n    (NP\n      (NP (NN everyone))\n      (, ,)\n      (NP (RB especially) (DT the)\n        (ADJP\n          (ADJP (RBS most) (JJ vulnerable))\n          (CC and)\n          (ADJP\n            (ADJP (JJS least) (JJ able))\n            (S\n              (VP (TO to)\n                (VP (VB protect))))))\n        (NN oneself)))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "protects"
+        },
+        {
+          "dep": "csubj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 1,
+          "dependentGloss": "Keeping"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 3,
+          "dependentGloss": "paper"
+        },
+        {
+          "dep": "dobj",
+          "governor": 1,
+          "governorGloss": "Keeping",
+          "dependent": 4,
+          "dependentGloss": "trail"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 6,
+          "dependentGloss": "everyone"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 7,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 8,
+          "dependentGloss": "especially"
+        },
+        {
+          "dep": "det",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 10,
+          "dependentGloss": "most"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 11,
+          "dependentGloss": "vulnerable"
+        },
+        {
+          "dep": "cc",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 12,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "able",
+          "dependent": 13,
+          "dependentGloss": "least"
+        },
+        {
+          "dep": "conj",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 14,
+          "dependentGloss": "able"
+        },
+        {
+          "dep": "mark",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 15,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 16,
+          "dependentGloss": "protect"
+        },
+        {
+          "dep": "dobj",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 17,
+          "dependentGloss": "oneself"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "protects"
+        },
+        {
+          "dep": "csubj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 1,
+          "dependentGloss": "Keeping"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 3,
+          "dependentGloss": "paper"
+        },
+        {
+          "dep": "dobj",
+          "governor": 1,
+          "governorGloss": "Keeping",
+          "dependent": 4,
+          "dependentGloss": "trail"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 6,
+          "dependentGloss": "everyone"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 7,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 8,
+          "dependentGloss": "especially"
+        },
+        {
+          "dep": "det",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 10,
+          "dependentGloss": "most"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 11,
+          "dependentGloss": "vulnerable"
+        },
+        {
+          "dep": "cc",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 12,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "able",
+          "dependent": 13,
+          "dependentGloss": "least"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 14,
+          "dependentGloss": "able"
+        },
+        {
+          "dep": "mark",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 15,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 16,
+          "dependentGloss": "protect"
+        },
+        {
+          "dep": "dobj",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 17,
+          "dependentGloss": "oneself"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "protects"
+        },
+        {
+          "dep": "csubj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 1,
+          "dependentGloss": "Keeping"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "trail",
+          "dependent": 3,
+          "dependentGloss": "paper"
+        },
+        {
+          "dep": "dobj",
+          "governor": 1,
+          "governorGloss": "Keeping",
+          "dependent": 4,
+          "dependentGloss": "trail"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 6,
+          "dependentGloss": "everyone"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 7,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 8,
+          "dependentGloss": "especially"
+        },
+        {
+          "dep": "det",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "advmod",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 10,
+          "dependentGloss": "most"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 11,
+          "dependentGloss": "vulnerable"
+        },
+        {
+          "dep": "cc",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 12,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "able",
+          "dependent": 13,
+          "dependentGloss": "least"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 14,
+          "dependentGloss": "able"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 14,
+          "dependentGloss": "able"
+        },
+        {
+          "dep": "mark",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 15,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "vulnerable",
+          "dependent": 16,
+          "dependentGloss": "protect"
+        },
+        {
+          "dep": "dobj",
+          "governor": 16,
+          "governorGloss": "protect",
+          "dependent": 17,
+          "dependentGloss": "oneself"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "protects",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Keeping",
+          "originalText": "Keeping",
+          "lemma": "keep",
+          "characterOffsetBegin": 12,
+          "characterOffsetEnd": 19,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 20,
+          "characterOffsetEnd": 21,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "paper",
+          "originalText": "paper",
+          "lemma": "paper",
+          "characterOffsetBegin": 22,
+          "characterOffsetEnd": 27,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "trail",
+          "originalText": "trail",
+          "lemma": "trail",
+          "characterOffsetBegin": 28,
+          "characterOffsetEnd": 33,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "protects",
+          "originalText": "protects",
+          "lemma": "protect",
+          "characterOffsetBegin": 34,
+          "characterOffsetEnd": 42,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "everyone",
+          "originalText": "everyone",
+          "lemma": "everyone",
+          "characterOffsetBegin": 43,
+          "characterOffsetEnd": 51,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 7,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 51,
+          "characterOffsetEnd": 52,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "especially",
+          "originalText": "especially",
+          "lemma": "especially",
+          "characterOffsetBegin": 53,
+          "characterOffsetEnd": 63,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 64,
+          "characterOffsetEnd": 67,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "most",
+          "originalText": "most",
+          "lemma": "most",
+          "characterOffsetBegin": 68,
+          "characterOffsetEnd": 72,
+          "pos": "RBS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "vulnerable",
+          "originalText": "vulnerable",
+          "lemma": "vulnerable",
+          "characterOffsetBegin": 73,
+          "characterOffsetEnd": 83,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 84,
+          "characterOffsetEnd": 87,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "least",
+          "originalText": "least",
+          "lemma": "least",
+          "characterOffsetBegin": 88,
+          "characterOffsetEnd": 93,
+          "pos": "JJS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "able",
+          "originalText": "able",
+          "lemma": "able",
+          "characterOffsetBegin": 94,
+          "characterOffsetEnd": 98,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "to",
+          "originalText": "to",
+          "lemma": "to",
+          "characterOffsetBegin": 99,
+          "characterOffsetEnd": 101,
+          "pos": "TO",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "protect",
+          "originalText": "protect",
+          "lemma": "protect",
+          "characterOffsetBegin": 102,
+          "characterOffsetEnd": 109,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "oneself",
+          "originalText": "oneself",
+          "lemma": "oneself",
+          "characterOffsetBegin": 110,
+          "characterOffsetEnd": 117,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 18,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 117,
+          "characterOffsetEnd": 118,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,949 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (S\n      (NP (JJ Telephonic) (NNS pretrial-hearings))\n      (VP (MD can)\n        (VP (VB be)\n          (VP (VBN scheduled)\n            (PP (IN in)\n              (NP\n                (NP (NN support))\n                (PP (IN of)\n                  (NP (DT a) (NN consumer)))))\n            (S\n              (VP (VBG having)\n                (S\n                  (VP (TO to)\n                    (VP (VB work))))))))))\n    (: ;)\n    (S\n      (NP\n        (NP (NNS times))\n        (VP\n          (VP (VBN set)\n            (ADVP (CC and)))\n          (CC or)\n          (VP (VBN scheduled)\n            (PP (IN with)\n              (NP (DT a) (NN court) (NN representative))))))\n      (VP (MD could)\n        (VP (VB passify)\n          (NP (DT this) (NN issue)))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "amod",
+          "governor": 2,
+          "governorGloss": "pretrial-hearings",
+          "dependent": 1,
+          "dependentGloss": "Telephonic"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 2,
+          "dependentGloss": "pretrial-hearings"
+        },
+        {
+          "dep": "aux",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 3,
+          "dependentGloss": "can"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 6,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 7,
+          "dependentGloss": "support"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 8,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "acl",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 11,
+          "dependentGloss": "having"
+        },
+        {
+          "dep": "mark",
+          "governor": 13,
+          "governorGloss": "work",
+          "dependent": 12,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "having",
+          "dependent": 13,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 14,
+          "dependentGloss": ";"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 15,
+          "dependentGloss": "times"
+        },
+        {
+          "dep": "acl",
+          "governor": 15,
+          "governorGloss": "times",
+          "dependent": 16,
+          "dependentGloss": "set"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 17,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 18,
+          "dependentGloss": "or"
+        },
+        {
+          "dep": "conj",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 19,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "case",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 20,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 21,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 22,
+          "dependentGloss": "court"
+        },
+        {
+          "dep": "nmod",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 23,
+          "dependentGloss": "representative"
+        },
+        {
+          "dep": "aux",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 24,
+          "dependentGloss": "could"
+        },
+        {
+          "dep": "parataxis",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 25,
+          "dependentGloss": "passify"
+        },
+        {
+          "dep": "det",
+          "governor": 27,
+          "governorGloss": "issue",
+          "dependent": 26,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "dobj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 27,
+          "dependentGloss": "issue"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 28,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "amod",
+          "governor": 2,
+          "governorGloss": "pretrial-hearings",
+          "dependent": 1,
+          "dependentGloss": "Telephonic"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 2,
+          "dependentGloss": "pretrial-hearings"
+        },
+        {
+          "dep": "aux",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 3,
+          "dependentGloss": "can"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 6,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 7,
+          "dependentGloss": "support"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 8,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "acl",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 11,
+          "dependentGloss": "having"
+        },
+        {
+          "dep": "mark",
+          "governor": 13,
+          "governorGloss": "work",
+          "dependent": 12,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "having",
+          "dependent": 13,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 14,
+          "dependentGloss": ";"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 15,
+          "dependentGloss": "times"
+        },
+        {
+          "dep": "acl",
+          "governor": 15,
+          "governorGloss": "times",
+          "dependent": 16,
+          "dependentGloss": "set"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 17,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 18,
+          "dependentGloss": "or"
+        },
+        {
+          "dep": "conj:or",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 19,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "case",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 20,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 21,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 22,
+          "dependentGloss": "court"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 23,
+          "dependentGloss": "representative"
+        },
+        {
+          "dep": "aux",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 24,
+          "dependentGloss": "could"
+        },
+        {
+          "dep": "parataxis",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 25,
+          "dependentGloss": "passify"
+        },
+        {
+          "dep": "det",
+          "governor": 27,
+          "governorGloss": "issue",
+          "dependent": 26,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "dobj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 27,
+          "dependentGloss": "issue"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 28,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "amod",
+          "governor": 2,
+          "governorGloss": "pretrial-hearings",
+          "dependent": 1,
+          "dependentGloss": "Telephonic"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 2,
+          "dependentGloss": "pretrial-hearings"
+        },
+        {
+          "dep": "aux",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 3,
+          "dependentGloss": "can"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 6,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 7,
+          "dependentGloss": "support"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 8,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "acl",
+          "governor": 7,
+          "governorGloss": "support",
+          "dependent": 11,
+          "dependentGloss": "having"
+        },
+        {
+          "dep": "mark",
+          "governor": 13,
+          "governorGloss": "work",
+          "dependent": 12,
+          "dependentGloss": "to"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 11,
+          "governorGloss": "having",
+          "dependent": 13,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 14,
+          "dependentGloss": ";"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 15,
+          "dependentGloss": "times"
+        },
+        {
+          "dep": "acl",
+          "governor": 15,
+          "governorGloss": "times",
+          "dependent": 16,
+          "dependentGloss": "set"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 17,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "cc",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 18,
+          "dependentGloss": "or"
+        },
+        {
+          "dep": "acl",
+          "governor": 15,
+          "governorGloss": "times",
+          "dependent": 19,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "conj:or",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 19,
+          "dependentGloss": "scheduled"
+        },
+        {
+          "dep": "case",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 20,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 21,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 23,
+          "governorGloss": "representative",
+          "dependent": 22,
+          "dependentGloss": "court"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 16,
+          "governorGloss": "set",
+          "dependent": 23,
+          "dependentGloss": "representative"
+        },
+        {
+          "dep": "aux",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 24,
+          "dependentGloss": "could"
+        },
+        {
+          "dep": "parataxis",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 25,
+          "dependentGloss": "passify"
+        },
+        {
+          "dep": "det",
+          "governor": 27,
+          "governorGloss": "issue",
+          "dependent": 26,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "dobj",
+          "governor": 25,
+          "governorGloss": "passify",
+          "dependent": 27,
+          "dependentGloss": "issue"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "scheduled",
+          "dependent": 28,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Telephonic",
+          "originalText": "Telephonic",
+          "lemma": "telephonic",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 10,
+          "pos": "JJ",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "pretrial-hearings",
+          "originalText": "pretrial-hearings",
+          "lemma": "pretrial-hearing",
+          "characterOffsetBegin": 11,
+          "characterOffsetEnd": 28,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "can",
+          "originalText": "can",
+          "lemma": "can",
+          "characterOffsetBegin": 29,
+          "characterOffsetEnd": 32,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "be",
+          "originalText": "be",
+          "lemma": "be",
+          "characterOffsetBegin": 33,
+          "characterOffsetEnd": 35,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "scheduled",
+          "originalText": "scheduled",
+          "lemma": "schedule",
+          "characterOffsetBegin": 36,
+          "characterOffsetEnd": 45,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 46,
+          "characterOffsetEnd": 48,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "support",
+          "originalText": "support",
+          "lemma": "support",
+          "characterOffsetBegin": 49,
+          "characterOffsetEnd": 56,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 57,
+          "characterOffsetEnd": 59,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 60,
+          "characterOffsetEnd": 61,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "consumer",
+          "originalText": "consumer",
+          "lemma": "consumer",
+          "characterOffsetBegin": 62,
+          "characterOffsetEnd": 70,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "having",
+          "originalText": "having",
+          "lemma": "have",
+          "characterOffsetBegin": 71,
+          "characterOffsetEnd": 77,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "to",
+          "originalText": "to",
+          "lemma": "to",
+          "characterOffsetBegin": 78,
+          "characterOffsetEnd": 80,
+          "pos": "TO",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "work",
+          "originalText": "work",
+          "lemma": "work",
+          "characterOffsetBegin": 81,
+          "characterOffsetEnd": 85,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 14,
+          "word": ";",
+          "originalText": ";",
+          "lemma": ";",
+          "characterOffsetBegin": 85,
+          "characterOffsetEnd": 86,
+          "pos": ":",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "times",
+          "originalText": "times",
+          "lemma": "time",
+          "characterOffsetBegin": 87,
+          "characterOffsetEnd": 92,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "set",
+          "originalText": "set",
+          "lemma": "set",
+          "characterOffsetBegin": 93,
+          "characterOffsetEnd": 96,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 97,
+          "characterOffsetEnd": 100,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 18,
+          "word": "or",
+          "originalText": "or",
+          "lemma": "or",
+          "characterOffsetBegin": 101,
+          "characterOffsetEnd": 103,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 19,
+          "word": "scheduled",
+          "originalText": "scheduled",
+          "lemma": "schedule",
+          "characterOffsetBegin": 104,
+          "characterOffsetEnd": 113,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 20,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 114,
+          "characterOffsetEnd": 118,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 21,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 119,
+          "characterOffsetEnd": 120,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 22,
+          "word": "court",
+          "originalText": "court",
+          "lemma": "court",
+          "characterOffsetBegin": 121,
+          "characterOffsetEnd": 126,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 23,
+          "word": "representative",
+          "originalText": "representative",
+          "lemma": "representative",
+          "characterOffsetBegin": 127,
+          "characterOffsetEnd": 141,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 24,
+          "word": "could",
+          "originalText": "could",
+          "lemma": "could",
+          "characterOffsetBegin": 142,
+          "characterOffsetEnd": 147,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 25,
+          "word": "passify",
+          "originalText": "passify",
+          "lemma": "passify",
+          "characterOffsetBegin": 148,
+          "characterOffsetEnd": 155,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 26,
+          "word": "this",
+          "originalText": "this",
+          "lemma": "this",
+          "characterOffsetBegin": 156,
+          "characterOffsetEnd": 160,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 27,
+          "word": "issue",
+          "originalText": "issue",
+          "lemma": "issue",
+          "characterOffsetBegin": 161,
+          "characterOffsetEnd": 166,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 28,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 166,
+          "characterOffsetEnd": 167,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

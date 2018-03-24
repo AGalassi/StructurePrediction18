@@ -1,0 +1,527 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (EX There))\n    (VP (VBP are)\n      (NP\n        (NP (NNS laws))\n        (PP (IN on)\n          (NP (DT the) (NNS books)))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 3,
+          "dependentGloss": "laws"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 4,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 3,
+          "governorGloss": "laws",
+          "dependent": 6,
+          "dependentGloss": "books"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 3,
+          "dependentGloss": "laws"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 4,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:on",
+          "governor": 3,
+          "governorGloss": "laws",
+          "dependent": 6,
+          "dependentGloss": "books"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 3,
+          "dependentGloss": "laws"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 4,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "books",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:on",
+          "governor": 3,
+          "governorGloss": "laws",
+          "dependent": 6,
+          "dependentGloss": "books"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "are",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "There",
+          "originalText": "There",
+          "lemma": "there",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 5,
+          "pos": "EX",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "are",
+          "originalText": "are",
+          "lemma": "be",
+          "characterOffsetBegin": 6,
+          "characterOffsetEnd": 9,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "laws",
+          "originalText": "laws",
+          "lemma": "law",
+          "characterOffsetBegin": 10,
+          "characterOffsetEnd": 14,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "on",
+          "originalText": "on",
+          "lemma": "on",
+          "characterOffsetBegin": 15,
+          "characterOffsetEnd": 17,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 18,
+          "characterOffsetEnd": 21,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "books",
+          "originalText": "books",
+          "lemma": "book",
+          "characterOffsetBegin": 22,
+          "characterOffsetEnd": 27,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 7,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 27,
+          "characterOffsetEnd": 28,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (NP (EX There))\n    (VP (VBZ is)\n      (NP\n        (NP (DT no) (NN enforcement))\n        (PP (IN by)\n          (NP (DT the) (NNS regulators)))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 3,
+          "dependentGloss": "no"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 4,
+          "dependentGloss": "enforcement"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 5,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 6,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 7,
+          "dependentGloss": "regulators"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 8,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 3,
+          "dependentGloss": "no"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 4,
+          "dependentGloss": "enforcement"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 5,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 6,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:by",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 7,
+          "dependentGloss": "regulators"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 8,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "expl",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 1,
+          "dependentGloss": "There"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 3,
+          "dependentGloss": "no"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 4,
+          "dependentGloss": "enforcement"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 5,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "regulators",
+          "dependent": 6,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:by",
+          "governor": 4,
+          "governorGloss": "enforcement",
+          "dependent": 7,
+          "dependentGloss": "regulators"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "is",
+          "dependent": 8,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "There",
+          "originalText": "There",
+          "lemma": "there",
+          "characterOffsetBegin": 29,
+          "characterOffsetEnd": 34,
+          "pos": "EX",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 35,
+          "characterOffsetEnd": 37,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "no",
+          "originalText": "no",
+          "lemma": "no",
+          "characterOffsetBegin": 38,
+          "characterOffsetEnd": 40,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "enforcement",
+          "originalText": "enforcement",
+          "lemma": "enforcement",
+          "characterOffsetBegin": 41,
+          "characterOffsetEnd": 52,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "by",
+          "originalText": "by",
+          "lemma": "by",
+          "characterOffsetBegin": 53,
+          "characterOffsetEnd": 55,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 56,
+          "characterOffsetEnd": 59,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "regulators",
+          "originalText": "regulators",
+          "lemma": "regulator",
+          "characterOffsetBegin": 60,
+          "characterOffsetEnd": 70,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 8,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 70,
+          "characterOffsetEnd": 71,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,758 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (PRP We))\n    (VP (VBP live)\n      (PP (IN in)\n        (NP (DT the) (NNP Information) (NNP Age))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "live"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 1,
+          "dependentGloss": "We"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 3,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 4,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "compound",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 5,
+          "dependentGloss": "Information"
+        },
+        {
+          "dep": "nmod",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 6,
+          "dependentGloss": "Age"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "live"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 1,
+          "dependentGloss": "We"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 3,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 4,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "compound",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 5,
+          "dependentGloss": "Information"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 6,
+          "dependentGloss": "Age"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 2,
+          "dependentGloss": "live"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 1,
+          "dependentGloss": "We"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 3,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 4,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "compound",
+          "governor": 6,
+          "governorGloss": "Age",
+          "dependent": 5,
+          "dependentGloss": "Information"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 6,
+          "dependentGloss": "Age"
+        },
+        {
+          "dep": "punct",
+          "governor": 2,
+          "governorGloss": "live",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "We",
+          "originalText": "We",
+          "lemma": "we",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 2,
+          "pos": "PRP",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "live",
+          "originalText": "live",
+          "lemma": "live",
+          "characterOffsetBegin": 3,
+          "characterOffsetEnd": 7,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 8,
+          "characterOffsetEnd": 10,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 11,
+          "characterOffsetEnd": 14,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "Information",
+          "originalText": "Information",
+          "lemma": "Information",
+          "characterOffsetBegin": 15,
+          "characterOffsetEnd": 26,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "Age",
+          "originalText": "Age",
+          "lemma": "Age",
+          "characterOffsetBegin": 27,
+          "characterOffsetEnd": 30,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 7,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 30,
+          "characterOffsetEnd": 31,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (NP\n      (NP (PDT All) (DT the) (NN information))\n      (SBAR\n        (S\n          (NP (DT this) (NN individual))\n          (VP (VBZ is)\n            (VP (VBG requesting))))))\n    (VP (VBZ is)\n      (ADJP (RB readily) (JJ available)\n        (PP (IN with)\n          (NP (DT a) (JJ few) (NNS keystrokes)))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 10,
+          "dependentGloss": "available"
+        },
+        {
+          "dep": "det:predet",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 1,
+          "dependentGloss": "All"
+        },
+        {
+          "dep": "det",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 2,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 3,
+          "dependentGloss": "information"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "individual",
+          "dependent": 4,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 5,
+          "dependentGloss": "individual"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 6,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 7,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 9,
+          "dependentGloss": "readily"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 11,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 12,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "amod",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 13,
+          "dependentGloss": "few"
+        },
+        {
+          "dep": "nmod",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 14,
+          "dependentGloss": "keystrokes"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 15,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 10,
+          "dependentGloss": "available"
+        },
+        {
+          "dep": "det:predet",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 1,
+          "dependentGloss": "All"
+        },
+        {
+          "dep": "det",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 2,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 3,
+          "dependentGloss": "information"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "individual",
+          "dependent": 4,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 5,
+          "dependentGloss": "individual"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 6,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 7,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 9,
+          "dependentGloss": "readily"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 11,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 12,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "amod",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 13,
+          "dependentGloss": "few"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 14,
+          "dependentGloss": "keystrokes"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 15,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 10,
+          "dependentGloss": "available"
+        },
+        {
+          "dep": "det:predet",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 1,
+          "dependentGloss": "All"
+        },
+        {
+          "dep": "det",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 2,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 3,
+          "dependentGloss": "information"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "individual",
+          "dependent": 4,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 5,
+          "dependentGloss": "individual"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "requesting",
+          "dependent": 6,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 3,
+          "governorGloss": "information",
+          "dependent": 7,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "cop",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 9,
+          "dependentGloss": "readily"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 11,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 12,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "amod",
+          "governor": 14,
+          "governorGloss": "keystrokes",
+          "dependent": 13,
+          "dependentGloss": "few"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 14,
+          "dependentGloss": "keystrokes"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "available",
+          "dependent": 15,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "3",
+      "sentiment": "Positive",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "All",
+          "originalText": "All",
+          "lemma": "all",
+          "characterOffsetBegin": 32,
+          "characterOffsetEnd": 35,
+          "pos": "PDT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 36,
+          "characterOffsetEnd": 39,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "information",
+          "originalText": "information",
+          "lemma": "information",
+          "characterOffsetBegin": 40,
+          "characterOffsetEnd": 51,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "this",
+          "originalText": "this",
+          "lemma": "this",
+          "characterOffsetBegin": 52,
+          "characterOffsetEnd": 56,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "individual",
+          "originalText": "individual",
+          "lemma": "individual",
+          "characterOffsetBegin": 57,
+          "characterOffsetEnd": 67,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 68,
+          "characterOffsetEnd": 70,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "requesting",
+          "originalText": "requesting",
+          "lemma": "request",
+          "characterOffsetBegin": 71,
+          "characterOffsetEnd": 81,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 82,
+          "characterOffsetEnd": 84,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "readily",
+          "originalText": "readily",
+          "lemma": "readily",
+          "characterOffsetBegin": 85,
+          "characterOffsetEnd": 92,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "available",
+          "originalText": "available",
+          "lemma": "available",
+          "characterOffsetBegin": 93,
+          "characterOffsetEnd": 102,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 103,
+          "characterOffsetEnd": 107,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 108,
+          "characterOffsetEnd": 109,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "few",
+          "originalText": "few",
+          "lemma": "few",
+          "characterOffsetBegin": 110,
+          "characterOffsetEnd": 113,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "keystrokes",
+          "originalText": "keystrokes",
+          "lemma": "keystroke",
+          "characterOffsetBegin": 114,
+          "characterOffsetEnd": 124,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 15,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 124,
+          "characterOffsetEnd": 125,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

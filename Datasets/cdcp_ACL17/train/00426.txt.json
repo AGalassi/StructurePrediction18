@@ -1,0 +1,1574 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (PP (IN As)\n      (NP\n        (NP (NN someone))\n        (SBAR\n          (WHNP (WP who))\n          (S\n            (ADVP (RB regularly))\n            (VP (VBZ reviews)\n              (NP (NN credit) (NNS reports)))))))\n    (, ,)\n    (NP (PRP I))\n    (VP (VBP am)\n      (ADJP (VBN appalled)\n        (PP (IN by)\n          (NP\n            (NP (DT a) (NN practice))\n            (SBAR\n              (S\n                (NP (PRP I))\n                (VP (VBP see)\n                  (ADVP (RB regularly)))))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 11,
+          "dependentGloss": "appalled"
+        },
+        {
+          "dep": "case",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nmod",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 2,
+          "dependentGloss": "someone"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 3,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 4,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 5,
+          "dependentGloss": "reviews"
+        },
+        {
+          "dep": "compound",
+          "governor": 7,
+          "governorGloss": "reports",
+          "dependent": 6,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 7,
+          "dependentGloss": "reports"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 8,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 9,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 10,
+          "dependentGloss": "am"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 12,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 13,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 14,
+          "dependentGloss": "practice"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 15,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 16,
+          "dependentGloss": "see"
+        },
+        {
+          "dep": "advmod",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 17,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 11,
+          "dependentGloss": "appalled"
+        },
+        {
+          "dep": "case",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 2,
+          "dependentGloss": "someone"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 3,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 4,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 5,
+          "dependentGloss": "reviews"
+        },
+        {
+          "dep": "compound",
+          "governor": 7,
+          "governorGloss": "reports",
+          "dependent": 6,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 7,
+          "dependentGloss": "reports"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 8,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 9,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 10,
+          "dependentGloss": "am"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 12,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 13,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:agent",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 14,
+          "dependentGloss": "practice"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 15,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 16,
+          "dependentGloss": "see"
+        },
+        {
+          "dep": "advmod",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 17,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 11,
+          "dependentGloss": "appalled"
+        },
+        {
+          "dep": "case",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 2,
+          "dependentGloss": "someone"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 3,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "advmod",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 4,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 2,
+          "governorGloss": "someone",
+          "dependent": 5,
+          "dependentGloss": "reviews"
+        },
+        {
+          "dep": "compound",
+          "governor": 7,
+          "governorGloss": "reports",
+          "dependent": 6,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "dobj",
+          "governor": 5,
+          "governorGloss": "reviews",
+          "dependent": 7,
+          "dependentGloss": "reports"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 8,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 9,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 10,
+          "dependentGloss": "am"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 12,
+          "dependentGloss": "by"
+        },
+        {
+          "dep": "det",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 13,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:agent",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 14,
+          "dependentGloss": "practice"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 15,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 14,
+          "governorGloss": "practice",
+          "dependent": 16,
+          "dependentGloss": "see"
+        },
+        {
+          "dep": "advmod",
+          "governor": 16,
+          "governorGloss": "see",
+          "dependent": 17,
+          "dependentGloss": "regularly"
+        },
+        {
+          "dep": "punct",
+          "governor": 11,
+          "governorGloss": "appalled",
+          "dependent": 18,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "As",
+          "originalText": "As",
+          "lemma": "as",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 2,
+          "pos": "IN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "someone",
+          "originalText": "someone",
+          "lemma": "someone",
+          "characterOffsetBegin": 3,
+          "characterOffsetEnd": 10,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "who",
+          "originalText": "who",
+          "lemma": "who",
+          "characterOffsetBegin": 11,
+          "characterOffsetEnd": 14,
+          "pos": "WP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "regularly",
+          "originalText": "regularly",
+          "lemma": "regularly",
+          "characterOffsetBegin": 15,
+          "characterOffsetEnd": 24,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "reviews",
+          "originalText": "reviews",
+          "lemma": "review",
+          "characterOffsetBegin": 25,
+          "characterOffsetEnd": 32,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "credit",
+          "originalText": "credit",
+          "lemma": "credit",
+          "characterOffsetBegin": 33,
+          "characterOffsetEnd": 39,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "reports",
+          "originalText": "reports",
+          "lemma": "report",
+          "characterOffsetBegin": 40,
+          "characterOffsetEnd": 47,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 8,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 47,
+          "characterOffsetEnd": 48,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 49,
+          "characterOffsetEnd": 50,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "am",
+          "originalText": "am",
+          "lemma": "be",
+          "characterOffsetBegin": 51,
+          "characterOffsetEnd": 53,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "appalled",
+          "originalText": "appalled",
+          "lemma": "appal",
+          "characterOffsetBegin": 54,
+          "characterOffsetEnd": 62,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "by",
+          "originalText": "by",
+          "lemma": "by",
+          "characterOffsetBegin": 63,
+          "characterOffsetEnd": 65,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 66,
+          "characterOffsetEnd": 67,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "practice",
+          "originalText": "practice",
+          "lemma": "practice",
+          "characterOffsetBegin": 68,
+          "characterOffsetEnd": 76,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 77,
+          "characterOffsetEnd": 78,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "see",
+          "originalText": "see",
+          "lemma": "see",
+          "characterOffsetBegin": 79,
+          "characterOffsetEnd": 82,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "regularly",
+          "originalText": "regularly",
+          "lemma": "regularly",
+          "characterOffsetBegin": 83,
+          "characterOffsetEnd": 92,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 18,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 92,
+          "characterOffsetEnd": 93,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (NP (NN Debt) (NNS Collectors))\n    (ADVP (RB frequently))\n    (VP (VBP resubmit)\n      (NP\n        (NP (DT the) (NN report))\n        (PP (IN of)\n          (NP (DT a) (NN debt))))\n      (PP (IN as)\n        (ADJP (JJ delinquent)))\n      (NP-TMP (DT every) (NN month)))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "resubmit"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Collectors",
+          "dependent": 1,
+          "dependentGloss": "Debt"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 2,
+          "dependentGloss": "Collectors"
+        },
+        {
+          "dep": "advmod",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 3,
+          "dependentGloss": "frequently"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "dobj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 6,
+          "dependentGloss": "report"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 7,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 9,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 10,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 11,
+          "dependentGloss": "delinquent"
+        },
+        {
+          "dep": "det",
+          "governor": 13,
+          "governorGloss": "month",
+          "dependent": 12,
+          "dependentGloss": "every"
+        },
+        {
+          "dep": "nmod:tmod",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 13,
+          "dependentGloss": "month"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "resubmit"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Collectors",
+          "dependent": 1,
+          "dependentGloss": "Debt"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 2,
+          "dependentGloss": "Collectors"
+        },
+        {
+          "dep": "advmod",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 3,
+          "dependentGloss": "frequently"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "dobj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 6,
+          "dependentGloss": "report"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 7,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 9,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 10,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 11,
+          "dependentGloss": "delinquent"
+        },
+        {
+          "dep": "det",
+          "governor": 13,
+          "governorGloss": "month",
+          "dependent": 12,
+          "dependentGloss": "every"
+        },
+        {
+          "dep": "nmod:tmod",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 13,
+          "dependentGloss": "month"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "resubmit"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Collectors",
+          "dependent": 1,
+          "dependentGloss": "Debt"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 2,
+          "dependentGloss": "Collectors"
+        },
+        {
+          "dep": "advmod",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 3,
+          "dependentGloss": "frequently"
+        },
+        {
+          "dep": "det",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 5,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "dobj",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 6,
+          "dependentGloss": "report"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 7,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "debt",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 6,
+          "governorGloss": "report",
+          "dependent": 9,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 10,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 11,
+          "dependentGloss": "delinquent"
+        },
+        {
+          "dep": "det",
+          "governor": 13,
+          "governorGloss": "month",
+          "dependent": 12,
+          "dependentGloss": "every"
+        },
+        {
+          "dep": "nmod:tmod",
+          "governor": 11,
+          "governorGloss": "delinquent",
+          "dependent": 13,
+          "dependentGloss": "month"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "resubmit",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Debt",
+          "originalText": "Debt",
+          "lemma": "debt",
+          "characterOffsetBegin": 94,
+          "characterOffsetEnd": 98,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "Collectors",
+          "originalText": "Collectors",
+          "lemma": "collector",
+          "characterOffsetBegin": 99,
+          "characterOffsetEnd": 109,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "frequently",
+          "originalText": "frequently",
+          "lemma": "frequently",
+          "characterOffsetBegin": 110,
+          "characterOffsetEnd": 120,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "resubmit",
+          "originalText": "resubmit",
+          "lemma": "resubmit",
+          "characterOffsetBegin": 121,
+          "characterOffsetEnd": 129,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 130,
+          "characterOffsetEnd": 133,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "report",
+          "originalText": "report",
+          "lemma": "report",
+          "characterOffsetBegin": 134,
+          "characterOffsetEnd": 140,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 141,
+          "characterOffsetEnd": 143,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 144,
+          "characterOffsetEnd": 145,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "debt",
+          "originalText": "debt",
+          "lemma": "debt",
+          "characterOffsetBegin": 146,
+          "characterOffsetEnd": 150,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "as",
+          "originalText": "as",
+          "lemma": "as",
+          "characterOffsetBegin": 151,
+          "characterOffsetEnd": 153,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "delinquent",
+          "originalText": "delinquent",
+          "lemma": "delinquent",
+          "characterOffsetBegin": 154,
+          "characterOffsetEnd": 164,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "every",
+          "originalText": "every",
+          "lemma": "every",
+          "characterOffsetBegin": 165,
+          "characterOffsetEnd": 170,
+          "pos": "DT",
+          "ner": "SET",
+          "before": " ",
+          "after": " ",
+          "timex": {
+            "tid": "t1",
+            "type": "SET",
+            "value": "P1M"
+          }
+        },
+        {
+          "index": 13,
+          "word": "month",
+          "originalText": "month",
+          "lemma": "month",
+          "characterOffsetBegin": 171,
+          "characterOffsetEnd": 176,
+          "pos": "NN",
+          "ner": "SET",
+          "before": " ",
+          "after": " ",
+          "timex": {
+            "tid": "t1",
+            "type": "SET",
+            "value": "P1M"
+          }
+        },
+        {
+          "index": 14,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 177,
+          "characterOffsetEnd": 178,
+          "pos": ".",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "parse": "(ROOT\n  (S\n    (NP (DT This))\n    (VP (MD will)\n      (VP (VB have)\n        (NP\n          (NP (DT a)\n            (ADJP (RB highly) (JJ adverse))\n            (NN impact))\n          (PP (IN on)\n            (NP\n              (NP (DT the) (NN consumer) (POS 's))\n              (NN credit) (NNS scores))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 1,
+          "dependentGloss": "This"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 4,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "advmod",
+          "governor": 6,
+          "governorGloss": "adverse",
+          "dependent": 5,
+          "dependentGloss": "highly"
+        },
+        {
+          "dep": "amod",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 6,
+          "dependentGloss": "adverse"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 7,
+          "dependentGloss": "impact"
+        },
+        {
+          "dep": "case",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 8,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:poss",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 11,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "compound",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 12,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "nmod",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 13,
+          "dependentGloss": "scores"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 1,
+          "dependentGloss": "This"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 4,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "advmod",
+          "governor": 6,
+          "governorGloss": "adverse",
+          "dependent": 5,
+          "dependentGloss": "highly"
+        },
+        {
+          "dep": "amod",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 6,
+          "dependentGloss": "adverse"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 7,
+          "dependentGloss": "impact"
+        },
+        {
+          "dep": "case",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 8,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:poss",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 11,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "compound",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 12,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "nmod:on",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 13,
+          "dependentGloss": "scores"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 1,
+          "dependentGloss": "This"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "det",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 4,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "advmod",
+          "governor": 6,
+          "governorGloss": "adverse",
+          "dependent": 5,
+          "dependentGloss": "highly"
+        },
+        {
+          "dep": "amod",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 6,
+          "dependentGloss": "adverse"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 7,
+          "dependentGloss": "impact"
+        },
+        {
+          "dep": "case",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 8,
+          "dependentGloss": "on"
+        },
+        {
+          "dep": "det",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 9,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:poss",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 10,
+          "dependentGloss": "consumer"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "consumer",
+          "dependent": 11,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "compound",
+          "governor": 13,
+          "governorGloss": "scores",
+          "dependent": 12,
+          "dependentGloss": "credit"
+        },
+        {
+          "dep": "nmod:on",
+          "governor": 7,
+          "governorGloss": "impact",
+          "dependent": 13,
+          "dependentGloss": "scores"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "have",
+          "dependent": 14,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "3",
+      "sentiment": "Positive",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "This",
+          "originalText": "This",
+          "lemma": "this",
+          "characterOffsetBegin": 179,
+          "characterOffsetEnd": 183,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "will",
+          "originalText": "will",
+          "lemma": "will",
+          "characterOffsetBegin": 184,
+          "characterOffsetEnd": 188,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "have",
+          "originalText": "have",
+          "lemma": "have",
+          "characterOffsetBegin": 189,
+          "characterOffsetEnd": 193,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 194,
+          "characterOffsetEnd": 195,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "highly",
+          "originalText": "highly",
+          "lemma": "highly",
+          "characterOffsetBegin": 196,
+          "characterOffsetEnd": 202,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "adverse",
+          "originalText": "adverse",
+          "lemma": "adverse",
+          "characterOffsetBegin": 203,
+          "characterOffsetEnd": 210,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "impact",
+          "originalText": "impact",
+          "lemma": "impact",
+          "characterOffsetBegin": 211,
+          "characterOffsetEnd": 217,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "on",
+          "originalText": "on",
+          "lemma": "on",
+          "characterOffsetBegin": 218,
+          "characterOffsetEnd": 220,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 221,
+          "characterOffsetEnd": 224,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "consumer",
+          "originalText": "consumer",
+          "lemma": "consumer",
+          "characterOffsetBegin": 225,
+          "characterOffsetEnd": 233,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 11,
+          "word": "'s",
+          "originalText": "'s",
+          "lemma": "'s",
+          "characterOffsetBegin": 233,
+          "characterOffsetEnd": 235,
+          "pos": "POS",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "credit",
+          "originalText": "credit",
+          "lemma": "credit",
+          "characterOffsetBegin": 236,
+          "characterOffsetEnd": 242,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "scores",
+          "originalText": "scores",
+          "lemma": "score",
+          "characterOffsetBegin": 243,
+          "characterOffsetEnd": 249,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 14,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 249,
+          "characterOffsetEnd": 250,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

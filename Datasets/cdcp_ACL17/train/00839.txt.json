@@ -1,0 +1,1281 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (SBAR (IN If)\n      (S\n        (NP (PRP you))\n        (VP (VBP put)\n          (NP\n            (NP (DT an) (NN article))\n            (PP (IN about)\n              (NP\n                (NP (NNS landlords))\n                (CC and)\n                (NP (JJ illegal) (NNS lawsuits)\n                  (CC and)\n                  (NNS collections))))))))\n    (, ,)\n    (NP (PRP you))\n    (VP (MD would)\n      (VP (VB be)\n        (VP (VBN flooded)\n          (PP (IN with)\n            (NP (NNS responses))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 17,
+          "dependentGloss": "flooded"
+        },
+        {
+          "dep": "mark",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 1,
+          "dependentGloss": "If"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 2,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "advcl",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 3,
+          "dependentGloss": "put"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 4,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 5,
+          "dependentGloss": "article"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 6,
+          "dependentGloss": "about"
+        },
+        {
+          "dep": "nmod",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 7,
+          "dependentGloss": "landlords"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 8,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "amod",
+          "governor": 10,
+          "governorGloss": "lawsuits",
+          "dependent": 9,
+          "dependentGloss": "illegal"
+        },
+        {
+          "dep": "conj",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 10,
+          "dependentGloss": "lawsuits"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 11,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "conj",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 12,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 13,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 14,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "aux",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 15,
+          "dependentGloss": "would"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 16,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 19,
+          "governorGloss": "responses",
+          "dependent": 18,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nmod",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 19,
+          "dependentGloss": "responses"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 20,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 17,
+          "dependentGloss": "flooded"
+        },
+        {
+          "dep": "mark",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 1,
+          "dependentGloss": "If"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 2,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "advcl",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 3,
+          "dependentGloss": "put"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 4,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 5,
+          "dependentGloss": "article"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 6,
+          "dependentGloss": "about"
+        },
+        {
+          "dep": "nmod:about",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 7,
+          "dependentGloss": "landlords"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 8,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "amod",
+          "governor": 10,
+          "governorGloss": "lawsuits",
+          "dependent": 9,
+          "dependentGloss": "illegal"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 10,
+          "dependentGloss": "lawsuits"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 11,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 12,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 13,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 14,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "aux",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 15,
+          "dependentGloss": "would"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 16,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 19,
+          "governorGloss": "responses",
+          "dependent": 18,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 19,
+          "dependentGloss": "responses"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 20,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 17,
+          "dependentGloss": "flooded"
+        },
+        {
+          "dep": "mark",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 1,
+          "dependentGloss": "If"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 2,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "advcl",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 3,
+          "dependentGloss": "put"
+        },
+        {
+          "dep": "det",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 4,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "dobj",
+          "governor": 3,
+          "governorGloss": "put",
+          "dependent": 5,
+          "dependentGloss": "article"
+        },
+        {
+          "dep": "case",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 6,
+          "dependentGloss": "about"
+        },
+        {
+          "dep": "nmod:about",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 7,
+          "dependentGloss": "landlords"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 8,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "amod",
+          "governor": 10,
+          "governorGloss": "lawsuits",
+          "dependent": 9,
+          "dependentGloss": "illegal"
+        },
+        {
+          "dep": "nmod:about",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 10,
+          "dependentGloss": "lawsuits"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 10,
+          "dependentGloss": "lawsuits"
+        },
+        {
+          "dep": "cc",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 11,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nmod:about",
+          "governor": 5,
+          "governorGloss": "article",
+          "dependent": 12,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 7,
+          "governorGloss": "landlords",
+          "dependent": 12,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 13,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 14,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "aux",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 15,
+          "dependentGloss": "would"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 16,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "case",
+          "governor": 19,
+          "governorGloss": "responses",
+          "dependent": 18,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 19,
+          "dependentGloss": "responses"
+        },
+        {
+          "dep": "punct",
+          "governor": 17,
+          "governorGloss": "flooded",
+          "dependent": 20,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "If",
+          "originalText": "If",
+          "lemma": "if",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 2,
+          "pos": "IN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "you",
+          "originalText": "you",
+          "lemma": "you",
+          "characterOffsetBegin": 3,
+          "characterOffsetEnd": 6,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "put",
+          "originalText": "put",
+          "lemma": "put",
+          "characterOffsetBegin": 7,
+          "characterOffsetEnd": 10,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "an",
+          "originalText": "an",
+          "lemma": "a",
+          "characterOffsetBegin": 11,
+          "characterOffsetEnd": 13,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "article",
+          "originalText": "article",
+          "lemma": "article",
+          "characterOffsetBegin": 14,
+          "characterOffsetEnd": 21,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "about",
+          "originalText": "about",
+          "lemma": "about",
+          "characterOffsetBegin": 22,
+          "characterOffsetEnd": 27,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "landlords",
+          "originalText": "landlords",
+          "lemma": "landlord",
+          "characterOffsetBegin": 28,
+          "characterOffsetEnd": 37,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 38,
+          "characterOffsetEnd": 41,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "illegal",
+          "originalText": "illegal",
+          "lemma": "illegal",
+          "characterOffsetBegin": 42,
+          "characterOffsetEnd": 49,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "lawsuits",
+          "originalText": "lawsuits",
+          "lemma": "lawsuit",
+          "characterOffsetBegin": 50,
+          "characterOffsetEnd": 58,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 59,
+          "characterOffsetEnd": 62,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "collections",
+          "originalText": "collections",
+          "lemma": "collection",
+          "characterOffsetBegin": 63,
+          "characterOffsetEnd": 74,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 13,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 74,
+          "characterOffsetEnd": 75,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "you",
+          "originalText": "you",
+          "lemma": "you",
+          "characterOffsetBegin": 76,
+          "characterOffsetEnd": 79,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "would",
+          "originalText": "would",
+          "lemma": "would",
+          "characterOffsetBegin": 80,
+          "characterOffsetEnd": 85,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "be",
+          "originalText": "be",
+          "lemma": "be",
+          "characterOffsetBegin": 86,
+          "characterOffsetEnd": 88,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "flooded",
+          "originalText": "flooded",
+          "lemma": "flood",
+          "characterOffsetBegin": 89,
+          "characterOffsetEnd": 96,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 18,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 97,
+          "characterOffsetEnd": 101,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 19,
+          "word": "responses",
+          "originalText": "responses",
+          "lemma": "response",
+          "characterOffsetBegin": 102,
+          "characterOffsetEnd": 111,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 20,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 111,
+          "characterOffsetEnd": 112,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (NP (PRP It))\n    (VP (VBZ is)\n      (NP\n        (NP (DT an) (NN area))\n        (PP (IN of)\n          (NP\n            (NP (NNS collections))\n            (SBAR\n              (WHNP (WDT that))\n              (S\n                (VP\n                  (VP (VBZ is)\n                    (VP (VBN hidden)\n                      (PP (IN from)\n                        (NP (PRP you)))))\n                  (CC but)\n                  (VP\n                    (ADJP (RB very) (JJ prevalent))\n                    (PP (IN in)\n                      (NP (NNP NYC)))))))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "area"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 1,
+          "dependentGloss": "It"
+        },
+        {
+          "dep": "cop",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 3,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 5,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 6,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 7,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 9,
+          "dependentGloss": "hidden"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "you",
+          "dependent": 10,
+          "dependentGloss": "from"
+        },
+        {
+          "dep": "nmod",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 11,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "cc",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 12,
+          "dependentGloss": "but"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 13,
+          "dependentGloss": "very"
+        },
+        {
+          "dep": "conj",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 14,
+          "dependentGloss": "prevalent"
+        },
+        {
+          "dep": "case",
+          "governor": 16,
+          "governorGloss": "NYC",
+          "dependent": 15,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 16,
+          "dependentGloss": "NYC"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 17,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "area"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 1,
+          "dependentGloss": "It"
+        },
+        {
+          "dep": "cop",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 3,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 5,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 6,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 7,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 9,
+          "dependentGloss": "hidden"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "you",
+          "dependent": 10,
+          "dependentGloss": "from"
+        },
+        {
+          "dep": "nmod:from",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 11,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "cc",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 12,
+          "dependentGloss": "but"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 13,
+          "dependentGloss": "very"
+        },
+        {
+          "dep": "conj:but",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 14,
+          "dependentGloss": "prevalent"
+        },
+        {
+          "dep": "case",
+          "governor": 16,
+          "governorGloss": "NYC",
+          "dependent": 15,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 16,
+          "dependentGloss": "NYC"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 17,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "area"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 1,
+          "dependentGloss": "It"
+        },
+        {
+          "dep": "cop",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 2,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 3,
+          "dependentGloss": "an"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 5,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 6,
+          "dependentGloss": "collections"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 7,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 7,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 9,
+          "dependentGloss": "hidden"
+        },
+        {
+          "dep": "case",
+          "governor": 11,
+          "governorGloss": "you",
+          "dependent": 10,
+          "dependentGloss": "from"
+        },
+        {
+          "dep": "nmod:from",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 11,
+          "dependentGloss": "you"
+        },
+        {
+          "dep": "cc",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 12,
+          "dependentGloss": "but"
+        },
+        {
+          "dep": "advmod",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 13,
+          "dependentGloss": "very"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 6,
+          "governorGloss": "collections",
+          "dependent": 14,
+          "dependentGloss": "prevalent"
+        },
+        {
+          "dep": "conj:but",
+          "governor": 9,
+          "governorGloss": "hidden",
+          "dependent": 14,
+          "dependentGloss": "prevalent"
+        },
+        {
+          "dep": "case",
+          "governor": 16,
+          "governorGloss": "NYC",
+          "dependent": 15,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 14,
+          "governorGloss": "prevalent",
+          "dependent": 16,
+          "dependentGloss": "NYC"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "area",
+          "dependent": 17,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "2",
+      "sentiment": "Neutral",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "It",
+          "originalText": "It",
+          "lemma": "it",
+          "characterOffsetBegin": 113,
+          "characterOffsetEnd": 115,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 116,
+          "characterOffsetEnd": 118,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "an",
+          "originalText": "an",
+          "lemma": "a",
+          "characterOffsetBegin": 119,
+          "characterOffsetEnd": 121,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "area",
+          "originalText": "area",
+          "lemma": "area",
+          "characterOffsetBegin": 122,
+          "characterOffsetEnd": 126,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 127,
+          "characterOffsetEnd": 129,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "collections",
+          "originalText": "collections",
+          "lemma": "collection",
+          "characterOffsetBegin": 130,
+          "characterOffsetEnd": 141,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "that",
+          "originalText": "that",
+          "lemma": "that",
+          "characterOffsetBegin": 142,
+          "characterOffsetEnd": 146,
+          "pos": "WDT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 147,
+          "characterOffsetEnd": 149,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "hidden",
+          "originalText": "hidden",
+          "lemma": "hide",
+          "characterOffsetBegin": 150,
+          "characterOffsetEnd": 156,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "from",
+          "originalText": "from",
+          "lemma": "from",
+          "characterOffsetBegin": 157,
+          "characterOffsetEnd": 161,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "you",
+          "originalText": "you",
+          "lemma": "you",
+          "characterOffsetBegin": 162,
+          "characterOffsetEnd": 165,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "but",
+          "originalText": "but",
+          "lemma": "but",
+          "characterOffsetBegin": 166,
+          "characterOffsetEnd": 169,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "very",
+          "originalText": "very",
+          "lemma": "very",
+          "characterOffsetBegin": 170,
+          "characterOffsetEnd": 174,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "prevalent",
+          "originalText": "prevalent",
+          "lemma": "prevalent",
+          "characterOffsetBegin": 175,
+          "characterOffsetEnd": 184,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 185,
+          "characterOffsetEnd": 187,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "NYC",
+          "originalText": "NYC",
+          "lemma": "NYC",
+          "characterOffsetBegin": 188,
+          "characterOffsetEnd": 191,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 17,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 191,
+          "characterOffsetEnd": 192,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

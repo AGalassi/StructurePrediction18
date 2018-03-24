@@ -1,0 +1,3307 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (PP (IN As)\n      (NP (DT a) (NN debt) (NN collector)))\n    (, ,)\n    (NP (PRP I))\n    (VP (VBD noticed)\n      (NP (DT a) (NN problem))\n      (PP (IN with)\n        (NP\n          (NP (DT the) (NN protection))\n          (PP (IN of)\n            (NP (NN landlords/property) (NNS owners)))\n          (SBAR\n            (WHNP (WP who))\n            (S\n              (VP (VBP are)\n                (VP (VBG requesting)\n                  (NP\n                    (NP (JJ internal) (NNP DNC) (POS 's))\n                    (PP (IN with)\n                      (NP\n                        (NP (DT the) (NN company))\n                        (SBAR\n                          (S\n                            (NP (PRP I))\n                            (VP (VBP have)\n                              (NP (NN employment))\n                              (PP (IN with)))))))))))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "noticed"
+        },
+        {
+          "dep": "case",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 3,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "nmod",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 4,
+          "dependentGloss": "collector"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 5,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 6,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "dobj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 9,
+          "dependentGloss": "problem"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 10,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 12,
+          "dependentGloss": "protection"
+        },
+        {
+          "dep": "case",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 13,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 14,
+          "dependentGloss": "landlords/property"
+        },
+        {
+          "dep": "nmod",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 15,
+          "dependentGloss": "owners"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 16,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "aux",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 17,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 18,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "amod",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "internal"
+        },
+        {
+          "dep": "dobj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "case",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "case",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 22,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 23,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 24,
+          "dependentGloss": "company"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 25,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 26,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "dobj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 27,
+          "dependentGloss": "employment"
+        },
+        {
+          "dep": "nmod",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 28,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 29,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "noticed"
+        },
+        {
+          "dep": "case",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 3,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 4,
+          "dependentGloss": "collector"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 5,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 6,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "dobj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 9,
+          "dependentGloss": "problem"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 10,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 12,
+          "dependentGloss": "protection"
+        },
+        {
+          "dep": "case",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 13,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 14,
+          "dependentGloss": "landlords/property"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 15,
+          "dependentGloss": "owners"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 16,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "aux",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 17,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 18,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "amod",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "internal"
+        },
+        {
+          "dep": "dobj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "case",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "case",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 22,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 23,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 24,
+          "dependentGloss": "company"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 25,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 26,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "dobj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 27,
+          "dependentGloss": "employment"
+        },
+        {
+          "dep": "nmod",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 28,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 29,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "noticed"
+        },
+        {
+          "dep": "case",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 2,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "collector",
+          "dependent": 3,
+          "dependentGloss": "debt"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 4,
+          "dependentGloss": "collector"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 5,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 6,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 8,
+          "dependentGloss": "a"
+        },
+        {
+          "dep": "dobj",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 9,
+          "dependentGloss": "problem"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 10,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 9,
+          "governorGloss": "problem",
+          "dependent": 12,
+          "dependentGloss": "protection"
+        },
+        {
+          "dep": "case",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 13,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 14,
+          "dependentGloss": "landlords/property"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 12,
+          "governorGloss": "protection",
+          "dependent": 15,
+          "dependentGloss": "owners"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 16,
+          "dependentGloss": "who"
+        },
+        {
+          "dep": "aux",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 17,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 15,
+          "governorGloss": "owners",
+          "dependent": 18,
+          "dependentGloss": "requesting"
+        },
+        {
+          "dep": "amod",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "internal"
+        },
+        {
+          "dep": "dobj",
+          "governor": 18,
+          "governorGloss": "requesting",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "case",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "'s"
+        },
+        {
+          "dep": "case",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 22,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 23,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 24,
+          "dependentGloss": "company"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 25,
+          "dependentGloss": "I"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 24,
+          "governorGloss": "company",
+          "dependent": 26,
+          "dependentGloss": "have"
+        },
+        {
+          "dep": "dobj",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 27,
+          "dependentGloss": "employment"
+        },
+        {
+          "dep": "nmod",
+          "governor": 26,
+          "governorGloss": "have",
+          "dependent": 28,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "noticed",
+          "dependent": 29,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "As",
+          "originalText": "As",
+          "lemma": "as",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 2,
+          "pos": "IN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 3,
+          "characterOffsetEnd": 4,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "debt",
+          "originalText": "debt",
+          "lemma": "debt",
+          "characterOffsetBegin": 5,
+          "characterOffsetEnd": 9,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "collector",
+          "originalText": "collector",
+          "lemma": "collector",
+          "characterOffsetBegin": 10,
+          "characterOffsetEnd": 19,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 5,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 19,
+          "characterOffsetEnd": 20,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 21,
+          "characterOffsetEnd": 22,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "noticed",
+          "originalText": "noticed",
+          "lemma": "notice",
+          "characterOffsetBegin": 23,
+          "characterOffsetEnd": 30,
+          "pos": "VBD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "a",
+          "originalText": "a",
+          "lemma": "a",
+          "characterOffsetBegin": 31,
+          "characterOffsetEnd": 32,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "problem",
+          "originalText": "problem",
+          "lemma": "problem",
+          "characterOffsetBegin": 33,
+          "characterOffsetEnd": 40,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 41,
+          "characterOffsetEnd": 45,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 46,
+          "characterOffsetEnd": 49,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "protection",
+          "originalText": "protection",
+          "lemma": "protection",
+          "characterOffsetBegin": 50,
+          "characterOffsetEnd": 60,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 61,
+          "characterOffsetEnd": 63,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "landlords/property",
+          "originalText": "landlords/property",
+          "lemma": "landlords/property",
+          "characterOffsetBegin": 64,
+          "characterOffsetEnd": 82,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "owners",
+          "originalText": "owners",
+          "lemma": "owner",
+          "characterOffsetBegin": 83,
+          "characterOffsetEnd": 89,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "who",
+          "originalText": "who",
+          "lemma": "who",
+          "characterOffsetBegin": 90,
+          "characterOffsetEnd": 93,
+          "pos": "WP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "are",
+          "originalText": "are",
+          "lemma": "be",
+          "characterOffsetBegin": 94,
+          "characterOffsetEnd": 97,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 18,
+          "word": "requesting",
+          "originalText": "requesting",
+          "lemma": "request",
+          "characterOffsetBegin": 98,
+          "characterOffsetEnd": 108,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 19,
+          "word": "internal",
+          "originalText": "internal",
+          "lemma": "internal",
+          "characterOffsetBegin": 109,
+          "characterOffsetEnd": 117,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 20,
+          "word": "DNC",
+          "originalText": "DNC",
+          "lemma": "DNC",
+          "characterOffsetBegin": 118,
+          "characterOffsetEnd": 121,
+          "pos": "NNP",
+          "ner": "ORGANIZATION",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 21,
+          "word": "'s",
+          "originalText": "'s",
+          "lemma": "'s",
+          "characterOffsetBegin": 121,
+          "characterOffsetEnd": 123,
+          "pos": "POS",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 22,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 124,
+          "characterOffsetEnd": 128,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 23,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 129,
+          "characterOffsetEnd": 132,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 24,
+          "word": "company",
+          "originalText": "company",
+          "lemma": "company",
+          "characterOffsetBegin": 133,
+          "characterOffsetEnd": 140,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 25,
+          "word": "I",
+          "originalText": "I",
+          "lemma": "I",
+          "characterOffsetBegin": 141,
+          "characterOffsetEnd": 142,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 26,
+          "word": "have",
+          "originalText": "have",
+          "lemma": "have",
+          "characterOffsetBegin": 143,
+          "characterOffsetEnd": 147,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 27,
+          "word": "employment",
+          "originalText": "employment",
+          "lemma": "employment",
+          "characterOffsetBegin": 148,
+          "characterOffsetEnd": 158,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 28,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 159,
+          "characterOffsetEnd": 163,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 29,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 163,
+          "characterOffsetEnd": 164,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (S\n      (SBAR (IN As)\n        (S\n          (NP (PRP they))\n          (VP (MD will)\n            (VP (VB be)\n              (VP (VBP Do) (RB not)\n                (VP (VB call)\n                  (VP (VBN flagged) (`` ``)\n                    (NP (NNP DNC))\n                    ('' '')\n                    (PP (IN with)\n                      (NP (CD one) (NN account))))))))))\n      (, ,)\n      (NP (PRP they))\n      (VP (MD will) (RB not)\n        (VP (VB be)\n          (NP\n            (NP (NNP DNC))\n            (VP (`` `) (VBN ed)\n              (PP (IN with)\n                (NP (DT another) (NN account)))\n              (SBAR (IN for)\n                (S\n                  (NP\n                    (NP (DT the) (NNS purposes))\n                    (PP (IN of)))\n                  (VP (VBP skip)\n                    (S\n                      (VP (VBG tracing)))))))))))\n    (, ,)\n    (NP\n      (NP (DT the) (NN chance))\n      (PP (IN of)\n        (NP (NN repeat))))\n    (VP (VBZ calls)\n      (PP (IN in)\n        (NP (JJ urban) (NNS centers)))\n      (S\n        (VP (VBG harassing)\n          (SBAR\n            (S\n              (NP\n                (NP (JJ certain) (NNS members))\n                (PP (IN of)\n                  (NP (DT the) (NN public))))\n              (VP (VBZ is)\n                (ADJP (JJ plausible))\n                (SBAR (IN as)\n                  (S\n                    (NP\n                      (NP (DT the) (JJ only) (NNS numbers))\n                      (SBAR\n                        (WHNP (WDT that))\n                        (S\n                          (VP (VBP are)\n                            (VP (VBN held)\n                              (ADVP (RB consistently))\n                              (PP (IN in)\n                                (NP\n                                  (NP (DT the) (NN database))\n                                  (PP (IN afaik) (`` ``)\n                                    (FRAG\n                                      (PP (IN By))\n                                      (NP (NN Law)))\n                                    ('' '')))))))))\n                    (VP (VBP are)\n                      (VP (VBN verified)\n                        (CC and)\n                        (VBN confirmed)\n                        (NP (NNS numbers))))))))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "call"
+        },
+        {
+          "dep": "mark",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 2,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 3,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 5,
+          "dependentGloss": "Do"
+        },
+        {
+          "dep": "neg",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 6,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 8,
+          "dependentGloss": "flagged"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 9,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "dobj",
+          "governor": 8,
+          "governorGloss": "flagged",
+          "dependent": 10,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 11,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 12,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nummod",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 13,
+          "dependentGloss": "one"
+        },
+        {
+          "dep": "nmod",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 14,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 15,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 16,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 17,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 18,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "cop",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "`"
+        },
+        {
+          "dep": "dep",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 22,
+          "dependentGloss": "ed"
+        },
+        {
+          "dep": "case",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 23,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 24,
+          "dependentGloss": "another"
+        },
+        {
+          "dep": "nmod",
+          "governor": 22,
+          "governorGloss": "ed",
+          "dependent": 25,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "case",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 26,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "det",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 27,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 28,
+          "dependentGloss": "purposes"
+        },
+        {
+          "dep": "case",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 29,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 30,
+          "dependentGloss": "skip"
+        },
+        {
+          "dep": "dep",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 31,
+          "dependentGloss": "tracing"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 32,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "det",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 33,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 34,
+          "dependentGloss": "chance"
+        },
+        {
+          "dep": "case",
+          "governor": 36,
+          "governorGloss": "repeat",
+          "dependent": 35,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 36,
+          "dependentGloss": "repeat"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 37,
+          "dependentGloss": "calls"
+        },
+        {
+          "dep": "case",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 38,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "amod",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 39,
+          "dependentGloss": "urban"
+        },
+        {
+          "dep": "nmod",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 40,
+          "dependentGloss": "centers"
+        },
+        {
+          "dep": "acl",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 41,
+          "dependentGloss": "harassing"
+        },
+        {
+          "dep": "amod",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 42,
+          "dependentGloss": "certain"
+        },
+        {
+          "dep": "dobj",
+          "governor": 41,
+          "governorGloss": "harassing",
+          "dependent": 43,
+          "dependentGloss": "members"
+        },
+        {
+          "dep": "case",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 44,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 45,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 46,
+          "dependentGloss": "public"
+        },
+        {
+          "dep": "cop",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 47,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 48,
+          "dependentGloss": "plausible"
+        },
+        {
+          "dep": "case",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 49,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "det",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 50,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 51,
+          "dependentGloss": "only"
+        },
+        {
+          "dep": "nmod",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 52,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 53,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 54,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 55,
+          "dependentGloss": "held"
+        },
+        {
+          "dep": "advmod",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 56,
+          "dependentGloss": "consistently"
+        },
+        {
+          "dep": "case",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 57,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 58,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 59,
+          "dependentGloss": "database"
+        },
+        {
+          "dep": "amod",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 60,
+          "dependentGloss": "afaik"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 61,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "case",
+          "governor": 63,
+          "governorGloss": "Law",
+          "dependent": 62,
+          "dependentGloss": "By"
+        },
+        {
+          "dep": "nmod",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 63,
+          "dependentGloss": "Law"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 64,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 65,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "ccomp",
+          "governor": 60,
+          "governorGloss": "afaik",
+          "dependent": 66,
+          "dependentGloss": "verified"
+        },
+        {
+          "dep": "cc",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 67,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "conj",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 68,
+          "dependentGloss": "confirmed"
+        },
+        {
+          "dep": "dobj",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 69,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 70,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "call"
+        },
+        {
+          "dep": "mark",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 2,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 3,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 5,
+          "dependentGloss": "Do"
+        },
+        {
+          "dep": "neg",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 6,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 8,
+          "dependentGloss": "flagged"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 9,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "dobj",
+          "governor": 8,
+          "governorGloss": "flagged",
+          "dependent": 10,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 11,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 12,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nummod",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 13,
+          "dependentGloss": "one"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 14,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 15,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 16,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 17,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 18,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "cop",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "`"
+        },
+        {
+          "dep": "dep",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 22,
+          "dependentGloss": "ed"
+        },
+        {
+          "dep": "case",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 23,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 24,
+          "dependentGloss": "another"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 22,
+          "governorGloss": "ed",
+          "dependent": 25,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "case",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 26,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "det",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 27,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 28,
+          "dependentGloss": "purposes"
+        },
+        {
+          "dep": "case",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 29,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 30,
+          "dependentGloss": "skip"
+        },
+        {
+          "dep": "dep",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 31,
+          "dependentGloss": "tracing"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 32,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "det",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 33,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 34,
+          "dependentGloss": "chance"
+        },
+        {
+          "dep": "case",
+          "governor": 36,
+          "governorGloss": "repeat",
+          "dependent": 35,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 36,
+          "dependentGloss": "repeat"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 37,
+          "dependentGloss": "calls"
+        },
+        {
+          "dep": "case",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 38,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "amod",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 39,
+          "dependentGloss": "urban"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 40,
+          "dependentGloss": "centers"
+        },
+        {
+          "dep": "acl",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 41,
+          "dependentGloss": "harassing"
+        },
+        {
+          "dep": "amod",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 42,
+          "dependentGloss": "certain"
+        },
+        {
+          "dep": "dobj",
+          "governor": 41,
+          "governorGloss": "harassing",
+          "dependent": 43,
+          "dependentGloss": "members"
+        },
+        {
+          "dep": "case",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 44,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 45,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 46,
+          "dependentGloss": "public"
+        },
+        {
+          "dep": "cop",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 47,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 48,
+          "dependentGloss": "plausible"
+        },
+        {
+          "dep": "case",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 49,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "det",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 50,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 51,
+          "dependentGloss": "only"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 52,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 53,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 54,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 55,
+          "dependentGloss": "held"
+        },
+        {
+          "dep": "advmod",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 56,
+          "dependentGloss": "consistently"
+        },
+        {
+          "dep": "case",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 57,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 58,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 59,
+          "dependentGloss": "database"
+        },
+        {
+          "dep": "amod",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 60,
+          "dependentGloss": "afaik"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 61,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "case",
+          "governor": 63,
+          "governorGloss": "Law",
+          "dependent": 62,
+          "dependentGloss": "By"
+        },
+        {
+          "dep": "nmod:agent",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 63,
+          "dependentGloss": "Law"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 64,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 65,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "ccomp",
+          "governor": 60,
+          "governorGloss": "afaik",
+          "dependent": 66,
+          "dependentGloss": "verified"
+        },
+        {
+          "dep": "cc",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 67,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 68,
+          "dependentGloss": "confirmed"
+        },
+        {
+          "dep": "dobj",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 69,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 70,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 7,
+          "dependentGloss": "call"
+        },
+        {
+          "dep": "mark",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 1,
+          "dependentGloss": "As"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 2,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 3,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 4,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "aux",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 5,
+          "dependentGloss": "Do"
+        },
+        {
+          "dep": "neg",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 6,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "xcomp",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 8,
+          "dependentGloss": "flagged"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 9,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "dobj",
+          "governor": 8,
+          "governorGloss": "flagged",
+          "dependent": 10,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 11,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 12,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "nummod",
+          "governor": 14,
+          "governorGloss": "account",
+          "dependent": 13,
+          "dependentGloss": "one"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 14,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "punct",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 15,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "nsubj",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 16,
+          "dependentGloss": "they"
+        },
+        {
+          "dep": "aux",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 17,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 18,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "cop",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 19,
+          "dependentGloss": "be"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 20,
+          "dependentGloss": "DNC"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 21,
+          "dependentGloss": "`"
+        },
+        {
+          "dep": "dep",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 22,
+          "dependentGloss": "ed"
+        },
+        {
+          "dep": "case",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 23,
+          "dependentGloss": "with"
+        },
+        {
+          "dep": "det",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 24,
+          "dependentGloss": "another"
+        },
+        {
+          "dep": "nmod:with",
+          "governor": 22,
+          "governorGloss": "ed",
+          "dependent": 25,
+          "dependentGloss": "account"
+        },
+        {
+          "dep": "case",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 26,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "det",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 27,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 25,
+          "governorGloss": "account",
+          "dependent": 28,
+          "dependentGloss": "purposes"
+        },
+        {
+          "dep": "case",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 29,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 28,
+          "governorGloss": "purposes",
+          "dependent": 30,
+          "dependentGloss": "skip"
+        },
+        {
+          "dep": "dep",
+          "governor": 30,
+          "governorGloss": "skip",
+          "dependent": 31,
+          "dependentGloss": "tracing"
+        },
+        {
+          "dep": "punct",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 32,
+          "dependentGloss": ","
+        },
+        {
+          "dep": "det",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 33,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 34,
+          "dependentGloss": "chance"
+        },
+        {
+          "dep": "case",
+          "governor": 36,
+          "governorGloss": "repeat",
+          "dependent": 35,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 34,
+          "governorGloss": "chance",
+          "dependent": 36,
+          "dependentGloss": "repeat"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 20,
+          "governorGloss": "DNC",
+          "dependent": 37,
+          "dependentGloss": "calls"
+        },
+        {
+          "dep": "case",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 38,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "amod",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 39,
+          "dependentGloss": "urban"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 37,
+          "governorGloss": "calls",
+          "dependent": 40,
+          "dependentGloss": "centers"
+        },
+        {
+          "dep": "acl",
+          "governor": 40,
+          "governorGloss": "centers",
+          "dependent": 41,
+          "dependentGloss": "harassing"
+        },
+        {
+          "dep": "amod",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 42,
+          "dependentGloss": "certain"
+        },
+        {
+          "dep": "dobj",
+          "governor": 41,
+          "governorGloss": "harassing",
+          "dependent": 43,
+          "dependentGloss": "members"
+        },
+        {
+          "dep": "case",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 44,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "det",
+          "governor": 46,
+          "governorGloss": "public",
+          "dependent": 45,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 43,
+          "governorGloss": "members",
+          "dependent": 46,
+          "dependentGloss": "public"
+        },
+        {
+          "dep": "cop",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 47,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 10,
+          "governorGloss": "DNC",
+          "dependent": 48,
+          "dependentGloss": "plausible"
+        },
+        {
+          "dep": "case",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 49,
+          "dependentGloss": "as"
+        },
+        {
+          "dep": "det",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 50,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 51,
+          "dependentGloss": "only"
+        },
+        {
+          "dep": "nmod:as",
+          "governor": 48,
+          "governorGloss": "plausible",
+          "dependent": 52,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "nsubjpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 53,
+          "dependentGloss": "that"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 54,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "acl:relcl",
+          "governor": 52,
+          "governorGloss": "numbers",
+          "dependent": 55,
+          "dependentGloss": "held"
+        },
+        {
+          "dep": "advmod",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 56,
+          "dependentGloss": "consistently"
+        },
+        {
+          "dep": "case",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 57,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "det",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 58,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 55,
+          "governorGloss": "held",
+          "dependent": 59,
+          "dependentGloss": "database"
+        },
+        {
+          "dep": "amod",
+          "governor": 59,
+          "governorGloss": "database",
+          "dependent": 60,
+          "dependentGloss": "afaik"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 61,
+          "dependentGloss": "``"
+        },
+        {
+          "dep": "case",
+          "governor": 63,
+          "governorGloss": "Law",
+          "dependent": 62,
+          "dependentGloss": "By"
+        },
+        {
+          "dep": "nmod:agent",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 63,
+          "dependentGloss": "Law"
+        },
+        {
+          "dep": "punct",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 64,
+          "dependentGloss": "''"
+        },
+        {
+          "dep": "auxpass",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 65,
+          "dependentGloss": "are"
+        },
+        {
+          "dep": "ccomp",
+          "governor": 60,
+          "governorGloss": "afaik",
+          "dependent": 66,
+          "dependentGloss": "verified"
+        },
+        {
+          "dep": "cc",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 67,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "ccomp",
+          "governor": 60,
+          "governorGloss": "afaik",
+          "dependent": 68,
+          "dependentGloss": "confirmed"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 68,
+          "dependentGloss": "confirmed"
+        },
+        {
+          "dep": "dobj",
+          "governor": 66,
+          "governorGloss": "verified",
+          "dependent": 69,
+          "dependentGloss": "numbers"
+        },
+        {
+          "dep": "punct",
+          "governor": 7,
+          "governorGloss": "call",
+          "dependent": 70,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "As",
+          "originalText": "As",
+          "lemma": "as",
+          "characterOffsetBegin": 165,
+          "characterOffsetEnd": 167,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "they",
+          "originalText": "they",
+          "lemma": "they",
+          "characterOffsetBegin": 168,
+          "characterOffsetEnd": 172,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "will",
+          "originalText": "will",
+          "lemma": "will",
+          "characterOffsetBegin": 173,
+          "characterOffsetEnd": 177,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "be",
+          "originalText": "be",
+          "lemma": "be",
+          "characterOffsetBegin": 178,
+          "characterOffsetEnd": 180,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "Do",
+          "originalText": "Do",
+          "lemma": "do",
+          "characterOffsetBegin": 181,
+          "characterOffsetEnd": 183,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "not",
+          "originalText": "not",
+          "lemma": "not",
+          "characterOffsetBegin": 184,
+          "characterOffsetEnd": 187,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "call",
+          "originalText": "call",
+          "lemma": "call",
+          "characterOffsetBegin": 188,
+          "characterOffsetEnd": 192,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "flagged",
+          "originalText": "flagged",
+          "lemma": "flag",
+          "characterOffsetBegin": 193,
+          "characterOffsetEnd": 200,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "``",
+          "originalText": "\"",
+          "lemma": "``",
+          "characterOffsetBegin": 201,
+          "characterOffsetEnd": 202,
+          "pos": "``",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 10,
+          "word": "DNC",
+          "originalText": "DNC",
+          "lemma": "DNC",
+          "characterOffsetBegin": 202,
+          "characterOffsetEnd": 205,
+          "pos": "NNP",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        },
+        {
+          "index": 11,
+          "word": "''",
+          "originalText": "\"",
+          "lemma": "''",
+          "characterOffsetBegin": 205,
+          "characterOffsetEnd": 206,
+          "pos": "''",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 207,
+          "characterOffsetEnd": 211,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "one",
+          "originalText": "one",
+          "lemma": "one",
+          "characterOffsetBegin": 212,
+          "characterOffsetEnd": 215,
+          "pos": "CD",
+          "ner": "NUMBER",
+          "normalizedNER": "1.0",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "account",
+          "originalText": "account",
+          "lemma": "account",
+          "characterOffsetBegin": 216,
+          "characterOffsetEnd": 223,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 15,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 223,
+          "characterOffsetEnd": 224,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 16,
+          "word": "they",
+          "originalText": "they",
+          "lemma": "they",
+          "characterOffsetBegin": 225,
+          "characterOffsetEnd": 229,
+          "pos": "PRP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 17,
+          "word": "will",
+          "originalText": "will",
+          "lemma": "will",
+          "characterOffsetBegin": 230,
+          "characterOffsetEnd": 234,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 18,
+          "word": "not",
+          "originalText": "not",
+          "lemma": "not",
+          "characterOffsetBegin": 235,
+          "characterOffsetEnd": 238,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 19,
+          "word": "be",
+          "originalText": "be",
+          "lemma": "be",
+          "characterOffsetBegin": 239,
+          "characterOffsetEnd": 241,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 20,
+          "word": "DNC",
+          "originalText": "DNC",
+          "lemma": "DNC",
+          "characterOffsetBegin": 242,
+          "characterOffsetEnd": 245,
+          "pos": "NNP",
+          "ner": "ORGANIZATION",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 21,
+          "word": "`",
+          "originalText": "'",
+          "lemma": "`",
+          "characterOffsetBegin": 245,
+          "characterOffsetEnd": 246,
+          "pos": "``",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        },
+        {
+          "index": 22,
+          "word": "ed",
+          "originalText": "ed",
+          "lemma": "ed",
+          "characterOffsetBegin": 246,
+          "characterOffsetEnd": 248,
+          "pos": "VBN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 23,
+          "word": "with",
+          "originalText": "with",
+          "lemma": "with",
+          "characterOffsetBegin": 249,
+          "characterOffsetEnd": 253,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 24,
+          "word": "another",
+          "originalText": "another",
+          "lemma": "another",
+          "characterOffsetBegin": 254,
+          "characterOffsetEnd": 261,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 25,
+          "word": "account",
+          "originalText": "account",
+          "lemma": "account",
+          "characterOffsetBegin": 262,
+          "characterOffsetEnd": 269,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 26,
+          "word": "for",
+          "originalText": "for",
+          "lemma": "for",
+          "characterOffsetBegin": 270,
+          "characterOffsetEnd": 273,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 27,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 274,
+          "characterOffsetEnd": 277,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 28,
+          "word": "purposes",
+          "originalText": "purposes",
+          "lemma": "purpose",
+          "characterOffsetBegin": 278,
+          "characterOffsetEnd": 286,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 29,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 287,
+          "characterOffsetEnd": 289,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 30,
+          "word": "skip",
+          "originalText": "skip",
+          "lemma": "skip",
+          "characterOffsetBegin": 290,
+          "characterOffsetEnd": 294,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 31,
+          "word": "tracing",
+          "originalText": "tracing",
+          "lemma": "trace",
+          "characterOffsetBegin": 295,
+          "characterOffsetEnd": 302,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 32,
+          "word": ",",
+          "originalText": ",",
+          "lemma": ",",
+          "characterOffsetBegin": 302,
+          "characterOffsetEnd": 303,
+          "pos": ",",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 33,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 304,
+          "characterOffsetEnd": 307,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 34,
+          "word": "chance",
+          "originalText": "chance",
+          "lemma": "chance",
+          "characterOffsetBegin": 308,
+          "characterOffsetEnd": 314,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 35,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 315,
+          "characterOffsetEnd": 317,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 36,
+          "word": "repeat",
+          "originalText": "repeat",
+          "lemma": "repeat",
+          "characterOffsetBegin": 318,
+          "characterOffsetEnd": 324,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 37,
+          "word": "calls",
+          "originalText": "calls",
+          "lemma": "call",
+          "characterOffsetBegin": 325,
+          "characterOffsetEnd": 330,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 38,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 331,
+          "characterOffsetEnd": 333,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 39,
+          "word": "urban",
+          "originalText": "urban",
+          "lemma": "urban",
+          "characterOffsetBegin": 334,
+          "characterOffsetEnd": 339,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 40,
+          "word": "centers",
+          "originalText": "centers",
+          "lemma": "center",
+          "characterOffsetBegin": 340,
+          "characterOffsetEnd": 347,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 41,
+          "word": "harassing",
+          "originalText": "harassing",
+          "lemma": "harass",
+          "characterOffsetBegin": 348,
+          "characterOffsetEnd": 357,
+          "pos": "VBG",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 42,
+          "word": "certain",
+          "originalText": "certain",
+          "lemma": "certain",
+          "characterOffsetBegin": 358,
+          "characterOffsetEnd": 365,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 43,
+          "word": "members",
+          "originalText": "members",
+          "lemma": "member",
+          "characterOffsetBegin": 366,
+          "characterOffsetEnd": 373,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 44,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 374,
+          "characterOffsetEnd": 376,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 45,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 377,
+          "characterOffsetEnd": 380,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 46,
+          "word": "public",
+          "originalText": "public",
+          "lemma": "public",
+          "characterOffsetBegin": 381,
+          "characterOffsetEnd": 387,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 47,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 388,
+          "characterOffsetEnd": 390,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 48,
+          "word": "plausible",
+          "originalText": "plausible",
+          "lemma": "plausible",
+          "characterOffsetBegin": 391,
+          "characterOffsetEnd": 400,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": "  "
+        },
+        {
+          "index": 49,
+          "word": "as",
+          "originalText": "as",
+          "lemma": "as",
+          "characterOffsetBegin": 402,
+          "characterOffsetEnd": 404,
+          "pos": "IN",
+          "ner": "O",
+          "before": "  ",
+          "after": " "
+        },
+        {
+          "index": 50,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 405,
+          "characterOffsetEnd": 408,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 51,
+          "word": "only",
+          "originalText": "only",
+          "lemma": "only",
+          "characterOffsetBegin": 409,
+          "characterOffsetEnd": 413,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 52,
+          "word": "numbers",
+          "originalText": "numbers",
+          "lemma": "number",
+          "characterOffsetBegin": 414,
+          "characterOffsetEnd": 421,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 53,
+          "word": "that",
+          "originalText": "that",
+          "lemma": "that",
+          "characterOffsetBegin": 422,
+          "characterOffsetEnd": 426,
+          "pos": "WDT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 54,
+          "word": "are",
+          "originalText": "are",
+          "lemma": "be",
+          "characterOffsetBegin": 427,
+          "characterOffsetEnd": 430,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 55,
+          "word": "held",
+          "originalText": "held",
+          "lemma": "hold",
+          "characterOffsetBegin": 431,
+          "characterOffsetEnd": 435,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 56,
+          "word": "consistently",
+          "originalText": "consistently",
+          "lemma": "consistently",
+          "characterOffsetBegin": 436,
+          "characterOffsetEnd": 448,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 57,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 449,
+          "characterOffsetEnd": 451,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 58,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 452,
+          "characterOffsetEnd": 455,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 59,
+          "word": "database",
+          "originalText": "database",
+          "lemma": "database",
+          "characterOffsetBegin": 456,
+          "characterOffsetEnd": 464,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 60,
+          "word": "afaik",
+          "originalText": "afaik",
+          "lemma": "afaik",
+          "characterOffsetBegin": 465,
+          "characterOffsetEnd": 470,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 61,
+          "word": "``",
+          "originalText": "\"",
+          "lemma": "``",
+          "characterOffsetBegin": 471,
+          "characterOffsetEnd": 472,
+          "pos": "``",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 62,
+          "word": "By",
+          "originalText": "By",
+          "lemma": "by",
+          "characterOffsetBegin": 472,
+          "characterOffsetEnd": 474,
+          "pos": "IN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 63,
+          "word": "Law",
+          "originalText": "Law",
+          "lemma": "law",
+          "characterOffsetBegin": 475,
+          "characterOffsetEnd": 478,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 64,
+          "word": "''",
+          "originalText": "\"",
+          "lemma": "''",
+          "characterOffsetBegin": 478,
+          "characterOffsetEnd": 479,
+          "pos": "''",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 65,
+          "word": "are",
+          "originalText": "are",
+          "lemma": "be",
+          "characterOffsetBegin": 480,
+          "characterOffsetEnd": 483,
+          "pos": "VBP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 66,
+          "word": "verified",
+          "originalText": "verified",
+          "lemma": "verify",
+          "characterOffsetBegin": 484,
+          "characterOffsetEnd": 492,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 67,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 493,
+          "characterOffsetEnd": 496,
+          "pos": "CC",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 68,
+          "word": "confirmed",
+          "originalText": "confirmed",
+          "lemma": "confirm",
+          "characterOffsetBegin": 497,
+          "characterOffsetEnd": 506,
+          "pos": "VBN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 69,
+          "word": "numbers",
+          "originalText": "numbers",
+          "lemma": "number",
+          "characterOffsetBegin": 507,
+          "characterOffsetEnd": 514,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 70,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 514,
+          "characterOffsetEnd": 515,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

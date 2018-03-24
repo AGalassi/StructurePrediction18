@@ -1,0 +1,791 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (NNS Texts))\n    (VP (MD will) (RB not)\n      (VP (VB work)\n        (PP (IN for)\n          (NP (NNS consumers)))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 1,
+          "dependentGloss": "Texts"
+        },
+        {
+          "dep": "aux",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 3,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "consumers",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 6,
+          "dependentGloss": "consumers"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 1,
+          "dependentGloss": "Texts"
+        },
+        {
+          "dep": "aux",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 3,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "consumers",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 6,
+          "dependentGloss": "consumers"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 4,
+          "dependentGloss": "work"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 1,
+          "dependentGloss": "Texts"
+        },
+        {
+          "dep": "aux",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 2,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "neg",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 3,
+          "dependentGloss": "not"
+        },
+        {
+          "dep": "case",
+          "governor": 6,
+          "governorGloss": "consumers",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 6,
+          "dependentGloss": "consumers"
+        },
+        {
+          "dep": "punct",
+          "governor": 4,
+          "governorGloss": "work",
+          "dependent": 7,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Texts",
+          "originalText": "Texts",
+          "lemma": "text",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 5,
+          "pos": "NNS",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "will",
+          "originalText": "will",
+          "lemma": "will",
+          "characterOffsetBegin": 6,
+          "characterOffsetEnd": 10,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "not",
+          "originalText": "not",
+          "lemma": "not",
+          "characterOffsetBegin": 11,
+          "characterOffsetEnd": 14,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "work",
+          "originalText": "work",
+          "lemma": "work",
+          "characterOffsetBegin": 15,
+          "characterOffsetEnd": 19,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "for",
+          "originalText": "for",
+          "lemma": "for",
+          "characterOffsetBegin": 20,
+          "characterOffsetEnd": 23,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "consumers",
+          "originalText": "consumers",
+          "lemma": "consumer",
+          "characterOffsetBegin": 24,
+          "characterOffsetEnd": 33,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 7,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 33,
+          "characterOffsetEnd": 34,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "parse": "(ROOT\n  (S\n    (S\n      (NP (NNS Consumers))\n      (VP (MD must)\n        (VP (VB pay)\n          (PP (IN for)\n            (NP (NNS texts))))))\n    (CC and)\n    (S\n      (NP (DT this))\n      (VP (VBZ is)\n        (ADVP (RB already))\n        (PP (IN against)\n          (NP\n            (NP (DT the) (NN law))\n            (SBAR\n              (S\n                (VP (MD will)\n                  (ADVP (RB rightly) (RB so)))))))))\n    (. .)))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "pay"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 1,
+          "dependentGloss": "Consumers"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 2,
+          "dependentGloss": "must"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "texts",
+          "dependent": 4,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 5,
+          "dependentGloss": "texts"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 6,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 7,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "cop",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 9,
+          "dependentGloss": "already"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 10,
+          "dependentGloss": "against"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "conj",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 12,
+          "dependentGloss": "law"
+        },
+        {
+          "dep": "aux",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 13,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "advmod",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 14,
+          "dependentGloss": "rightly"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 15,
+          "dependentGloss": "so"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 16,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "pay"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 1,
+          "dependentGloss": "Consumers"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 2,
+          "dependentGloss": "must"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "texts",
+          "dependent": 4,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 5,
+          "dependentGloss": "texts"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 6,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 7,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "cop",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 9,
+          "dependentGloss": "already"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 10,
+          "dependentGloss": "against"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 12,
+          "dependentGloss": "law"
+        },
+        {
+          "dep": "aux",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 13,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "advmod",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 14,
+          "dependentGloss": "rightly"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 15,
+          "dependentGloss": "so"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 16,
+          "dependentGloss": "."
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 3,
+          "dependentGloss": "pay"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 1,
+          "dependentGloss": "Consumers"
+        },
+        {
+          "dep": "aux",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 2,
+          "dependentGloss": "must"
+        },
+        {
+          "dep": "case",
+          "governor": 5,
+          "governorGloss": "texts",
+          "dependent": 4,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 5,
+          "dependentGloss": "texts"
+        },
+        {
+          "dep": "cc",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 6,
+          "dependentGloss": "and"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 7,
+          "dependentGloss": "this"
+        },
+        {
+          "dep": "cop",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 8,
+          "dependentGloss": "is"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 9,
+          "dependentGloss": "already"
+        },
+        {
+          "dep": "case",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 10,
+          "dependentGloss": "against"
+        },
+        {
+          "dep": "det",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 11,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "conj:and",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 12,
+          "dependentGloss": "law"
+        },
+        {
+          "dep": "aux",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 13,
+          "dependentGloss": "will"
+        },
+        {
+          "dep": "advmod",
+          "governor": 15,
+          "governorGloss": "so",
+          "dependent": 14,
+          "dependentGloss": "rightly"
+        },
+        {
+          "dep": "advmod",
+          "governor": 12,
+          "governorGloss": "law",
+          "dependent": 15,
+          "dependentGloss": "so"
+        },
+        {
+          "dep": "punct",
+          "governor": 3,
+          "governorGloss": "pay",
+          "dependent": 16,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Consumers",
+          "originalText": "Consumers",
+          "lemma": "consumer",
+          "characterOffsetBegin": 35,
+          "characterOffsetEnd": 44,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "must",
+          "originalText": "must",
+          "lemma": "must",
+          "characterOffsetBegin": 45,
+          "characterOffsetEnd": 49,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "pay",
+          "originalText": "pay",
+          "lemma": "pay",
+          "characterOffsetBegin": 50,
+          "characterOffsetEnd": 53,
+          "pos": "VB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "for",
+          "originalText": "for",
+          "lemma": "for",
+          "characterOffsetBegin": 54,
+          "characterOffsetEnd": 57,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "texts",
+          "originalText": "texts",
+          "lemma": "text",
+          "characterOffsetBegin": 58,
+          "characterOffsetEnd": 63,
+          "pos": "NNS",
+          "ner": "O",
+          "before": " ",
+          "after": "  "
+        },
+        {
+          "index": 6,
+          "word": "and",
+          "originalText": "and",
+          "lemma": "and",
+          "characterOffsetBegin": 65,
+          "characterOffsetEnd": 68,
+          "pos": "CC",
+          "ner": "O",
+          "before": "  ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "this",
+          "originalText": "this",
+          "lemma": "this",
+          "characterOffsetBegin": 69,
+          "characterOffsetEnd": 73,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "is",
+          "originalText": "is",
+          "lemma": "be",
+          "characterOffsetBegin": 74,
+          "characterOffsetEnd": 76,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "already",
+          "originalText": "already",
+          "lemma": "already",
+          "characterOffsetBegin": 77,
+          "characterOffsetEnd": 84,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "against",
+          "originalText": "against",
+          "lemma": "against",
+          "characterOffsetBegin": 85,
+          "characterOffsetEnd": 92,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 93,
+          "characterOffsetEnd": 96,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "law",
+          "originalText": "law",
+          "lemma": "law",
+          "characterOffsetBegin": 97,
+          "characterOffsetEnd": 100,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "will",
+          "originalText": "will",
+          "lemma": "will",
+          "characterOffsetBegin": 101,
+          "characterOffsetEnd": 105,
+          "pos": "MD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "rightly",
+          "originalText": "rightly",
+          "lemma": "rightly",
+          "characterOffsetBegin": 106,
+          "characterOffsetEnd": 113,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "so",
+          "originalText": "so",
+          "lemma": "so",
+          "characterOffsetBegin": 114,
+          "characterOffsetEnd": 116,
+          "pos": "RB",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 16,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 116,
+          "characterOffsetEnd": 117,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

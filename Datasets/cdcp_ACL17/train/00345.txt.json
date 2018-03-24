@@ -1,0 +1,586 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (NN Identity) (NN Theft))\n    (VP (VBZ Tops)\n      (SBAR\n        (S\n          (NP\n            (NP (NN List))\n            (PP (IN for)\n              (NP\n                (NP (JJ 13th) (JJ Consecutive) (NN Year))\n                (PP (IN in)\n                  (NP\n                    (NP (NNP Report))\n                    (PP (IN of)\n                      (NP (NNP National) (NNP Consumer) (NNP Complaints))))))))\n          (VP (VBD __)\n            (NP (NN URL))\n            (PP (IN __))))))))",
+      "basic-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 15,
+          "dependentGloss": "__"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Theft",
+          "dependent": 1,
+          "dependentGloss": "Identity"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 2,
+          "dependentGloss": "Theft"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 3,
+          "dependentGloss": "Tops"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 4,
+          "dependentGloss": "List"
+        },
+        {
+          "dep": "case",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 6,
+          "dependentGloss": "13th"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 7,
+          "dependentGloss": "Consecutive"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 8,
+          "dependentGloss": "Year"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 9,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 10,
+          "dependentGloss": "Report"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 11,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 12,
+          "dependentGloss": "National"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 13,
+          "dependentGloss": "Consumer"
+        },
+        {
+          "dep": "nmod",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 14,
+          "dependentGloss": "Complaints"
+        },
+        {
+          "dep": "dobj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 16,
+          "dependentGloss": "URL"
+        },
+        {
+          "dep": "dep",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 17,
+          "dependentGloss": "__"
+        }
+      ],
+      "collapsed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 15,
+          "dependentGloss": "__"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Theft",
+          "dependent": 1,
+          "dependentGloss": "Identity"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 2,
+          "dependentGloss": "Theft"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 3,
+          "dependentGloss": "Tops"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 4,
+          "dependentGloss": "List"
+        },
+        {
+          "dep": "case",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 6,
+          "dependentGloss": "13th"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 7,
+          "dependentGloss": "Consecutive"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 8,
+          "dependentGloss": "Year"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 9,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 10,
+          "dependentGloss": "Report"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 11,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 12,
+          "dependentGloss": "National"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 13,
+          "dependentGloss": "Consumer"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 14,
+          "dependentGloss": "Complaints"
+        },
+        {
+          "dep": "dobj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 16,
+          "dependentGloss": "URL"
+        },
+        {
+          "dep": "dep",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 17,
+          "dependentGloss": "__"
+        }
+      ],
+      "collapsed-ccprocessed-dependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 15,
+          "dependentGloss": "__"
+        },
+        {
+          "dep": "compound",
+          "governor": 2,
+          "governorGloss": "Theft",
+          "dependent": 1,
+          "dependentGloss": "Identity"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 2,
+          "dependentGloss": "Theft"
+        },
+        {
+          "dep": "compound",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 3,
+          "dependentGloss": "Tops"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 4,
+          "dependentGloss": "List"
+        },
+        {
+          "dep": "case",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 5,
+          "dependentGloss": "for"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 6,
+          "dependentGloss": "13th"
+        },
+        {
+          "dep": "amod",
+          "governor": 8,
+          "governorGloss": "Year",
+          "dependent": 7,
+          "dependentGloss": "Consecutive"
+        },
+        {
+          "dep": "nmod:for",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 8,
+          "dependentGloss": "Year"
+        },
+        {
+          "dep": "case",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 9,
+          "dependentGloss": "in"
+        },
+        {
+          "dep": "nmod:in",
+          "governor": 4,
+          "governorGloss": "List",
+          "dependent": 10,
+          "dependentGloss": "Report"
+        },
+        {
+          "dep": "case",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 11,
+          "dependentGloss": "of"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 12,
+          "dependentGloss": "National"
+        },
+        {
+          "dep": "compound",
+          "governor": 14,
+          "governorGloss": "Complaints",
+          "dependent": 13,
+          "dependentGloss": "Consumer"
+        },
+        {
+          "dep": "nmod:of",
+          "governor": 10,
+          "governorGloss": "Report",
+          "dependent": 14,
+          "dependentGloss": "Complaints"
+        },
+        {
+          "dep": "dobj",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 16,
+          "dependentGloss": "URL"
+        },
+        {
+          "dep": "dep",
+          "governor": 15,
+          "governorGloss": "__",
+          "dependent": 17,
+          "dependentGloss": "__"
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "tokens": [
+        {
+          "index": 1,
+          "word": "Identity",
+          "originalText": "Identity",
+          "lemma": "identity",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 8,
+          "pos": "NN",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "Theft",
+          "originalText": "Theft",
+          "lemma": "theft",
+          "characterOffsetBegin": 9,
+          "characterOffsetEnd": 14,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "Tops",
+          "originalText": "Tops",
+          "lemma": "top",
+          "characterOffsetBegin": 15,
+          "characterOffsetEnd": 19,
+          "pos": "VBZ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "List",
+          "originalText": "List",
+          "lemma": "list",
+          "characterOffsetBegin": 20,
+          "characterOffsetEnd": 24,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "for",
+          "originalText": "for",
+          "lemma": "for",
+          "characterOffsetBegin": 25,
+          "characterOffsetEnd": 28,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "13th",
+          "originalText": "13th",
+          "lemma": "13th",
+          "characterOffsetBegin": 29,
+          "characterOffsetEnd": 33,
+          "pos": "JJ",
+          "ner": "ORDINAL",
+          "normalizedNER": "13.0",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "Consecutive",
+          "originalText": "Consecutive",
+          "lemma": "consecutive",
+          "characterOffsetBegin": 34,
+          "characterOffsetEnd": 45,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "Year",
+          "originalText": "Year",
+          "lemma": "year",
+          "characterOffsetBegin": 46,
+          "characterOffsetEnd": 50,
+          "pos": "NN",
+          "ner": "DURATION",
+          "normalizedNER": "P1Y",
+          "before": " ",
+          "after": " ",
+          "timex": {
+            "tid": "t1",
+            "type": "DURATION",
+            "value": "P1Y"
+          }
+        },
+        {
+          "index": 9,
+          "word": "in",
+          "originalText": "in",
+          "lemma": "in",
+          "characterOffsetBegin": 51,
+          "characterOffsetEnd": 53,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 10,
+          "word": "Report",
+          "originalText": "Report",
+          "lemma": "Report",
+          "characterOffsetBegin": 54,
+          "characterOffsetEnd": 60,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 11,
+          "word": "of",
+          "originalText": "of",
+          "lemma": "of",
+          "characterOffsetBegin": 61,
+          "characterOffsetEnd": 63,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 12,
+          "word": "National",
+          "originalText": "National",
+          "lemma": "National",
+          "characterOffsetBegin": 64,
+          "characterOffsetEnd": 72,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 13,
+          "word": "Consumer",
+          "originalText": "Consumer",
+          "lemma": "Consumer",
+          "characterOffsetBegin": 73,
+          "characterOffsetEnd": 81,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 14,
+          "word": "Complaints",
+          "originalText": "Complaints",
+          "lemma": "Complaints",
+          "characterOffsetBegin": 82,
+          "characterOffsetEnd": 92,
+          "pos": "NNP",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 15,
+          "word": "__",
+          "originalText": "__",
+          "lemma": "__",
+          "characterOffsetBegin": 93,
+          "characterOffsetEnd": 95,
+          "pos": "VBD",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 16,
+          "word": "URL",
+          "originalText": "URL",
+          "lemma": "url",
+          "characterOffsetBegin": 95,
+          "characterOffsetEnd": 98,
+          "pos": "NN",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        },
+        {
+          "index": 17,
+          "word": "__",
+          "originalText": "__",
+          "lemma": "__",
+          "characterOffsetBegin": 98,
+          "characterOffsetEnd": 100,
+          "pos": "IN",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}
