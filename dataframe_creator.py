@@ -4,11 +4,6 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-dataset_type = 'test'
-link_types = ['evidences', 'reasons']
-
-dataset_name = 'cdcp_ACL17'
-dataset_path = os.path.join(os.getcwd(),'Datasets', dataset_name)
 
 def split_propositions(text, propositions_offsets):
     propositions = []
@@ -16,8 +11,9 @@ def split_propositions(text, propositions_offsets):
         propositions.append(text[offsets[0]:offsets[1]])
     return propositions
 
+
 def create_dataset_pickle(dataset_path, link_types, dataset_type='train'):
-    data_path = os.path.join(dataset_path, dataset_type)
+    data_path = os.path.join(dataset_path, 'original_data', dataset_type)
 
     data_list = []
 
@@ -152,6 +148,6 @@ def create_total_dataframe(dataset_path):
 dataset_type = 'test'
 link_types = ['evidences', 'reasons']
 dataset_name = 'cdcp_ACL17'
-dataset_path = os.path.join(os.getcwd(),'Datasets', dataset_name)
-create_dataset_pickle(dataset_path,link_types,dataset_type)
+dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+create_dataset_pickle(dataset_path, link_types, dataset_type)
 
