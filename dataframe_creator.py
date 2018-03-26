@@ -1,3 +1,10 @@
+__author__ = "Andrea Galassi"
+__copyright__ = "Copyright 2018, Andrea Galassi"
+__license__ = "MIT"
+__version__ = "1.1.1"
+__email__ = "a.galassi@unibo.it"
+
+
 import os
 import pandas
 import json
