@@ -20,7 +20,8 @@ from keras.optimizers import RMSprop, Adam
 from keras.utils.vis_utils import plot_model
 from keras.models import model_from_json
 from keras.preprocessing.sequence import  pad_sequences
-from training_utils import TimingCallback, lr_annealing
+from training_utils import TimingCallback, lr_annealing, fmeasure, get_single_class_fmeasure
+
 
 DIM = 300
 
@@ -156,12 +157,13 @@ if __name__ == '__main__':
 
     batch_size = 500
     epochs = 1000
-    patience = 200
+    patience = 20
     save_weights_only = False
     lr_alfa = 0.001
     lr_kappa = 0.001
     beta_1 = 0.9
     beta_2 = 0.999
+    regularizer_weight = 0.01
 
 
     dataset_name = 'cdcp_ACL17'
@@ -224,14 +226,20 @@ if __name__ == '__main__':
     print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
 
     dataset = 0
-    model = build_net_1(text_length=max_text_len, propos_length=max_prop_len)
+    model = build_net_1(text_length=max_text_len, propos_length=max_prop_len, regularizer_weight=regularizer_weight)
     # plot_model(model, to_file='model.png', show_shapes=True)
+
+    fmeasure_1 = get_single_class_fmeasure(0)
 
     model.compile(loss='categorical_crossentropy',
                   optimizer=Adam(lr=lr_annealing(0, lr_alfa, lr_kappa),
                                  beta_1=beta_1,
                                  beta_2=beta_2),
-                  metrics=['accuracy'])
+                  metrics={'link': fmeasure_1,
+                           'relation': fmeasure,
+                           'source': fmeasure,
+                           'target': fmeasure}
+                  )
 
     save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
 
@@ -244,17 +252,23 @@ if __name__ == '__main__':
 
     # save the networks each epoch
     checkpoint = ModelCheckpoint(filepath=file_path,
-                                 monitor='val_link_output_L_acc',
+                                 # monitor='val_loss',
+                                 monitor='val_link_single_class_fmeasure',
                                  verbose=1,
                                  save_best_only=True,
-                                 save_weights_only=False
+                                 save_weights_only=False,
+                                 mode='min'
                                  )
 
     # modify the lr each epoch
     lr_scheduler = LearningRateScheduler(lr_annealing)
 
     # early stopping
-    early_stop = EarlyStopping(monitor='val_link_output_L_acc', patience=patience, verbose=1)
+    early_stop = EarlyStopping(patience=patience,
+                               # monitor='val_loss',
+                               monitor='val_link_single_class_fmeasure',
+                               verbose=1,
+                               mode='min')
 
     logger = CSVLogger(os.path.join(save_dir, name + '_training.log'), separator='\t', append=False)
 
@@ -277,9 +291,15 @@ if __name__ == '__main__':
 
     print(str(time.ctime()) + "\tTRAINING FINISHED")
     score = model.evaluate(X_test, Y_test, verbose=0)
-    print(model.metrics_names)
-    print(score)
 
+    string = ""
+    for metric in model.metrics_names:
+        string += metric + "\t"
+    print(string)
 
+    string = ""
+    for metric in score:
+        string += str(metric) + "\t"
+    print(string)
 
 

@@ -33,22 +33,22 @@ def build_net_1(text_length=200, propos_length=100,
     prev_l = make_resnet(concat_l, regularizer_weight, resnet_layers)
 
     link_ol = Dense(units=2,
-                    name='link_output_L',
+                    name='link',
                     activation='softmax',
                     )(prev_l)
 
     rel_ol = Dense(units=5,
-                    name='relation_output_L',
+                    name='relation',
                     activation='softmax',
                     )(prev_l)
 
     source_ol = Dense(units=5,
-                      name='source_output_L',
+                      name='source',
                       activation='softmax',
                       )(prev_l)
 
     target_ol = Dense(units=5,
-                      name='target_output_L',
+                      name='target',
                       activation='softmax',
                       )(prev_l)
 

@@ -19,9 +19,9 @@ class TimingCallback(Callback):
     """
     def __init__(self):
         self.logs = []
+        self.starttime = time.time()
 
     def on_epoch_begin(self, epoch, logs={}):
-        self.starttime = time.time()
         self.lasttime = time.time()
 
     def on_epoch_end(self, epoch, logs={}):
@@ -30,7 +30,6 @@ class TimingCallback(Callback):
         last_epoch = (currtime-self.lasttime)/60
         print("Last epoch has lasted: " + str(last_epoch))
         print("Training is lasting: " + str(from_begin))
-        self.lasttime = time.time()
 
 
 
@@ -79,7 +78,6 @@ def recall(y_true, y_pred):
     return recall
 
 
-
 def fbeta_score(y_true, y_pred, beta=1):
     """
     From: https://github.com/keras-team/keras/commit/a56b1a55182acf061b1eb2e2c86b48193a0e88f7#diff-7b49e1c42728a58a9d08643a79f44cd4
@@ -121,4 +119,68 @@ def fmeasure(y_true, y_pred):
 
     Here it is only computed as a batch-wise average, not globally.
     """
+
     return fbeta_score(y_true, y_pred, beta=1)
+
+
+def get_single_class_fmeasure(index):
+    """
+    Create a fmeasure only for the class of value index
+    :param index:
+    :return:
+    """
+
+    def single_class_precision(y_true, y_pred):
+        """
+        Based on https://stackoverflow.com/a/41717938/5464787
+        :param y_true:
+        :param y_pred:
+        :return:
+        """
+        # true classes
+        class_id_true = K.argmax(y_true, axis=-1)
+        # predicted classes
+        class_id_preds = K.argmax(y_pred, axis=-1)
+        # predictions of the interested class (true positives + false positives)
+        mask = K.cast(K.equal(class_id_preds, index), 'int32')
+        # right predictions (true positives + true negatives)
+        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
+        # true positives
+        masked_tensor = class_acc_tensor * mask
+        class_acc = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
+        return class_acc
+
+    def single_class_recall(y_true, y_pred):
+        """
+        Based on https://stackoverflow.com/a/41717938/5464787
+        :param y_true:
+        :param y_pred:
+        :return:
+        """
+        # true classes
+        class_id_true = K.argmax(y_true, axis=-1)
+        # predicted classes
+        class_id_preds = K.argmax(y_pred, axis=-1)
+        # true of interested class (true positives + false negatives)
+        mask = K.cast(K.equal(class_id_true, index), 'int32')
+        # right predictions (true positives + true negatives)
+        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
+        # true positives
+        masked_tensor = class_acc_tensor * mask
+        class_rec = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
+        return class_rec
+
+    def single_class_fmeasure(y_true, y_pred):
+        if K.sum(K.round(K.clip(y_true, 0, 1))) == 0:
+            return 0
+
+        p = single_class_precision(y_true, y_pred)
+        r = single_class_recall(y_true, y_pred)
+
+        beta = 1
+        bb = beta ** 2
+        fbeta_score = (1 + bb) * (p * r) / (bb * p + r + K.epsilon())
+
+        return fbeta_score
+
+    return single_class_fmeasure
