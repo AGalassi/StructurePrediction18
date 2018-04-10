@@ -184,3 +184,83 @@ def get_single_class_fmeasure(index):
         return fbeta_score
 
     return single_class_fmeasure
+
+
+def get_fmeasure_some_classes(indexes):
+    """
+    Create a fmeasure only for the class of value index
+    :param index:
+    :return:
+    """
+
+
+    def some_class_precision(y_true, y_pred):
+        """
+        Based on https://stackoverflow.com/a/41717938/5464787
+        :param y_true:
+        :param y_pred:
+        :return:
+        """
+        # true classes
+        class_id_true = K.argmax(y_true, axis=-1)
+        # predicted classes
+        class_id_preds = K.argmax(y_pred, axis=-1)
+
+        # predictions of the interested class (true positives + false positives)
+        mask = K.cast(K.equal(class_id_preds, indexes[0]), 'int32')
+        for index in indexes[1:]:
+            m = K.cast(K.equal(class_id_preds, index), 'int32')
+            mask = m + mask
+
+        # right predictions (true positives + true negatives)
+        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
+        # true positives
+        masked_tensor = class_acc_tensor * mask
+        class_acc = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
+        return class_acc
+
+    def some_class_recall(y_true, y_pred):
+        """
+        Based on https://stackoverflow.com/a/41717938/5464787
+        :param y_true:
+        :param y_pred:
+        :return:
+        """
+        # true classes
+        class_id_true = K.argmax(y_true, axis=-1)
+        # predicted classes
+        class_id_preds = K.argmax(y_pred, axis=-1)
+
+        # true of interested class (true positives + false negatives)
+        mask = K.cast(K.equal(class_id_true, indexes[0]), 'int32')
+        for index in indexes[1:]:
+            m = K.cast(K.equal(class_id_true, index), 'int32')
+            mask = m + mask
+
+        # right predictions (true positives + true negatives)
+        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
+        # true positives
+        masked_tensor = class_acc_tensor * mask
+        class_rec = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
+        return class_rec
+
+    def fmeasure_some_classes(y_true, y_pred):
+        if K.sum(K.round(K.clip(y_true, 0, 1))) == 0:
+            return 0
+
+        p = some_class_precision(y_true, y_pred)
+        r = some_class_recall(y_true, y_pred)
+
+        beta = 1
+        bb = beta ** 2
+        fbeta_score = (1 + bb) * (p * r) / (bb * p + r + K.epsilon())
+
+        return fbeta_score
+
+
+    if len(indexes)<1:
+        raise Exception('NEED MORE INDEXES!')
+        return None
+    else:
+        return fmeasure_some_classes
+

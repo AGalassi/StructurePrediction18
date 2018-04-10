@@ -14,42 +14,56 @@ from networks import build_net_1
 
 from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
 from keras.datasets import mnist
-from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import RMSprop, Adam
 from keras.utils.vis_utils import plot_model
-from keras.models import model_from_json
+from keras.models import load_model
 from keras.preprocessing.sequence import  pad_sequences
-from training_utils import TimingCallback, lr_annealing, fmeasure, get_single_class_fmeasure
+from training_utils import TimingCallback, lr_annealing, fmeasure, get_single_class_fmeasure, get_fmeasure_some_classes
 
 
 DIM = 300
 
 
-def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2'):
+def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2',
+                 feature_type='embeddings'):
 
     max_prop_len = 0
     max_text_len = 0
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, dataset_split + '.pkl')
-    embed_path = os.path.join(dataset_path, 'embeddings', dataset_version)
+    embed_path = os.path.join(dataset_path, feature_type, dataset_version)
 
     df = pandas.read_pickle(dataframe_path)
 
-    categorical_prop = {'policy': [1, 0, 0, 0, 0],
-                        'fact': [0, 1, 0, 0, 0],
-                        'testimony': [0, 0, 1, 0, 0],
-                        'value': [0, 0, 0, 1, 0],
-                        'reference': [0, 0, 0, 0, 1],
-                        }
+    if dataset_name=='cdcp_ACL17':
+        categorical_prop = {'policy': [1, 0, 0, 0, 0],
+                            'fact': [0, 1, 0, 0, 0],
+                            'testimony': [0, 0, 1, 0, 0],
+                            'value': [0, 0, 0, 1, 0],
+                            'reference': [0, 0, 0, 0, 1],
+                            }
 
-    categorical_link = {'reasons': [1, 0, 0, 0, 0],
-                        'inv_reasons': [0, 1, 0, 0, 0],
-                        'evidences': [0, 0, 1, 0, 0],
-                        'inv_evidences': [0, 0, 0, 1, 0],
-                        None: [0, 0, 0, 0, 1],
-                        }
+        categorical_link = {'reasons': [1, 0, 0, 0, 0],
+                            'inv_reasons': [0, 1, 0, 0, 0],
+                            'evidences': [0, 0, 1, 0, 0],
+                            'inv_evidences': [0, 0, 0, 1, 0],
+                            None: [0, 0, 0, 0, 1],
+                            }
+                            
+    elif dataset_name=='AAEC_v2':
+        categorical_prop = {'Premise': [1, 0, 0,],
+                            'Claim': [0, 1, 0,],
+                            'MajorClaim': [0, 0, 1],
+                            }
+
+        categorical_link = {'supports': [1, 0, 0, 0, 0],
+                            'inv_supports': [0, 1, 0, 0, 0],
+                            'attacks': [0, 0, 1, 0, 0],
+                            'inv_attacks': [0, 0, 0, 1, 0],
+                            None: [0, 0, 0, 0, 1],
+                            }
 
     dataset = {}
 
@@ -79,7 +93,10 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         else:
             dataset[split]['links'].append([0, 1])
 
-        file_path = os.path.join(embed_path, "%05d" % (text_ID) + '.npz')
+        if dataset_name=='cdcp_ACL17':
+            file_path = os.path.join(embed_path, "%05d" % (text_ID) + '.npz')
+        else:
+            file_path = os.path.join(embed_path, str(text_ID) + '.npz')
         embeddings = np.load(file_path)['arr_0']
         embed_length = len(embeddings)
         if embed_length > max_text_len:
@@ -101,6 +118,16 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         dataset[split]['target_props'].append(embeddings)
 
     print(str(time.ctime()) + '\t\tPADDING...')
+
+    if feature_type == 'bow':
+        pad = 0
+        dtype = int
+        ndim = 2
+    elif feature_type == 'embeddings':
+        pad = np.zeros(DIM)
+        dtype = np.float32
+        ndim = 3
+
     for split in ('train', 'validation', 'test'):
 
         print(str(time.ctime()) + '\t\t\tPADDING ' + split)
@@ -111,12 +138,12 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             embeddings = []
             diff = max_text_len - len(text)
             for i in range(diff):
-                embeddings.append(np.zeros(DIM, dtype=np.float32))
+                embeddings.append(pad)
             for embedding in text:
                 embeddings.append(embedding)
             texts[j] = embeddings
 
-        dataset[split]['texts'] = np.array(dataset[split]['texts'], ndmin=3, dtype=np.float32)
+        dataset[split]['texts'] = np.array(dataset[split]['texts'], ndmin=ndim, dtype=dtype)
 
         texts = dataset[split]['source_props']
         for j in range(len(texts)):
@@ -124,11 +151,11 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             embeddings = []
             diff = max_prop_len - len(text)
             for i in range(diff):
-                embeddings.append(np.zeros(DIM))
+                embeddings.append(pad)
             for embedding in text:
                 embeddings.append(embedding)
             texts[j] = embeddings
-        dataset[split]['source_props'] = np.array(dataset[split]['source_props'], ndmin=3, dtype=np.float32)
+        dataset[split]['source_props'] = np.array(dataset[split]['source_props'], ndmin=ndim, dtype=dtype)
 
         texts = dataset[split]['target_props']
         for j in range(len(texts)):
@@ -136,11 +163,11 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             embeddings = []
             diff = max_prop_len - len(text)
             for i in range(diff):
-                embeddings.append(np.zeros(DIM))
+                embeddings.append(pad)
             for embedding in text:
                 embeddings.append(embedding)
             texts[j] = embeddings
-        dataset[split]['target_props'] = np.array(dataset[split]['target_props'], ndmin=3, dtype=np.float32)
+        dataset[split]['target_props'] = np.array(dataset[split]['target_props'], ndmin=ndim, dtype=dtype)
 
     text = 0
     texts = 0
@@ -150,27 +177,33 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
 if __name__ == '__main__':
 
-    name = 'prova'
+    name = 'prova999'
     if len(sys.argv) > 1:
         name = sys.argv[1]
     print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
 
     batch_size = 500
     epochs = 1000
-    patience = 20
+    patience = 100
     save_weights_only = False
-    lr_alfa = 0.001
+    lr_alfa = 0.0005
     lr_kappa = 0.001
     beta_1 = 0.9
     beta_2 = 0.999
     regularizer_weight = 0.01
+    loss_weights = [20, 10, 1, 1]
+    feature_type = 'bow'
+    resnet_layers = (2,2)
 
 
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_2'
+    dataset_name = 'AAEC_v2'
+    dataset_version = 'new_1'
 
     print(str(time.ctime()) + "\tLOADING DATASET...")
-    dataset, max_text_len, max_prop_len = load_dataset(dataset_name=dataset_name, dataset_version=dataset_version)
+    dataset, max_text_len, max_prop_len = load_dataset(dataset_name=dataset_name,
+                                                       dataset_version=dataset_version,
+                                                       dataset_split='total',
+                                                       feature_type=feature_type)
     print(str(time.ctime()) + "\tDATASET LOADED...")
 
     sys.stdout.flush()
@@ -224,22 +257,44 @@ if __name__ == '__main__':
     Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
 
     print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
+    print(str(time.ctime()) + "\t\tCREATING MODEL...")
+
+    bow = None
+    if feature_type == 'bow':
+        dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+        vocabulary_list = np.load(vocabulary_path)
+        embed_list = vocabulary_list['embeds']
+        word_list = vocabulary_list['vocab']
+
+        bow = np.zeros((len(word_list) + 1, DIM))
+        for index in range(len(word_list)):
+            bow[index + 1] = embed_list[index]
+        print(str(time.ctime()) + "\t\t\tEMBEDDINGS LOADED...")
 
     dataset = 0
-    model = build_net_1(text_length=max_text_len, propos_length=max_prop_len, regularizer_weight=regularizer_weight)
+    model = build_net_1(bow=bow, text_length=max_text_len, propos_length=max_prop_len,
+                        regularizer_weight=regularizer_weight,
+                        resnet_layers=resnet_layers,
+                        dropout_embedder=0.1,
+                        dropout_resnet=0.3,)
     # plot_model(model, to_file='model.png', show_shapes=True)
 
     fmeasure_1 = get_single_class_fmeasure(0)
+    fmeasure_2 = get_fmeasure_some_classes([0,1,2,3])
 
     model.compile(loss='categorical_crossentropy',
+                  loss_weights=loss_weights,
                   optimizer=Adam(lr=lr_annealing(0, lr_alfa, lr_kappa),
                                  beta_1=beta_1,
                                  beta_2=beta_2),
                   metrics={'link': fmeasure_1,
-                           'relation': fmeasure,
+                           'relation': fmeasure_2,
                            'source': fmeasure,
                            'target': fmeasure}
                   )
+
+    model.summary()
 
     save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
 
@@ -257,7 +312,7 @@ if __name__ == '__main__':
                                  verbose=1,
                                  save_best_only=True,
                                  save_weights_only=False,
-                                 mode='min'
+                                 mode='max'
                                  )
 
     # modify the lr each epoch
@@ -267,8 +322,8 @@ if __name__ == '__main__':
     early_stop = EarlyStopping(patience=patience,
                                # monitor='val_loss',
                                monitor='val_link_single_class_fmeasure',
-                               verbose=1,
-                               mode='min')
+                               verbose=2,
+                               mode='max')
 
     logger = CSVLogger(os.path.join(save_dir, name + '_training.log'), separator='\t', append=False)
 
@@ -278,18 +333,35 @@ if __name__ == '__main__':
 
     print(str(time.ctime()) + "\tSTARTING TRAINING")
 
+    sys.stdout.flush()
+
     history = model.fit(x=X_train,
                         # y=Y_links_train,
                         y=Y_train,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=0,
+                        verbose=2,
                         # validation_data=(X_validation, Y_links_validation),
                         validation_data=(X_validation, Y_validation),
                         callbacks=callbacks
                         )
 
     print(str(time.ctime()) + "\tTRAINING FINISHED")
+
+    last_path = ""
+    for epoch in range(len(history.epoch), 0, -1):
+        netpath = os.path.join(save_dir, name + '_completemodel.%03d.h5' % epoch)
+        if os.path.exists(netpath):
+            last_path = netpath
+            break
+
+    model = load_model(last_path,
+                       custom_objects={'fmeasure': fmeasure,
+                                       'single_class_fmeasure': fmeasure_1,
+                                       'fmeasure_some_classes': fmeasure_2
+                                       }
+                       )
+
     score = model.evaluate(X_test, Y_test, verbose=0)
 
     string = ""
@@ -301,5 +373,4 @@ if __name__ == '__main__':
     for metric in score:
         string += str(metric) + "\t"
     print(string)
-
 

@@ -159,25 +159,42 @@ def document_tokenizer_and_embedder(documents, model,
             The keys are the tokens found during the splitting, the values come from the model
     """
 
-    orphans = documents
     # punctuation and other special espressions
     if separators == None:
-        separators = [' ', '(', ')', '[', ']', '...', '_', '--',
+        separators = ['(', ')', '[', ']', '...', '_', '--',
                       ';', ':',
                       '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
                       '!', '?',
-                      '/', '"', '\'\'', '%', '$', '*', '#', '+',
+                      '/', '"', "“", "”", '\'\'', '%', '$', '*', '#', '+',
                       ',', '.',
-                      '\'s', '\'ve', '\'ll', '\'re', '\'d',
-                      '-', '\'']
-        not_vocab_separators = [' ']
+                      '\'s', '’s', '\'ve', '’ve', '\'ll', '’ll', '’re', '\'re', '’d', '\'d',
+                      '-', '\'', '’', '‘']
     # tried but not present in glove: '\'t', 'e-'
+    
+    print("Separator: tab, space and newline")
+    orphans = set()
+    for composed_word in documents:
+        words = composed_word.split()
+        #words = filter(None, re.split("[" + separator + "]+", composed_word))
+        for word in words:
+            if word in model.keys():
+                vocabulary[word] = model[word]
+                # print("Found word: " + word)
+            else:
+                orphans.add(word)
+                # print("Word not found: " + word)
+                
+    print("Orphans: " + str(len(orphans)))
+
+    if not logfile == None:
+        logfile.write("Tab, space, newline" + '\t' +
+                      str(len(vocabulary.keys())) + '\t' +
+                      str(len(orphans)) + '\n')
 
     for separator in separators:
         print("Separator: " + separator)
         orphans, vocabulary = regular_split(orphans, vocabulary, model, separator)
-        if separator not in not_vocab_separators:
-            vocabulary[separator] = model[separator]
+        vocabulary[separator] = model[separator]
         print("Orphans: " + str(len(orphans)))
 
         if not logfile == None:
@@ -204,10 +221,11 @@ def regular_split(old_orphans, vocabulary, model, separator):
 
 
 if __name__ == '__main__':
-    dataset_name = 'cdcp_ACL17'
-    dataset_path = os.path.join(os.getcwd(),'Datasets', dataset_name)
+    dataset_name = 'AAEC_v2'
+    version = 'new_1'
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
-    version_path = os.path.join(os.path.join(pickles_path, 'good'))
+    version_path = os.path.join(os.path.join(pickles_path, version))
     dataframe_path = os.path.join(version_path, 'total.pkl')
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
     glove_path = os.path.join(dataset_path, 'glove')

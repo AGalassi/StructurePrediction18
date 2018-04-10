@@ -8,24 +8,28 @@ __email__ = "a.galassi@unibo.it"
 import pandas
 import os
 import numpy as np
+import pickle
 from glove_loader import DIM
 
-def save_embeddings(mode='texts'):
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_2'
+def save_embeddings(dataset_name='cdcp_ACL17', dataset_version='new_2', mode='texts', type='embeddings'):
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, 'total.pkl')
     df = pandas.read_pickle(dataframe_path)
-    embeddings_path = os.path.join(dataset_path, 'embeddings', dataset_version)
+    embeddings_path = os.path.join(dataset_path, type, dataset_version)
     # load glove vocabulary and embeddings
     vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
     vocabulary_list = np.load(vocabulary_path)
     embed_list = vocabulary_list['embeds']
     word_list = vocabulary_list['vocab']
 
+
     vocabulary = {}
     for index in range(len(word_list)):
-        vocabulary[word_list[index]] = embed_list[index]
+        if type == 'embeddings':
+            vocabulary[word_list[index]] = embed_list[index]
+        elif type == 'bow':
+            # the 0 index must be left empty for padding
+            vocabulary[word_list[index]] = index + 1
 
     df_text = []
     if mode == 'texts':
@@ -37,10 +41,10 @@ def save_embeddings(mode='texts'):
                   ';', ':',
                   '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
                   '!', '?',
-                  '/', '"', '\'\'', '%', '$', '*', '#', '+',
+                  '/', '"', "“", "”", '\'\'', '%', '$', '*', '#', '+',
                   ',', '.',
-                  '\'s', '\'ve', '\'ll', '\'re', '\'d',
-                  '-', '\'']
+                  '\'s', '’s', '\'ve', '’ve', '\'ll', '’ll', '’re', '\'re', '’d', '\'d',
+                  '-', '\'', '’', '‘']
 
     for index, (text_id, text) in df_text.iterrows():
         splits = text.split()
@@ -97,15 +101,24 @@ def save_embeddings(mode='texts'):
                 print()
             else:
                 embeddings.append(vocabulary[token])
-        embeddings = np.array(embeddings, dtype=np.float32)
+
+        array_type = np.float32
+        if type == 'bow':
+            array_type = int
+
+        embeddings = np.array(embeddings, dtype=array_type)
 
         if mode == 'texts':
-            name = "%05d" % text_id + ".npz"
+            name = str(text_id) + ".npz"
         elif mode == 'propositions':
-            name = text_id
+            name = str(text_id) + ".npz"
+
+        if not os.path.exists(embeddings_path):
+            os.makedirs(embeddings_path)
 
         document_path = os.path.join(embeddings_path, name)
         np.savez(document_path, embeddings)
+
 
         global MAX
         max = len(embeddings)
@@ -118,8 +131,8 @@ def save_embeddings(mode='texts'):
 if __name__ == '__main__':
     global MAX
     MAX = 0
-    save_embeddings('propositions')
+    save_embeddings('AAEC_v2', 'new_1', 'propositions', 'bow')
     print(MAX)
     MAX = 0
-    save_embeddings('texts')
+    save_embeddings('AAEC_v2', 'new_1', 'texts', 'bow')
     print(MAX)

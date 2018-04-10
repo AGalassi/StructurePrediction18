@@ -107,8 +107,8 @@ def create_original_dataset_pickle(dataset_path, link_types, dataset_type='train
     dataframe.to_pickle(dataframe_path)
 
 
-def create_preprocessed_dataset_pickle(dataset_path, link_types, dataset_type='train', validation=0, reflexive=True):
-    data_path = os.path.join(dataset_path, 'preprocessed+tran_data', dataset_type)
+def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=True):
+    data_path = os.path.join(dataset_path, dataset_version, dataset_type)
 
     normal_list = []
     validation_list = []
@@ -188,7 +188,7 @@ def create_preprocessed_dataset_pickle(dataset_path, link_types, dataset_type='t
                     else:
                         normal_list.append(dataframe_row)
 
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
     if not os.path.exists(pickles_path):
         os.makedirs(pickles_path)
 
@@ -229,6 +229,235 @@ def create_preprocessed_dataset_pickle(dataset_path, link_types, dataset_type='t
         dataframe.to_pickle(dataframe_path)
 
 
+
+ukp_train_ids = [1, 2, 3, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+                 37, 38, 39, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 53,
+                 54, 55, 56, 57, 58, 59, 60, 62, 63, 64, 65, 66, 67, 69, 70,
+                 73, 74, 75, 76, 78, 79, 80, 81, 83, 84, 85, 87, 88, 89, 90,
+                 92, 93, 94, 95, 96, 99, 100, 101, 102, 105, 106, 107, 109,
+                 110, 111, 112, 113, 114, 115, 116, 118, 120, 121, 122, 123,
+                 124, 125, 127, 128, 130, 131, 132, 133, 134, 135, 137, 138,
+                 140, 141, 143, 144, 145, 146, 147, 148, 150, 151, 152, 153,
+                 155, 156, 157, 158, 159, 161, 162, 164, 165, 166, 167, 168,
+                 170, 171, 173, 174, 175, 176, 177, 178, 179, 181, 183, 184,
+                 185, 186, 188, 189, 190, 191, 194, 195, 196, 197, 198, 200,
+                 201, 203, 205, 206, 207, 208, 209, 210, 213, 214, 215, 216,
+                 217, 219, 222, 223, 224, 225, 226, 228, 230, 231, 232, 233,
+                 235, 236, 237, 238, 239, 242, 244, 246, 247, 248, 249, 250,
+                 251, 253, 254, 256, 257, 258, 260, 261, 262, 263, 264, 267,
+                 268, 269, 270, 271, 272, 273, 274, 275, 276, 279, 280, 281,
+                 282, 283, 284, 285, 286, 288, 290, 291, 292, 293, 294, 295,
+                 296, 297, 298, 299, 300, 302, 303, 304, 305, 307, 308, 309,
+                 311, 312, 313, 314, 315, 317, 318, 319, 320, 321, 323, 324,
+                 325, 326, 327, 329, 330, 332, 333, 334, 336, 337, 338, 339,
+                 340, 342, 343, 344, 345, 346, 347, 349, 350, 351, 353, 354,
+                 356, 357, 358, 360, 361, 362, 363, 365, 366, 367, 368, 369,
+                 370, 371, 372, 374, 375, 376, 377, 378, 379, 380, 381, 383,
+                 384, 385, 387, 388, 389, 390, 391, 392, 394, 395, 396, 397,
+                 399, 400, 401, 402]
+
+ukp_test_ids = [4, 5, 6, 21, 42, 52, 61, 68, 71, 72, 77, 82, 86, 91, 97, 98,
+                103, 104, 108, 117, 119, 126, 129, 136, 139, 142, 149, 154,
+                160, 163, 169, 172, 180, 182, 187, 192, 193, 199, 202, 204,
+                211, 212, 218, 220, 221, 227, 229, 234, 240, 241, 243, 245,
+                252, 255, 259, 265, 266, 277, 278, 287, 289, 301, 306, 310,
+                316, 322, 328, 331, 335, 341, 348, 352, 355, 359, 364, 373,
+                382, 386, 393, 398]
+
+
+
+
+def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=True):
+    data_path = os.path.join(dataset_path, dataset_version)
+
+    normal_list = []
+    validation_list = []
+
+    idlist = []
+
+    if (dataset_type=='train'):
+        idlist = ukp_train_ids
+    elif (dataset_type=='test'):
+        idlist = ukp_test_ids
+    else:
+        idlist = range(500)
+
+
+    for i in idlist:
+        file_name = "essay" + "%03d" % (i)
+        text_file_path = os.path.join(data_path, file_name + ".txt")
+        if os.path.exists(text_file_path):
+
+            split = dataset_type
+
+            if validation > 0 and validation < 1:
+                p = random.random()
+                if p < validation:
+                    split = 'validation'
+
+            text_file = open(text_file_path, 'r', encoding='utf-8')
+            labels_file = open(os.path.join(data_path, file_name + ".ann"), 'r')
+
+            labels_line = []
+
+            raw_text = text_file.read()
+            for line in labels_file.read().split('\n'):
+                labels_line.append(line)
+
+            text_file.close()
+            labels_file.close()
+
+            # elaborate the offsets of the paragraphs
+            paragraphs_offsets = []
+            start = 0
+            while start < len(raw_text):
+                try:
+                    end = raw_text.index("\n", start)
+                except ValueError:
+                    end = len(raw_text)
+                if end != start:
+                    paragraphs_offsets.append([start, end])
+                start = end + 1
+
+            data = {'attacks': [],
+                    'supports': [],
+                    'prop_labels': [],
+                    'prop_offsets': []}
+
+            paragraphs = split_propositions(raw_text, paragraphs_offsets)
+
+            for line in labels_line:
+                line = line.split()
+                if len(line) <= 0:
+                    continue
+                if line[0][0] == 'T':
+                    data['prop_labels'].append(line[1])
+                    data['prop_offsets'].append([int(line[2]), int(line[3])])
+                elif line[0][0] == 'R':
+                    source = int(line[2][6:]) - 1
+                    target = int(line[3][6:]) - 1
+                    data[line[1]].append([source, target])
+
+            propositions = split_propositions(raw_text, data['prop_offsets'])
+
+            num_propositions = len(propositions)
+
+            if (num_propositions <= 1):
+                print('YEP!')
+
+            for sourceID in range(num_propositions):
+                source_start = data['prop_offsets'][sourceID][0]
+                p_offsets = (-1, -1)
+                par = -1
+                # find the paragraph
+                for paragraph in range(len(paragraphs)):
+                    p_start = paragraphs_offsets[paragraph][0]
+                    p_end = paragraphs_offsets[paragraph][1]
+                    if p_end >= source_start >= p_start:
+                        p_offsets = (p_start, p_end)
+                        par = paragraph
+
+                assert par != -1
+
+                for targetID in range(num_propositions):
+                    # proposition type
+                    type1 = data['prop_labels'][sourceID]
+                    type2 = data['prop_labels'][targetID]
+
+                    target_start = data['prop_offsets'][targetID][0]
+
+                    if sourceID == targetID and not reflexive:
+                        continue
+
+                    # relations in different paragraphs are not allowed
+                    if target_start < p_offsets[0] or target_start > p_offsets[1]:
+                        continue
+
+                    relation_type = None
+                    relation1to2 = False
+
+                    # relation type
+                    for link_type in link_types:
+                        links = data[link_type]
+
+                        for link in links:
+                            # DEBUG
+                            # if not link[0][0] == link[0][1]:
+                            # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
+
+                            if link[0] == sourceID and link[1] == targetID:
+                                if relation_type is not None and not relation_type == link_type:
+                                    raise Exception('MORE RELATION FOR THE SAME PROPOSITIONS: document ' + file_name)
+                                relation_type = link_type
+                                relation1to2 = True
+
+                            elif link[0] == targetID and link[1] == sourceID:
+                                relation_type = "inv_" + link_type
+
+
+                    dataframe_row = {'text_ID': str(i) + "_" + str(par),
+                                     'rawtext': paragraphs[par],
+                                     'source_proposition': propositions[sourceID],
+                                     'source_ID': str(i) + "_" + str(par) + "_" + str(sourceID),
+                                     'target_proposition': propositions[targetID],
+                                     'target_ID': str(i) + "_" + str(par) + "_" + str(targetID),
+                                     'source_type': type1,
+                                     'target_type': type2,
+                                     'relation_type': relation_type,
+                                     'source_to_target': relation1to2,
+                                     'set': split
+                                     }
+
+                    if split == 'validation':
+                        validation_list.append(dataframe_row)
+                    else:
+                        normal_list.append(dataframe_row)
+
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+    if not os.path.exists(pickles_path):
+        os.makedirs(pickles_path)
+
+    if len(normal_list) > 0:
+        dataframe = pandas.DataFrame(normal_list)
+
+        dataframe = dataframe[['text_ID',
+                               'rawtext',
+                               'source_proposition',
+                               'source_ID',
+                               'target_proposition',
+                               'target_ID',
+                               'source_type',
+                               'target_type',
+                               'relation_type',
+                               'source_to_target',
+                               'set']]
+
+        dataframe_path = os.path.join(pickles_path, dataset_type + ".pkl")
+        dataframe.to_pickle(dataframe_path)
+
+    if len(validation_list) > 0:
+        dataframe = pandas.DataFrame(validation_list)
+
+        dataframe = dataframe[['text_ID',
+                               'rawtext',
+                               'source_proposition',
+                               'source_ID',
+                               'target_proposition',
+                               'target_ID',
+                               'source_type',
+                               'target_type',
+                               'relation_type',
+                               'source_to_target',
+                               'set']]
+
+        dataframe_path = os.path.join(pickles_path, 'validation' + ".pkl")
+        dataframe.to_pickle(dataframe_path)
+
+
+
+
+
 def print_dataframe_details(dataframe_path):
     df = pandas.read_pickle(dataframe_path)
 
@@ -254,16 +483,20 @@ def print_dataframe_details(dataframe_path):
 
 
 
-def create_total_dataframe(dataset_path):
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+
+def create_total_dataframe(pickles_path):
+    frames = []
     dataframe_path = os.path.join(pickles_path, 'train.pkl')
     df1 = pandas.read_pickle(dataframe_path)
+    frames.append(df1)
     dataframe_path = os.path.join(pickles_path, 'test.pkl')
     df2 = pandas.read_pickle(dataframe_path)
+    frames.append(df2)
     dataframe_path = os.path.join(pickles_path, 'validation.pkl')
-    df3 = pandas.read_pickle(dataframe_path)
+    if os.path.exists(dataframe_path):
+        df3 = pandas.read_pickle(dataframe_path)
+        frames.append(df3)
 
-    frames = [df1, df2, df3]
     dataframe = pandas.concat(frames).sort_values('text_ID')
 
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
@@ -272,23 +505,90 @@ def create_total_dataframe(dataset_path):
 
 if __name__ == '__main__':
 
+    """
+    dataset_type = 'train'
+    dataset_name = 'AAEC_v2'
+    dataset_version = 'original_data'
+    create_function = None
+
+
+    link_types = []
+
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    if dataset_name == 'cdcp_ACL17':
+        link_types = ['evidences', 'reasons']
+        create_function = create_preprocessed_cdcp_pickle
+    elif dataset_name == 'AAEC_v2':
+        link_types = ['supports', 'attacks']
+        create_function = create_ukp_pickle
+
+    create_function(dataset_path, dataset_version, link_types, dataset_type, validation=0, reflexive=False)
+    dataset_type = 'test'
+    create_function(dataset_path, dataset_version, link_types, dataset_type, reflexive=False)
+
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+    create_total_dataframe(pickles_path)
+
+
+    print("----------------------\n\n")
+    dataframe_path = os.path.join(pickles_path, 'validation.pkl')
+    if os.path.exists(dataframe_path):
+        print("VALIDATION")
+        print_dataframe_details(dataframe_path)
+    print("----------------------\n\n")
+    print("TRAIN")
+    dataframe_path = os.path.join(pickles_path, 'train.pkl')
+    print_dataframe_details(dataframe_path)
+    print("----------------------\n\n")
+    print("TEST")
+    dataframe_path = os.path.join(pickles_path, 'test.pkl')
+    print_dataframe_details(dataframe_path)
+
+
+
+
+
+    """
     dataset_type = 'train'
     link_types = ['evidences', 'reasons']
     dataset_name = 'cdcp_ACL17'
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    create_preprocessed_dataset_pickle(dataset_path, link_types, dataset_type, 0.1, reflexive=False)
-    dataset_type = 'test'
-    create_preprocessed_dataset_pickle(dataset_path, link_types, dataset_type, reflexive=False)
+    dataset_version = 'new_2'
+    split = 'total'
+    dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
+    df = pandas.read_pickle(dataframe_path)
 
-    create_total_dataframe(dataset_path)
+    diff_l = {}
+    diff_nl = {}
+    highest = 0
+
+    for index, row in df.iterrows():
+        s_index = int(row['source_ID'].split('_')[1])
+        t_index = int(row['target_ID'].split('_')[1])
+
+        difference = abs(s_index-t_index)
+
+        if highest<difference:
+            highest = difference
+
+        if row['source_to_target']:
+            voc = diff_l
+        else:
+            voc = diff_nl
+
+        if difference in voc.keys():
+            voc[difference] += 1
+        else:
+            voc[difference] = 1
+
+    for key in range(1, highest+1):
+        if key not in diff_nl.keys():
+            diff_nl[key] = 0
+        if key not in diff_l.keys():
+            diff_l[key] = 0
+
+        print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
 
 
-    print("----------------------\n\n")
-    dataframe_path = os.path.join(dataset_path, 'pickles', 'validation.pkl')
-    print_dataframe_details(dataframe_path)
-    print("----------------------\n\n")
-    dataframe_path = os.path.join(dataset_path, 'pickles', 'train.pkl')
-    print_dataframe_details(dataframe_path)
-    print("----------------------\n\n")
-    dataframe_path = os.path.join(dataset_path, 'pickles', 'test.pkl')
-    print_dataframe_details(dataframe_path)
+
