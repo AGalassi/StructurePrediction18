@@ -19,11 +19,9 @@ from keras.optimizers import RMSprop, Adam
 from keras.utils.vis_utils import plot_model
 from keras.models import load_model
 from keras.preprocessing.sequence import  pad_sequences
-from training_utils import TimingCallback, lr_annealing, fmeasure, get_single_class_fmeasure, get_fmeasure_some_classes
+from training_utils import TimingCallback, lr_annealing, fmeasure, get_single_class_fmeasure, get_avgF1
 from training import load_dataset
-
-
-DIM = 300
+from glove_loader import DIM
 
 if __name__ == '__main__':
 
@@ -65,7 +63,7 @@ if __name__ == '__main__':
     print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
 
     fmeasure_1 = get_single_class_fmeasure(0)
-    fmeasure_2 = get_fmeasure_some_classes([0, 1, 2, 3])
+    fmeasure_2 = get_avgF1([0, 1, 2, 3])
 
     save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
 

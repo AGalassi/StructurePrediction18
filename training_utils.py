@@ -123,14 +123,14 @@ def fmeasure(y_true, y_pred):
     return fbeta_score(y_true, y_pred, beta=1)
 
 
-def get_single_class_fmeasure(index):
+def get_avgF1(indexes):
     """
-    Create a fmeasure only for the class of value index
-    :param index:
-    :return:
+    Create the average f1-measure between for the classes indicated by indexes
+    :param indexes: iterable object of ints that represent classes
+    :return: the average f1-measure
     """
 
-    def single_class_precision(y_true, y_pred):
+    def some_class_precision(index, y_true, y_pred):
         """
         Based on https://stackoverflow.com/a/41717938/5464787
         :param y_true:
@@ -141,76 +141,9 @@ def get_single_class_fmeasure(index):
         class_id_true = K.argmax(y_true, axis=-1)
         # predicted classes
         class_id_preds = K.argmax(y_pred, axis=-1)
+
         # predictions of the interested class (true positives + false positives)
         mask = K.cast(K.equal(class_id_preds, index), 'int32')
-        # right predictions (true positives + true negatives)
-        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
-        # true positives
-        masked_tensor = class_acc_tensor * mask
-        class_acc = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
-        return class_acc
-
-    def single_class_recall(y_true, y_pred):
-        """
-        Based on https://stackoverflow.com/a/41717938/5464787
-        :param y_true:
-        :param y_pred:
-        :return:
-        """
-        # true classes
-        class_id_true = K.argmax(y_true, axis=-1)
-        # predicted classes
-        class_id_preds = K.argmax(y_pred, axis=-1)
-        # true of interested class (true positives + false negatives)
-        mask = K.cast(K.equal(class_id_true, index), 'int32')
-        # right predictions (true positives + true negatives)
-        class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
-        # true positives
-        masked_tensor = class_acc_tensor * mask
-        class_rec = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
-        return class_rec
-
-    def single_class_fmeasure(y_true, y_pred):
-        if K.sum(K.round(K.clip(y_true, 0, 1))) == 0:
-            return 0
-
-        p = single_class_precision(y_true, y_pred)
-        r = single_class_recall(y_true, y_pred)
-
-        beta = 1
-        bb = beta ** 2
-        fbeta_score = (1 + bb) * (p * r) / (bb * p + r + K.epsilon())
-
-        return fbeta_score
-
-    return single_class_fmeasure
-
-
-def get_fmeasure_some_classes(indexes):
-    """
-    Create a fmeasure only for the class of value index
-    :param index:
-    :return:
-    """
-
-
-    def some_class_precision(y_true, y_pred):
-        """
-        Based on https://stackoverflow.com/a/41717938/5464787
-        :param y_true:
-        :param y_pred:
-        :return:
-        """
-        # true classes
-        class_id_true = K.argmax(y_true, axis=-1)
-        # predicted classes
-        class_id_preds = K.argmax(y_pred, axis=-1)
-
-        # predictions of the interested class (true positives + false positives)
-        mask = K.cast(K.equal(class_id_preds, indexes[0]), 'int32')
-        for index in indexes[1:]:
-            m = K.cast(K.equal(class_id_preds, index), 'int32')
-            mask = m + mask
 
         # right predictions (true positives + true negatives)
         class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
@@ -219,7 +152,7 @@ def get_fmeasure_some_classes(indexes):
         class_acc = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
         return class_acc
 
-    def some_class_recall(y_true, y_pred):
+    def some_class_recall(index, y_true, y_pred):
         """
         Based on https://stackoverflow.com/a/41717938/5464787
         :param y_true:
@@ -232,10 +165,7 @@ def get_fmeasure_some_classes(indexes):
         class_id_preds = K.argmax(y_pred, axis=-1)
 
         # true of interested class (true positives + false negatives)
-        mask = K.cast(K.equal(class_id_true, indexes[0]), 'int32')
-        for index in indexes[1:]:
-            m = K.cast(K.equal(class_id_true, index), 'int32')
-            mask = m + mask
+        mask = K.cast(K.equal(class_id_true, index), 'int32')
 
         # right predictions (true positives + true negatives)
         class_acc_tensor = K.cast(K.equal(class_id_true, class_id_preds), 'int32')
@@ -244,23 +174,30 @@ def get_fmeasure_some_classes(indexes):
         class_rec = K.sum(masked_tensor) / K.maximum(K.sum(mask), 1)
         return class_rec
 
-    def fmeasure_some_classes(y_true, y_pred):
-        if K.sum(K.round(K.clip(y_true, 0, 1))) == 0:
-            return 0
+    def avgF1(y_true, y_pred):
 
-        p = some_class_precision(y_true, y_pred)
-        r = some_class_recall(y_true, y_pred)
+        fmeasures = []
 
-        beta = 1
-        bb = beta ** 2
-        fbeta_score = (1 + bb) * (p * r) / (bb * p + r + K.epsilon())
+        for index in indexes:
+            index = int(index)
+            p = some_class_precision(index, y_true, y_pred)
+            r = some_class_recall(index, y_true, y_pred)
 
-        return fbeta_score
+            beta = 1
+            bb = beta ** 2
+            fbeta_score = (1 + bb) * (p * r) / (bb * p + r + K.epsilon())
 
+            fmeasures.append(fbeta_score)
+
+        return K.mean(K.stack(fmeasures))
 
     if len(indexes)<1:
         raise Exception('NEED MORE INDEXES!')
         return None
     else:
-        return fmeasure_some_classes
+        name = "F1"
+        for index in indexes:
+            name += "_" + str(index)
+        avgF1.__name__ = name
+        return avgF1
 

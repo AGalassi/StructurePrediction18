@@ -10,7 +10,6 @@ import pandas
 import json
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def split_propositions(text, propositions_offsets):
@@ -19,7 +18,7 @@ def split_propositions(text, propositions_offsets):
         propositions.append(text[offsets[0]:offsets[1]])
     return propositions
 
-
+"""
 def create_original_dataset_pickle(dataset_path, link_types, dataset_type='train'):
     data_path = os.path.join(dataset_path, 'original_data', dataset_type)
 
@@ -105,13 +104,18 @@ def create_original_dataset_pickle(dataset_path, link_types, dataset_type='train
     if not os.path.exists(pickles_path):
         os.makedirs(pickles_path)
     dataframe.to_pickle(dataframe_path)
-
+"""
 
 def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=True):
     data_path = os.path.join(dataset_path, dataset_version, dataset_type)
 
     normal_list = []
     validation_list = []
+
+    prop_counter = {}
+    rel_counter = {}
+    val_prop_counter = {}
+    val_rel_counter = {}
 
     for i in range (2000):
         file_name = "%05d" % (i)
@@ -142,7 +146,11 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
             if (num_propositions <= 1):
                 print('YEP!')
 
+
             for sourceID in range(num_propositions):
+
+                type1 = data['prop_labels'][sourceID]
+
                 for targetID in range(num_propositions):
                     if sourceID == targetID and not reflexive:
                         continue
@@ -168,7 +176,6 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
                                 relation_type = "inv_" + link_type
 
                     # proposition type
-                    type1 = data['prop_labels'][sourceID]
                     type2 = data['prop_labels'][targetID]
 
                     dataframe_row = {'text_ID': i,
@@ -182,11 +189,30 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
                                      'relation_type': relation_type,
                                      'source_to_target': relation1to2,
                                      'set': split
-                    }
+                                     }
+
                     if split == 'validation':
                         validation_list.append(dataframe_row)
+
+                        if relation_type not in val_rel_counter.keys():
+                            val_rel_counter[relation_type] = 0
+                        val_rel_counter[relation_type] += 1
                     else:
                         normal_list.append(dataframe_row)
+
+                        if relation_type not in rel_counter.keys():
+                            rel_counter[relation_type] = 0
+                        rel_counter[relation_type] += 1
+
+
+                if split == 'validation':
+                    if type1 not in val_prop_counter.keys():
+                        val_prop_counter[type1] = 0
+                    val_prop_counter[type1] += 1
+                else:
+                    if type1 not in prop_counter.keys():
+                        prop_counter[type1] = 0
+                    prop_counter[type1] += 1
 
     pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
     if not os.path.exists(pickles_path):
@@ -227,6 +253,16 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
 
         dataframe_path = os.path.join(pickles_path, 'validation' + ".pkl")
         dataframe.to_pickle(dataframe_path)
+
+    print("_______________")
+    print(dataset_type)
+    print(prop_counter)
+    print(rel_counter)
+    print("_______________")
+    print("VALIDATION")
+    print(val_prop_counter)
+    print(val_rel_counter)
+    print("_______________")
 
 
 
@@ -283,6 +319,11 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
     else:
         idlist = range(500)
 
+    prop_counter = {}
+    rel_counter = {}
+    val_prop_counter = {}
+    val_rel_counter = {}
+
 
     for i in idlist:
         file_name = "essay" + "%03d" % (i)
@@ -302,8 +343,8 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
             labels_line = []
 
             raw_text = text_file.read()
-            for line in labels_file.read().split('\n'):
-                labels_line.append(line)
+            for splits in labels_file.read().split('\n'):
+                labels_line.append(splits)
 
             text_file.close()
             labels_file.close()
@@ -320,33 +361,76 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
                     paragraphs_offsets.append([start, end])
                 start = end + 1
 
-            data = {'attacks': [],
-                    'supports': [],
-                    'prop_labels': [],
-                    'prop_offsets': []}
+            data = {'prop_labels': {},
+                    'prop_offsets': {},
+                    'start_offsets': {},
+                    'T_ids': [],
+                    'propositions': {}}
+
+            for link_type in link_types:
+                data[link_type] = []
 
             paragraphs = split_propositions(raw_text, paragraphs_offsets)
 
             for line in labels_line:
-                line = line.split()
-                if len(line) <= 0:
+                splits = line.split(maxsplit=4)
+                if len(splits) <= 0:
                     continue
-                if line[0][0] == 'T':
-                    data['prop_labels'].append(line[1])
-                    data['prop_offsets'].append([int(line[2]), int(line[3])])
-                elif line[0][0] == 'R':
-                    source = int(line[2][6:]) - 1
-                    target = int(line[3][6:]) - 1
-                    data[line[1]].append([source, target])
+                if splits[0][0] == 'T':
+                    T_id = int(splits[0][1:])-1
+                    data['T_ids'].append(T_id)
+                    data['prop_labels'][T_id] = splits[1]
+                    data['prop_offsets'][T_id] = [int(splits[2]), int(splits[3])]
+                    data['start_offsets'][int(splits[2])] = T_id
+                    data['propositions'][T_id] = splits[4].split('\n')
+                elif splits[0][0] == 'R':
+                    source = int(splits[2][6:]) - 1
+                    target = int(splits[3][6:]) - 1
+                    data[splits[1]].append([source, target])
 
-            propositions = split_propositions(raw_text, data['prop_offsets'])
+            # new order given by the start offsets
+            new_order = {}
+            new_id = 0
+            # find the match between the starting offsets and set the new id
+            for new_off in sorted(data['start_offsets'].keys()):
+                for old_id in data['T_ids']:
+                    old_off = data['prop_offsets'][old_id][0]
+                    if new_off == old_off:
+                        new_order[old_id] = new_id
+                        new_id += 1
+                        break
+
+            new_data = {'prop_labels': [-1]*len(data['prop_labels']),
+                        'prop_offsets': [-1]*len(data['prop_labels']),
+                        'propositions': [-1]*len(data['prop_labels']),}
+
+            for link_type in link_types:
+                new_data[link_type] = []
+
+            for link_type in link_types:
+                for link in data[link_type]:
+                    old_source = link[0]
+                    old_target = link[1]
+                    new_source = new_order[old_source]
+                    new_target = new_order[old_target]
+                    new_data[link_type].append([new_source, new_target])
+
+            for old_id in data['T_ids']:
+                new_id = new_order[old_id]
+                new_data['prop_labels'][new_id] = data['prop_labels'][old_id]
+                new_data['prop_offsets'][new_id] = data['prop_offsets'][old_id]
+                new_data['propositions'][new_id] = data['propositions'][old_id]
+
+            data = new_data
+
+            propositions = data['propositions']
 
             num_propositions = len(propositions)
 
-            if (num_propositions <= 1):
-                print('YEP!')
+            assert (num_propositions >= 1)
 
             for sourceID in range(num_propositions):
+
                 source_start = data['prop_offsets'][sourceID][0]
                 p_offsets = (-1, -1)
                 par = -1
@@ -359,10 +443,10 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
                         par = paragraph
 
                 assert par != -1
+                type1 = data['prop_labels'][sourceID]
 
                 for targetID in range(num_propositions):
                     # proposition type
-                    type1 = data['prop_labels'][sourceID]
                     type2 = data['prop_labels'][targetID]
 
                     target_start = data['prop_offsets'][targetID][0]
@@ -395,7 +479,6 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
                             elif link[0] == targetID and link[1] == sourceID:
                                 relation_type = "inv_" + link_type
 
-
                     dataframe_row = {'text_ID': str(i) + "_" + str(par),
                                      'rawtext': paragraphs[par],
                                      'source_proposition': propositions[sourceID],
@@ -411,8 +494,25 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
 
                     if split == 'validation':
                         validation_list.append(dataframe_row)
+
+                        if relation_type not in val_rel_counter.keys():
+                            val_rel_counter[relation_type] = 0
+                        val_rel_counter[relation_type] += 1
                     else:
                         normal_list.append(dataframe_row)
+
+                        if relation_type not in rel_counter.keys():
+                            rel_counter[relation_type] = 0
+                        rel_counter[relation_type] += 1
+
+                if split == 'validation':
+                    if type1 not in val_prop_counter.keys():
+                        val_prop_counter[type1] = 0
+                    val_prop_counter[type1] += 1
+                else:
+                    if type1 not in prop_counter.keys():
+                        prop_counter[type1] = 0
+                    prop_counter[type1] += 1
 
     pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
     if not os.path.exists(pickles_path):
@@ -434,6 +534,7 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
                                'set']]
 
         dataframe_path = os.path.join(pickles_path, dataset_type + ".pkl")
+
         dataframe.to_pickle(dataframe_path)
 
     if len(validation_list) > 0:
@@ -454,8 +555,15 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
         dataframe_path = os.path.join(pickles_path, 'validation' + ".pkl")
         dataframe.to_pickle(dataframe_path)
 
-
-
+    print("_______________")
+    print(dataset_type)
+    print(prop_counter)
+    print(rel_counter)
+    print("_______________")
+    print("VALIDATION")
+    print(val_prop_counter)
+    print(val_rel_counter)
+    print("_______________")
 
 
 def print_dataframe_details(dataframe_path):
@@ -505,8 +613,11 @@ def create_total_dataframe(pickles_path):
 
 if __name__ == '__main__':
 
-    """
+    # """
+
     dataset_type = 'train'
+    # dataset_name = 'cdcp_ACL17'
+    # dataset_version = 'preprocessed+tran_data'
     dataset_name = 'AAEC_v2'
     dataset_version = 'original_data'
     create_function = None
@@ -523,7 +634,7 @@ if __name__ == '__main__':
         link_types = ['supports', 'attacks']
         create_function = create_ukp_pickle
 
-    create_function(dataset_path, dataset_version, link_types, dataset_type, validation=0, reflexive=False)
+    create_function(dataset_path, dataset_version, link_types, dataset_type, validation=0.1, reflexive=False)
     dataset_type = 'test'
     create_function(dataset_path, dataset_version, link_types, dataset_type, reflexive=False)
 
@@ -550,11 +661,17 @@ if __name__ == '__main__':
 
 
     """
-    dataset_type = 'train'
-    link_types = ['evidences', 'reasons']
-    dataset_name = 'cdcp_ACL17'
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    # link_types = ['evidences', 'reasons']
+    # dataset_name = 'cdcp_ACL17'
+    # dataset_version = 'new_3'
+    # i = 1
+
+    dataset_name = 'AAEC_v2'
     dataset_version = 'new_2'
+    link_types = ['supports', 'attacks']
+    i = 2
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     split = 'total'
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
     df = pandas.read_pickle(dataframe_path)
@@ -564,8 +681,8 @@ if __name__ == '__main__':
     highest = 0
 
     for index, row in df.iterrows():
-        s_index = int(row['source_ID'].split('_')[1])
-        t_index = int(row['target_ID'].split('_')[1])
+        s_index = int(row['source_ID'].split('_')[i])
+        t_index = int(row['target_ID'].split('_')[i])
 
         difference = abs(s_index-t_index)
 
@@ -590,5 +707,5 @@ if __name__ == '__main__':
 
         print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
 
-
+    """
 

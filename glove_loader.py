@@ -11,23 +11,20 @@ import numpy as np
 import re
 
 DIM = 300
+SEPARATORS = ['(', ')', '[', ']', '...', '_', '--',
+              ';', ':',
+              '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
+              '!', '?',
+              '/', '"', '%', '$', '*', '#', '+',
+              ',', '.',
+              "'s", "'ve", "'ll", "'re", "'d",
+              '-', "'"]
 
-def vocabulary_creator(vocabulary_source_path, vocabulary_destination_path, dataframe_path):
+STOPWORDS = ['.', ',', ':', ';']
+
+def load_glove(vocabulary_source_path):
 
     print("Loading Glove")
-
-    df = pandas.read_pickle(dataframe_path)
-
-    texts = df['rawtext'].drop_duplicates()
-
-    propositions = df['source_proposition'].drop_duplicates()
-
-    documents = []
-    for text in texts:
-        documents.append(text)
-    for proposition in propositions:
-        documents.append(proposition)
-
     f = open(vocabulary_source_path, 'r', encoding="utf8")
     model = {}
 
@@ -45,6 +42,25 @@ def vocabulary_creator(vocabulary_source_path, vocabulary_destination_path, data
         model[word] = line
 
     print("Glove loaded")
+    return model
+
+
+
+def vocabulary_creator(model, vocabulary_destination_path, dataframe_path):
+
+
+    df = pandas.read_pickle(dataframe_path)
+
+    propositions = df['source_proposition'].drop_duplicates()
+
+    documents = []
+    for proposition in propositions:
+        proposition = proposition.replace("’", "'")
+        proposition = proposition.replace("‘", "'")
+        proposition = proposition.replace("“", '"')
+        proposition = proposition.replace("”", '"')
+        proposition = proposition.replace("''", '"')
+        documents.append(proposition)
 
 
     if not os.path.exists(vocabulary_destination_path):
@@ -161,30 +177,27 @@ def document_tokenizer_and_embedder(documents, model,
 
     # punctuation and other special espressions
     if separators == None:
-        separators = ['(', ')', '[', ']', '...', '_', '--',
-                      ';', ':',
-                      '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
-                      '!', '?',
-                      '/', '"', "“", "”", '\'\'', '%', '$', '*', '#', '+',
-                      ',', '.',
-                      '\'s', '’s', '\'ve', '’ve', '\'ll', '’ll', '’re', '\'re', '’d', '\'d',
-                      '-', '\'', '’', '‘']
+        separators = SEPARATORS
     # tried but not present in glove: '\'t', 'e-'
-    
-    print("Separator: tab, space and newline")
+
     orphans = set()
     for composed_word in documents:
         words = composed_word.split()
         #words = filter(None, re.split("[" + separator + "]+", composed_word))
+        # remove stop symbols at the end of the tokens
         for word in words:
+            if len(word) > 1 and word[-1] in STOPWORDS:
+                word2 = word[:-1]
+                if word2 in model.keys():
+                    word = word2
+
             if word in model.keys():
                 vocabulary[word] = model[word]
                 # print("Found word: " + word)
             else:
                 orphans.add(word)
                 # print("Word not found: " + word)
-                
-    print("Orphans: " + str(len(orphans)))
+
 
     if not logfile == None:
         logfile.write("Tab, space, newline" + '\t' +
@@ -192,10 +205,10 @@ def document_tokenizer_and_embedder(documents, model,
                       str(len(orphans)) + '\n')
 
     for separator in separators:
-        print("Separator: " + separator)
+        # print("Separator: " + separator)
         orphans, vocabulary = regular_split(orphans, vocabulary, model, separator)
         vocabulary[separator] = model[separator]
-        print("Orphans: " + str(len(orphans)))
+        # print("Orphans: " + str(len(orphans)))
 
         if not logfile == None:
             logfile.write(separator + '\t' +
@@ -221,15 +234,32 @@ def regular_split(old_orphans, vocabulary, model, separator):
 
 
 if __name__ == '__main__':
+
+    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
+
     dataset_name = 'AAEC_v2'
-    version = 'new_1'
+    version = 'new_2'
+
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
     version_path = os.path.join(os.path.join(pickles_path, version))
     dataframe_path = os.path.join(version_path, 'total.pkl')
-    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
-    glove_path = os.path.join(dataset_path, 'glove')
+    glove_path = os.path.join(dataset_path, 'glove', version)
 
-    vocabulary_creator(vocabulary_source_path, glove_path, dataframe_path)
+    vocabulary_creator(m1, glove_path, dataframe_path)
 
 
+    dataset_name = 'cdcp_ACL17'
+    version = 'new_3'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    version_path = os.path.join(os.path.join(pickles_path, version))
+    dataframe_path = os.path.join(version_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove', version)
+
+    vocabulary_creator(model, glove_path, dataframe_path)
