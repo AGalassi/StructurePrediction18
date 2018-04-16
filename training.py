@@ -508,6 +508,7 @@ def perform_training(name = 'prova999',
 
     testfile = open(os.path.join(save_dir, name + "_eval.txt"), 'w')
 
+    # evaluation with KERAS-like F1 formula
     for split in ['test', 'validation', 'train']:
         score = model.evaluate(X[split], Y[split], verbose=1)
 
@@ -523,6 +524,7 @@ def perform_training(name = 'prova999',
 
     print("\n-----------------------\n")
 
+    # evaluation with sci-kit F1 formula
     if dataset_name == 'AAEC_v2':
         testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR attack\tR support\t" +
                        "P AVG\tP evidence\tP claim\tP major claim\n")
