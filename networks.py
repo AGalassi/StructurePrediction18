@@ -544,6 +544,8 @@ def build_net_2(bow=None,
     prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
                          res_size=res_size, dropout=dropout_resnet)
 
+    prev_l = prev_l = BatchNormalization(name='final_BN')(prev_l)
+
     link_ol = Dense(units=outputs[0],
                     name='link',
                     activation='softmax',
@@ -575,7 +577,7 @@ if __name__ == '__main__':
 
     bow = np.array([[0]*300]*50)
 
-    model = build_net_2(bow=bow)
+    model = build_net_2(bow=bow, cross_embed=False)
 
     plot_model(model, to_file='model2.png', show_shapes=True)
 

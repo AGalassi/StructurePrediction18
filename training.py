@@ -170,8 +170,9 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             max_prop_len = embed_length
         dataset[split]['target_props'].append(embeddings)
 
-        if split == 'validation':
-            break
+        # if split == 'validation':
+        #     break
+
 
     print(str(time.ctime()) + '\t\tPADDING...')
 
@@ -240,40 +241,32 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
     return dataset, max_text_len, max_prop_len
 
 
-if __name__ == '__main__':
-
-    name = 'prova999'
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
-
-    batch_size = 500
-    epochs = 1
-    patience = 200
-    save_weights_only = False
-    lr_alfa = 0.003
-    lr_kappa = 0.001
-    beta_1 = 0.9
-    beta_2 = 0.999  
-    regularizer_weight = 0.01
-    loss_weights = [20, 20, 1, 1]
-    feature_type = 'bow'
-    res_size = 30
-    resnet_layers = (2, 2)
-    embedding_size = 20
-    use_conv = False
-    dropout_resnet = 0.3
-    dropout_embedder = 0.1
-    embedder_layers = 2
-    avg_pad = 20
-    final_size = 20
-
-    # dataset_name = 'cdcp_ACL17'
-    # dataset_version = 'new_3'
-    
-    dataset_name = 'AAEC_v2'
-    dataset_version = 'new_2'
-    
+def perform_training(name = 'prova999',
+                     save_weights_only=False,
+                    use_conv = False,
+                    epochs = 1000,
+                    feature_type = 'bow',
+                    patience = 200,
+                    loss_weights = [20, 20, 1, 1],
+                    lr_alfa = 0.003,
+                    lr_kappa = 0.001,
+                    beta_1 = 0.9,
+                    beta_2 = 0.999,
+                    res_size = 30,
+                    resnet_layers = (2, 2),
+                    embedding_size = 20,
+                    embedder_layers = 2,
+                    avg_pad = 20,
+                    final_size = 20,
+                    batch_size = 200,
+                    regularizer_weight = 0.001,
+                    dropout_resnet = 0.5,
+                    dropout_embedder = 0.5,
+                    cross_embed = False,
+                    # dataset_name = 'cdcp_ACL17',
+                    # dataset_version = 'new_3',
+                    dataset_name = 'AAEC_v2',
+                    dataset_version = 'new_2',):
 
     outputs_units = ()
     if dataset_name == 'AAEC_v2':
@@ -379,7 +372,7 @@ if __name__ == '__main__':
     """
 
     model = build_net_2(bow=bow,
-                        cross_embed=True,
+                        cross_embed=cross_embed,
                         text_length=max_text_len, propos_length=max_prop_len,
                         regularizer_weight=regularizer_weight,
                         dropout_embedder=dropout_embedder,
@@ -412,9 +405,12 @@ if __name__ == '__main__':
 
     if dataset_name == 'cdcp_ACL17':
         props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3_4]
+    #elif dataset_name == 'AAEC_v2':
+    #    props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_0_1_2]
     elif dataset_name == 'AAEC_v2':
-        props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_0_1_2]
+        props_fmeasures = [fmeasure_0_1_2]
 
+    # for using them during model loading
     fmeasures_names = {}
     for fmeasure in fmeasures:
         fmeasures_names[fmeasure.__name__] = fmeasure
@@ -425,7 +421,8 @@ if __name__ == '__main__':
                                  beta_1=beta_1,
                                  beta_2=beta_2),
                   metrics={'link': [fmeasure_0],
-                           'relation': [fmeasure_0, fmeasure_2, fmeasure_0_2, fmeasure_0_1_2_3],
+                           # 'relation': [fmeasure_0, fmeasure_2, fmeasure_0_2, fmeasure_0_1_2_3],
+                           'relation': [fmeasure_0_2, fmeasure_0_1_2_3],
                            'source': props_fmeasures,
                            'target': props_fmeasures}
                   )
@@ -484,6 +481,8 @@ if __name__ == '__main__':
 
     print(str(time.ctime()) + "\tTRAINING FINISHED")
 
+    print("\n-----------------------\n")
+
     print(str(time.ctime()) + "\tEVALUATING MODEL")
 
     last_path = ""
@@ -497,37 +496,84 @@ if __name__ == '__main__':
                        custom_objects=fmeasures_names
                        )
 
-    score = model.evaluate(X3_test, Y_test, verbose=0)
+    print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
-    string = ""
-    for metric in model.metrics_names:
-        string += metric + "\t"
-    print(string)
+    X = {'test': X3_test,
+         'train': X3_train,
+         'validation': X3_validation}
 
-    string = ""
-    for metric in score:
-        string += str(metric) + "\t"
-    print(string)
+    Y = {'test': Y_test,
+         'train': Y_train,
+         'validation': Y_validation}
 
-    print(str(time.ctime()) + "\t\tLABEL PREDICTION")
+    testfile = open(os.path.join(save_dir, name + "_eval.txt"), 'w')
 
-    Y_pred = model.predict(X3_test)
+    for split in ['test', 'validation', 'train']:
+        score = model.evaluate(X[split], Y[split], verbose=1)
 
-    print(Y_pred)
+        string = ""
+        for metric in model.metrics_names:
+            string += metric + "\t"
+        testfile.write(string + "\n")
 
-    Y_pred_tot = np.concatenate([Y_pred[2], Y_pred[3]])
-    Y_test_tot = np.concatenate([Y_stype_test, Y_ttype_test])
+        string = ""
+        for metric in score:
+            string += str(metric) + "\t"
+        testfile.write(string + "\n")
 
-    Y_pred_labels = []
-    Y_labels_test = []
+    print("\n-----------------------\n")
 
-    for scores in Y_pred_tot:
-        Y_pred_labels.append(np.argmax(scores))
-    for scores in Y_test_tot:
-        Y_labels_test.append(np.argmax(scores))
+    if dataset_name == 'AAEC_v2':
+        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR attack\tR support\t" +
+                       "P AVG\tP evidence\tP claim\tP major claim\n")
+
+
+        for split in ['test', 'validation', 'train']:
+
+            Y_pred = model.predict(X[split])
+
+            Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
+            Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
+
+            Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
+            Y_test_prop = np.argmax(Y_test_prop, axis=-1)
+
+            Y_pred_links = np.argmax(Y_pred[0], axis=-1)
+            Y_test_links = np.argmax(Y[split][0], axis=-1)
+
+            Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
+            Y_test_rel = np.argmax(Y[split][1], axis=-1)
+
+            score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+            score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+            score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+            score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
+            score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
+
+            score_AVG_LP = np.mean([score_link, score_prop_AVG])
+            score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
+
+            string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
+            string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
+            for score in score_rel:
+                string += "\t" + str(score)
+            string += "\t" + str(score_prop_AVG)
+            for score in score_prop:
+                string += "\t" + str(score)
+
+            testfile.write(string + "\n")
+
+    testfile.close()
+
+    print("\n-----------------------\n")
+
+    print("\n\nFOR DEBUG PURPOSE:\n")
+    Y_pred = model.predict(X['test'])
+    print("SOURCE")
+    Y_pred_labels = np.argmax(Y_pred[2], axis=-1)
+    Y_labels_test = np.argmax(Y_stype_test, axis=-1)
 
     print("\n")
-    print(Y_pred_labels)
 
     func_scores = f1_score(Y_labels_test, Y_pred_labels, average=None)
     string = ""
@@ -538,7 +584,181 @@ if __name__ == '__main__':
     for metric in func_scores:
         string += str(metric) + "\t"
 
-    string += f1_score(Y_labels_test, Y_pred_labels)
+    string += str(f1_score(Y_labels_test, Y_pred_labels, average='macro'))
     print(string)
 
+    print("TARGET")
+
+    Y_pred_labels = np.argmax(Y_pred[3], axis=-1)
+    Y_labels_test = np.argmax(Y_ttype_test, axis=-1)
+
+    print("\n")
+
+    func_scores = f1_score(Y_labels_test, Y_pred_labels, average=None)
+    string = ""
+    for i in range(len(func_scores)):
+        string += str(i) + "\t"
+    string += "AVG\n"
+
+    for metric in func_scores:
+        string += str(metric) + "\t"
+
+    string += str(f1_score(Y_labels_test, Y_pred_labels, average='macro'))
+    print(string)
+
+
+if __name__ == '__main__':
+    name = 'prova999'
+    if len(sys.argv) > 1:
+        name = sys.argv[1]
+    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
+
+    # come 4 e 6
+    # loss_weights = [10, 10, 1, 1]
+    # lr_alfa=0.003
+    perform_training(name='ukp_N7',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.003,
+                     lr_kappa=0.001,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 2),
+                     embedding_size=20,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=1000,
+                     regularizer_weight=0.001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     cross_embed=False,
+                     # dataset_name = 'cdcp_ACL17',
+                     # dataset_version = 'new_3',
+                     dataset_name='AAEC_v2',
+                     dataset_version='new_2', )
+
+
+
+    # come 7
+    # embedder_layers=1
+    perform_training(name='ukp_N8',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.003,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 2),
+                     embedding_size=20,
+                     embedder_layers=1,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=1000,
+                     regularizer_weight=0.001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     cross_embed=False,
+                     # dataset_name = 'cdcp_ACL17',
+                     # dataset_version = 'new_3',
+                     dataset_name='AAEC_v2',
+                     dataset_version='new_2', )
+
+    # come 7
+    # resnet_layers=(2, 1)
+    perform_training(name='ukp_N8',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.003,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 1),
+                     embedding_size=20,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=1000,
+                     regularizer_weight=0.001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     cross_embed=False,
+                     # dataset_name = 'cdcp_ACL17',
+                     # dataset_version = 'new_3',
+                     dataset_name='AAEC_v2',
+                     dataset_version='new_2', )
+    # come 8 e 9
+    # resnet_layers=(2, 1)
+    # embedder_layers=1,
+    perform_training(name='ukp_N9',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.003,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 1),
+                     embedding_size=20,
+                     embedder_layers=1,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=1000,
+                     regularizer_weight=0.001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     cross_embed=False,
+                     # dataset_name = 'cdcp_ACL17',
+                     # dataset_version = 'new_3',
+                     dataset_name='AAEC_v2',
+                     dataset_version='new_2', )
+
+    # come 7
+    # dropout_resnet=0.3,
+    # dropout_embedder=0.3,
+    perform_training(name='ukp_N10',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.003,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 2),
+                     embedding_size=20,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=1000,
+                     regularizer_weight=0.001,
+                     dropout_resnet=0.3,
+                     dropout_embedder=0.3,
+                     cross_embed=False,
+                     # dataset_name = 'cdcp_ACL17',
+                     # dataset_version = 'new_3',
+                     dataset_name='AAEC_v2',
+                     dataset_version='new_2', )
 
