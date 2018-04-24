@@ -9,6 +9,7 @@ import pandas
 import numpy as np
 import sys
 import time
+import random
 
 from networks import build_net_1, build_net_2
 from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
@@ -25,10 +26,10 @@ from sklearn.metrics import f1_score
 DIST_MAX = 5
 
 def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2',
-                 feature_type='embeddings'):
+                 feature_type='embeddings', min_text_len=0, min_prop_len=0):
 
-    max_prop_len = 0
-    max_text_len = 0
+    max_prop_len = min_prop_len
+    max_text_len = min_text_len
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, dataset_split + '.pkl')
@@ -85,14 +86,23 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         target_ID = row['target_ID']
         split = row['set']
 
-        dataset[split]['sources_type'].append(categorical_prop[row['source_type']])
-        dataset[split]['targets_type'].append(categorical_prop[row['target_type']])
-        dataset[split]['relations_type'].append(categorical_link[row['relation_type']])
 
         if row['source_to_target']:
             dataset[split]['links'].append([1, 0])
         else:
             dataset[split]['links'].append([0, 1])
+        """
+        else:
+            if split == 'train':
+                n = random.random()
+                if n < 0.2:
+                    continue
+            dataset[split]['links'].append([0, 1])
+        """
+        
+        dataset[split]['sources_type'].append(categorical_prop[row['source_type']])
+        dataset[split]['targets_type'].append(categorical_prop[row['target_type']])
+        dataset[split]['relations_type'].append(categorical_link[row['relation_type']])
 
         if dataset_name == 'cdcp_ACL17':
             i = 1
@@ -118,7 +128,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         text_embeddings = []
         text_mark = []
         for prop_id in range(0, 50):
-            complete_prop_id = text_ID + "_" + str(prop_id)
+            complete_prop_id = str(text_ID) + "_" + str(prop_id)
             file_path = os.path.join(embed_path, complete_prop_id + '.npz')
 
             if os.path.exists(file_path):
@@ -172,7 +182,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         # if split == 'validation':
         #     break
-
 
     print(str(time.ctime()) + '\t\tPADDING...')
 
@@ -263,10 +272,14 @@ def perform_training(name = 'prova999',
                     dropout_resnet = 0.5,
                     dropout_embedder = 0.5,
                     cross_embed = False,
+                    single_LSTM=False,
                     # dataset_name = 'cdcp_ACL17',
                     # dataset_version = 'new_3',
                     dataset_name = 'AAEC_v2',
-                    dataset_version = 'new_2',):
+                    dataset_version = 'new_2',
+                    bn_embed=True,
+                    bn_res=True,
+                    bn_final=True):
 
     outputs_units = ()
     if dataset_name == 'AAEC_v2':
@@ -274,6 +287,7 @@ def perform_training(name = 'prova999',
     else:
         outputs_units = (2, 5, 5, 5)
 
+    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
     print(str(time.ctime()) + "\tLOADING DATASET...")
     dataset, max_text_len, max_prop_len = load_dataset(dataset_name=dataset_name,
                                                        dataset_version=dataset_version,
@@ -383,7 +397,11 @@ def perform_training(name = 'prova999',
                         resnet_layers=resnet_layers,
                         res_size=res_size,
                         final_size=final_size,
-                        outputs=outputs_units)
+                        outputs=outputs_units,
+                        bn_embed=bn_embed,
+                        bn_res=bn_res,
+                        bn_final=bn_final,
+                        single_LSTM=single_LSTM)
 
     # plot_model(model, to_file='model.png', show_shapes=True)
 
@@ -404,7 +422,7 @@ def perform_training(name = 'prova999',
     props_fmeasures = []
 
     if dataset_name == 'cdcp_ACL17':
-        props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3_4]
+        props_fmeasures = [fmeasure_0_1_2_3_4]
     #elif dataset_name == 'AAEC_v2':
     #    props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_0_1_2]
     elif dataset_name == 'AAEC_v2':
@@ -414,6 +432,10 @@ def perform_training(name = 'prova999',
     fmeasures_names = {}
     for fmeasure in fmeasures:
         fmeasures_names[fmeasure.__name__] = fmeasure
+
+    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
 
     model.compile(loss='categorical_crossentropy',
                   loss_weights=loss_weights,
@@ -429,12 +451,7 @@ def perform_training(name = 'prova999',
 
     model.summary()
 
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
-
     complete_network_name = name + '_completemodel.{epoch:03d}.h5'
-
-    if not os.path.isdir(save_dir):
-        os.makedirs(save_dir)
 
     file_path = os.path.join(save_dir, complete_network_name)
 
@@ -508,124 +525,104 @@ def perform_training(name = 'prova999',
 
     testfile = open(os.path.join(save_dir, name + "_eval.txt"), 'w')
 
-    # evaluation with KERAS-like F1 formula
-    for split in ['test', 'validation', 'train']:
-        score = model.evaluate(X[split], Y[split], verbose=1)
-
-        string = ""
-        for metric in model.metrics_names:
-            string += metric + "\t"
-        testfile.write(string + "\n")
-
-        string = ""
-        for metric in score:
-            string += str(metric) + "\t"
-        testfile.write(string + "\n")
-
     print("\n-----------------------\n")
 
-    # evaluation with sci-kit F1 formula
-    if dataset_name == 'AAEC_v2':
-        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR attack\tR support\t" +
-                       "P AVG\tP evidence\tP claim\tP major claim\n")
+    if dataset_name=="AAEC_v2":
+        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
+                       "P AVG\tP premise\tP claim\tP major claim\n")
+    elif dataset_name=="cdcp_ACL17":
+        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
+                       "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n")
+        
 
 
-        for split in ['test', 'validation', 'train']:
+    for split in ['test', 'validation', 'train']:
 
-            Y_pred = model.predict(X[split])
+        Y_pred = model.predict(X[split])
 
-            Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
-            Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
+        Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
+        Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
 
-            Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
-            Y_test_prop = np.argmax(Y_test_prop, axis=-1)
+        Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
+        Y_test_prop = np.argmax(Y_test_prop, axis=-1)
 
-            Y_pred_links = np.argmax(Y_pred[0], axis=-1)
-            Y_test_links = np.argmax(Y[split][0], axis=-1)
+        Y_pred_links = np.argmax(Y_pred[0], axis=-1)
+        Y_test_links = np.argmax(Y[split][0], axis=-1)
 
-            Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
-            Y_test_rel = np.argmax(Y[split][1], axis=-1)
+        Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
+        Y_test_rel = np.argmax(Y[split][1], axis=-1)
 
-            score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-            score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
-            score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
-            score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
+        score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+        score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+        score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+        score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
+        score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
 
-            score_AVG_LP = np.mean([score_link, score_prop_AVG])
-            score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
+        score_AVG_LP = np.mean([score_link, score_prop_AVG])
+        score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
 
-            string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
-            string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
-            for score in score_rel:
-                string += "\t" + str(score)
-            string += "\t" + str(score_prop_AVG)
-            for score in score_prop:
-                string += "\t" + str(score)
+        string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
+        string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
+        for score in score_rel:
+            string += "\t" + str(score)
+        string += "\t" + str(score_prop_AVG)
+        for score in score_prop:
+            string += "\t" + str(score)
 
-            testfile.write(string + "\n")
+        testfile.write(string + "\n")
 
+        testfile.flush()
     testfile.close()
 
-    print("\n-----------------------\n")
-
-    print("\n\nFOR DEBUG PURPOSE:\n")
-    Y_pred = model.predict(X['test'])
-    print("SOURCE")
-    Y_pred_labels = np.argmax(Y_pred[2], axis=-1)
-    Y_labels_test = np.argmax(Y_stype_test, axis=-1)
-
-    print("\n")
-
-    func_scores = f1_score(Y_labels_test, Y_pred_labels, average=None)
-    string = ""
-    for i in range(len(func_scores)):
-        string += str(i) + "\t"
-    string += "AVG\n"
-
-    for metric in func_scores:
-        string += str(metric) + "\t"
-
-    string += str(f1_score(Y_labels_test, Y_pred_labels, average='macro'))
-    print(string)
-
-    print("TARGET")
-
-    Y_pred_labels = np.argmax(Y_pred[3], axis=-1)
-    Y_labels_test = np.argmax(Y_ttype_test, axis=-1)
-
-    print("\n")
-
-    func_scores = f1_score(Y_labels_test, Y_pred_labels, average=None)
-    string = ""
-    for i in range(len(func_scores)):
-        string += str(i) + "\t"
-    string += "AVG\n"
-
-    for metric in func_scores:
-        string += str(metric) + "\t"
-
-    string += str(f1_score(Y_labels_test, Y_pred_labels, average='macro'))
-    print(string)
 
 
 if __name__ == '__main__':
     name = 'prova999'
     if len(sys.argv) > 1:
         name = sys.argv[1]
-    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
 
-    # come 4 e 6
-    # loss_weights = [10, 10, 1, 1]
-    # lr_alfa=0.003
-    perform_training(name='ukp_N7',
+    perform_training(name='cdcpN1',
                      save_weights_only=False,
                      use_conv=False,
                      epochs=1000,
                      feature_type='bow',
                      patience=200,
                      loss_weights=[10, 10, 1, 1],
-                     lr_alfa=0.003,
+                     lr_alfa=0.005,
+                     lr_kappa=0.001,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=30,
+                     resnet_layers=(2, 2),
+                     embedding_size=20,
+                     embedder_layers=4,
+                     avg_pad=20,
+                     final_size=20,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
+                     cross_embed=False,
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
+    
+    # come N1 ma
+    # embedder layers=2
+    perform_training(name='cdcpN2',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
                      lr_kappa=0.001,
                      beta_1=0.9,
                      beta_2=0.999,
@@ -635,21 +632,24 @@ if __name__ == '__main__':
                      embedder_layers=2,
                      avg_pad=20,
                      final_size=20,
-                     batch_size=1000,
-                     regularizer_weight=0.001,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
                      dropout_resnet=0.1,
                      dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
                      cross_embed=False,
-                     # dataset_name = 'cdcp_ACL17',
-                     # dataset_version = 'new_3',
-                     dataset_name='AAEC_v2',
-                     dataset_version='new_2', )
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
 
-
-
-    # come 7
-    # embedder_layers=1
-    perform_training(name='ukp_N8',
+    # come N1 ma
+    # final_size=10 
+    perform_training(name='cdcpN3',
                      save_weights_only=False,
                      use_conv=False,
                      epochs=1000,
@@ -657,28 +657,33 @@ if __name__ == '__main__':
                      patience=200,
                      loss_weights=[10, 10, 1, 1],
                      lr_alfa=0.005,
-                     lr_kappa=0.003,
+                     lr_kappa=0.001,
                      beta_1=0.9,
                      beta_2=0.999,
                      res_size=30,
                      resnet_layers=(2, 2),
                      embedding_size=20,
-                     embedder_layers=1,
+                     embedder_layers=4,
                      avg_pad=20,
-                     final_size=20,
-                     batch_size=1000,
-                     regularizer_weight=0.001,
+                     final_size=10,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
                      dropout_resnet=0.1,
                      dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
                      cross_embed=False,
-                     # dataset_name = 'cdcp_ACL17',
-                     # dataset_version = 'new_3',
-                     dataset_name='AAEC_v2',
-                     dataset_version='new_2', )
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
 
-    # come 7
-    # resnet_layers=(2, 1)
-    perform_training(name='ukp_N8',
+    # come N1 ma
+    # res_size=10 
+    perform_training(name='cdcpN4',
                      save_weights_only=False,
                      use_conv=False,
                      epochs=1000,
@@ -686,58 +691,35 @@ if __name__ == '__main__':
                      patience=200,
                      loss_weights=[10, 10, 1, 1],
                      lr_alfa=0.005,
-                     lr_kappa=0.003,
+                     lr_kappa=0.001,
                      beta_1=0.9,
                      beta_2=0.999,
-                     res_size=30,
-                     resnet_layers=(2, 1),
+                     res_size=10,
+                     resnet_layers=(2, 2),
                      embedding_size=20,
-                     embedder_layers=2,
+                     embedder_layers=4,
                      avg_pad=20,
                      final_size=20,
-                     batch_size=1000,
-                     regularizer_weight=0.001,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
                      dropout_resnet=0.1,
                      dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
                      cross_embed=False,
-                     # dataset_name = 'cdcp_ACL17',
-                     # dataset_version = 'new_3',
-                     dataset_name='AAEC_v2',
-                     dataset_version='new_2', )
-    # come 8 e 9
-    # resnet_layers=(2, 1)
-    # embedder_layers=1,
-    perform_training(name='ukp_N9',
-                     save_weights_only=False,
-                     use_conv=False,
-                     epochs=1000,
-                     feature_type='bow',
-                     patience=200,
-                     loss_weights=[10, 10, 1, 1],
-                     lr_alfa=0.005,
-                     lr_kappa=0.003,
-                     beta_1=0.9,
-                     beta_2=0.999,
-                     res_size=30,
-                     resnet_layers=(2, 1),
-                     embedding_size=20,
-                     embedder_layers=1,
-                     avg_pad=20,
-                     final_size=20,
-                     batch_size=1000,
-                     regularizer_weight=0.001,
-                     dropout_resnet=0.1,
-                     dropout_embedder=0.1,
-                     cross_embed=False,
-                     # dataset_name = 'cdcp_ACL17',
-                     # dataset_version = 'new_3',
-                     dataset_name='AAEC_v2',
-                     dataset_version='new_2', )
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
 
-    # come 7
-    # dropout_resnet=0.3,
-    # dropout_embedder=0.3,
-    perform_training(name='ukp_N10',
+    # come N2-3-4
+    # res_size=10
+    # final_size=10 
+    # embedder_layers=2
+    perform_training(name='cdcpN5',
                      save_weights_only=False,
                      use_conv=False,
                      epochs=1000,
@@ -745,22 +727,128 @@ if __name__ == '__main__':
                      patience=200,
                      loss_weights=[10, 10, 1, 1],
                      lr_alfa=0.005,
-                     lr_kappa=0.003,
+                     lr_kappa=0.001,
                      beta_1=0.9,
                      beta_2=0.999,
-                     res_size=30,
+                     res_size=10,
                      resnet_layers=(2, 2),
                      embedding_size=20,
                      embedder_layers=2,
                      avg_pad=20,
-                     final_size=20,
-                     batch_size=1000,
-                     regularizer_weight=0.001,
-                     dropout_resnet=0.3,
-                     dropout_embedder=0.3,
+                     final_size=10,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
                      cross_embed=False,
-                     # dataset_name = 'cdcp_ACL17',
-                     # dataset_version = 'new_3',
-                     dataset_name='AAEC_v2',
-                     dataset_version='new_2', )
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
+                    
+    # come N5 ma
+    # embedding_size=10
+    perform_training(name='cdcpN6',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.001,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=10,
+                     resnet_layers=(2, 2),
+                     embedding_size=10,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=10,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
+                     cross_embed=False,
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
 
+    # come N5 ma 
+    # resnet_layers=(1,2)
+    perform_training(name='cdcpN7',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.001,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=10,
+                     resnet_layers=(1, 2),
+                     embedding_size=20,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=10,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
+                     cross_embed=False,
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )
+    # come N6-7
+    # resnet_layers=(1,2)
+    # embedding_size=10
+    perform_training(name='cdcpN8',
+                     save_weights_only=False,
+                     use_conv=False,
+                     epochs=1000,
+                     feature_type='bow',
+                     patience=200,
+                     loss_weights=[10, 10, 1, 1],
+                     lr_alfa=0.005,
+                     lr_kappa=0.001,
+                     beta_1=0.9,
+                     beta_2=0.999,
+                     res_size=10,
+                     resnet_layers=(1, 2),
+                     embedding_size=10,
+                     embedder_layers=2,
+                     avg_pad=20,
+                     final_size=10,
+                     batch_size=500,
+                     regularizer_weight=0.0001,
+                     dropout_resnet=0.1,
+                     dropout_embedder=0.1,
+                     bn_embed=True,
+                     bn_res=True,
+                     bn_final=False,
+                     cross_embed=False,
+                     single_LSTM=True,
+                     dataset_name = 'cdcp_ACL17',
+                     dataset_version = 'new_3',
+                     # dataset_name='AAEC_v2',
+                     # dataset_version='new_2',
+                     )

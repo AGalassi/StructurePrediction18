@@ -197,7 +197,7 @@ def build_net_3(bow=None,
     return full_model
 
 
-def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM/3)*3, dropout=0):
+def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM/3)*3, dropout=0, bn=True):
     prev_layer = input_layer
     prev_block = prev_layer
     blocks = layers[0]
@@ -207,7 +207,8 @@ def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM
 
     for i in range(1, blocks + 1):
         for j in range(1, res_layers):
-            prev_layer = BatchNormalization(name='resent_BN_' + str(i) + '_' + str(j))(prev_layer)
+            if bn:
+                prev_layer = BatchNormalization(name='resent_BN_' + str(i) + '_' + str(j))(prev_layer)
 
             prev_layer = Dropout(dropout, name='resnet_Dropout_' + str(i) + '_' + str(j))(prev_layer)
 
@@ -220,8 +221,8 @@ def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM
                                bias_regularizer=keras.regularizers.l2(regularizer_weight),
                                name='resnet_dense_' + str(i) + '_' + str(j)
                                )(prev_layer)
-
-        prev_layer = BatchNormalization(name='BN_' + str(i) + '_' + str(res_layers))(prev_layer)
+        if bn:
+            prev_layer = BatchNormalization(name='BN_' + str(i) + '_' + str(res_layers))(prev_layer)
 
         prev_layer = Dropout(dropout, name='resnet_Dropout_' + str(i) + '_' + str(res_layers))(prev_layer)
 
@@ -319,13 +320,14 @@ def make_embedder(input_layer, layer_name, regularizer_weight,
 
 
 def make_deep_word_embedder(input_layer, layer_name, regularizer_weight,
-                            layers=2, layers_size=int(DIM/10), dropout=0):
+                            layers=2, layers_size=int(DIM/10), dropout=0, bn=True):
     prev_layer = input_layer
 
     shape = int(np.shape(input_layer)[2])
     for i in range(1, layers):
 
-        prev_layer = BatchNormalization(name=layer_name + '_BN_' + str(i))(prev_layer)
+        if bn:
+            prev_layer = BatchNormalization(name=layer_name + '_BN_' + str(i))(prev_layer)
 
         prev_layer = Dropout(dropout, name=layer_name + '_Dropout_' + str(i))(prev_layer)
 
@@ -339,8 +341,8 @@ def make_deep_word_embedder(input_layer, layer_name, regularizer_weight,
                                            name=layer_name + '_dense_' + str(i)
                                            ),
                                      name=layer_name + '_TD_' + str(i))(prev_layer)
-
-    prev_layer = BatchNormalization(name=layer_name + '_BN_' + str(layers))(prev_layer)
+    if bn:
+        prev_layer = BatchNormalization(name=layer_name + '_BN_' + str(layers))(prev_layer)
 
     prev_layer = Dropout(dropout, name=layer_name + '_Dropout_' + str(layers))(prev_layer)
 
@@ -373,7 +375,12 @@ def build_net_2(bow=None,
                 resnet_layers=(2, 2),
                 res_size=50,
                 final_size=int(20),
-                outputs=(2, 5, 5, 5)):
+                outputs=(2, 5, 5, 5),
+                bn_embed=True,
+                bn_res=True,
+                bn_final=True,
+                single_LSTM=False):
+
 
     if bow is not None:
         text_il = Input(shape=(text_length,), name="text_input_L")
@@ -414,50 +421,85 @@ def build_net_2(bow=None,
     prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
     text_embed1 = make_deep_word_embedder(prev_text_l, 'text', regularizer_weight, layers=embedder_layers,
-                                         dropout=dropout_embedder, layers_size=embedding_size)
+                                         dropout=dropout_embedder, layers_size=embedding_size, bn=bn_embed)
     source_embed1 = make_deep_word_embedder(prev_source_l, 'source', regularizer_weight, layers=embedder_layers,
                                                dropout=dropout_embedder, layers_size=embedding_size)
     target_embed1 = make_deep_word_embedder(prev_target_l, 'target', regularizer_weight, layers=embedder_layers,
                                                dropout=dropout_embedder, layers_size=embedding_size)
 
-    text_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                   dropout=dropout_embedder,
-                                   recurrent_dropout=dropout_embedder,
-                                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   return_sequences=False,
-                                   unroll=False, # not possible to unroll if the time shape is not specified
-                                   name='text_LSTM'),
-                              merge_mode='mul',
-                              name='text_biLSTM'
-                              )(text_embed1)
+    text_embed1 = BatchNormalization()(text_embed1)
+    source_embed1 = BatchNormalization()(source_embed1)
+    target_embed1 = BatchNormalization()(target_embed1)
 
-    source_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                   dropout=dropout_embedder,
-                                   recurrent_dropout=dropout_embedder,
-                                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                   return_sequences=False,
-                                   unroll=False,  # not possible to unroll if the time shape is not specified
-                                   name='source_LSTM'),
-                              merge_mode='mul',
-                              name='source_biLSTM'
-                              )(source_embed1)
+    if single_LSTM:
+        embed2 = Bidirectional(LSTM(units=embedding_size,
+                                       dropout=dropout_embedder,
+                                       recurrent_dropout=dropout_embedder,
+                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       return_sequences=False,
+                                       unroll=False, # not possible to unroll if the time shape is not specified
+                                       name='prop_LSTM'),
+                                  merge_mode='mul',
+                                  name='biLSTM'
+                                  )
 
-    target_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                     dropout=dropout_embedder,
-                                     recurrent_dropout=dropout_embedder,
-                                     kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                     recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                     bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                     return_sequences=False,
-                                     unroll=False,  # not possible to unroll if the time shape is not specified
-                                     name='target_LSTM'),
-                                merge_mode='mul',
-                              name='target_biLSTM'
-                                )(target_embed1)
+        source_embed2 = embed2(source_embed1)
+        target_embed2 = embed2(target_embed1)
+
+        text_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                         dropout=dropout_embedder,
+                                         recurrent_dropout=dropout_embedder,
+                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         return_sequences=False,
+                                         unroll=False,  # not possible to unroll if the time shape is not specified
+                                         name='text_LSTM'),
+                                    merge_mode='mul',
+                                    name='text_biLSTM'
+                                    )(text_embed1)
+    else:
+
+        text_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                       dropout=dropout_embedder,
+                                       recurrent_dropout=dropout_embedder,
+                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       return_sequences=False,
+                                       unroll=False, # not possible to unroll if the time shape is not specified
+                                       name='text_LSTM'),
+                                  merge_mode='mul',
+                                  name='text_biLSTM'
+                                  )(text_embed1)
+
+        source_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                       dropout=dropout_embedder,
+                                       recurrent_dropout=dropout_embedder,
+                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       return_sequences=False,
+                                       unroll=False,  # not possible to unroll if the time shape is not specified
+                                       name='source_LSTM'),
+                                  merge_mode='mul',
+                                  name='source_biLSTM'
+                                  )(source_embed1)
+
+        target_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                         dropout=dropout_embedder,
+                                         recurrent_dropout=dropout_embedder,
+                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         return_sequences=False,
+                                         unroll=False,  # not possible to unroll if the time shape is not specified
+                                         name='target_LSTM'),
+                                    merge_mode='mul',
+                                  name='target_biLSTM'
+                                    )(target_embed1)
 
     if cross_embed:
         text_embed1 = Bidirectional(LSTM(units=embedding_size,
@@ -529,9 +571,10 @@ def build_net_2(bow=None,
 
     prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
 
-    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
+    if bn_res:
+        prev_l = BatchNormalization(name='merge_BN')(prev_l)
 
-    prev_l = BatchNormalization(name='merge_BN')(prev_l)
+    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
 
     prev_l = Dense(units=final_size,
                    activation='relu',
@@ -542,9 +585,10 @@ def build_net_2(bow=None,
                    )(prev_l)
 
     prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
-                         res_size=res_size, dropout=dropout_resnet)
+                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
 
-    prev_l = prev_l = BatchNormalization(name='final_BN')(prev_l)
+    if bn_final:
+        prev_l = BatchNormalization(name='final_BN')(prev_l)
 
     link_ol = Dense(units=outputs[0],
                     name='link',
@@ -577,9 +621,12 @@ if __name__ == '__main__':
 
     bow = np.array([[0]*300]*50)
 
-    model = build_net_2(bow=bow, cross_embed=False)
+    # model = build_net_2(bow=bow, cross_embed=False, single_LSTM=True, bn_final=False)
+    model = build_net_2(bow=bow, cross_embed=False, single_LSTM=True, bn_final=False,
+                        res_size=10, resnet_layers=(2, 2), embedding_size=20, final_size=20,
+                        embedder_layers=4, text_length=552, propos_length=153)
 
-    plot_model(model, to_file='model2.png', show_shapes=True)
+    plot_model(model, to_file='model_cdcpN4.png', show_shapes=True)
 
     model = build_net_3(bow=bow)
 
