@@ -589,7 +589,12 @@ def print_dataframe_details(dataframe_path):
     print(column)
     print(len(df[column].drop_duplicates()))
 
-
+    print()
+    df1 = df[['source_ID', 'source_type']]
+    column = 'source_type'
+    df2 = df1.drop_duplicates()
+    print(len(df2))
+    print(df2[column].value_counts())
 
 
 def create_total_dataframe(pickles_path):
@@ -613,7 +618,7 @@ def create_total_dataframe(pickles_path):
 
 if __name__ == '__main__':
 
-    # """
+    """
 
     dataset_type = 'train'
     # dataset_name = 'cdcp_ACL17'
@@ -655,7 +660,7 @@ if __name__ == '__main__':
     print("TEST")
     dataframe_path = os.path.join(pickles_path, 'test.pkl')
     print_dataframe_details(dataframe_path)
-
+    """
 
 
 
@@ -708,4 +713,18 @@ if __name__ == '__main__':
         print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
 
     """
+
+    dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
+    # dataset_name = 'AAEC_v2'
+    # dataset_version = 'new_2'
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+
+    for split in ('train', 'test', 'validation', 'total'):
+        print(split)
+        dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
+
+        print_dataframe_details(dataframe_path)
+        print('_______________________')
+
 

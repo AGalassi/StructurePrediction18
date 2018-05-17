@@ -12,6 +12,7 @@ import time
 
 from keras.callbacks import Callback
 from keras import backend as K
+from sklearn.metrics import f1_score
 
 class TimingCallback(Callback):
     """
@@ -32,16 +33,93 @@ class TimingCallback(Callback):
         print("Training is lasting: " + str(from_begin))
 
 
+class RealValidationCallback(Callback):
+    def __init__(self, patience, log_path, file_path):
+        self.logs = []
+        self.best_score = 0
+        self.waited = 0
+        self.patience = patience
+        self.log = open(log_path, 'w')
+        self.file_path = file_path
 
-def lr_annealing(epoch, initial_lr=0.001, k=0.001):
-    """
-    # Arguments
-        epoch (int): The number of epochs
-    # Returns
-        lr (float32): learning rate
-    """
+    def on_epoch_end(self, epoch, logs={}):
+        validation_x = self.model.validation_data[0]
+        Y_test = self.model.validation_data[1]
+        Y_pred = self.model.predict[validation_x]
 
-    lr = (initial_lr / (1 + k * epoch))
+        Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
+        Y_test_prop = np.concatenate([Y_test[2], Y_test[3]])
+        Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
+        Y_test_prop = np.argmax(Y_test_prop, axis=-1)
+        Y_pred_links = np.argmax(Y_pred[0], axis=-1)
+        Y_test_links = np.argmax(Y_test[0], axis=-1)
+        Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
+        Y_test_rel = np.argmax(Y_test[1], axis=-1)
+
+        score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+        score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+        score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+        score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
+        score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
+
+        score_AVG_LP = np.mean([score_link, score_prop_AVG])
+        score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
+
+        string = str(epoch) + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
+        string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
+        for score in score_rel:
+            string += "\t" + str(score)
+        string += "\t" + str(score_prop_AVG)
+        for score in score_prop:
+            string += "\t" + str(score)
+
+        if score_link > self.best_score:
+            self.best_score = score_link
+            string += "\t!"
+            # save
+            self.model.save_weights(self.file_path % epoch)
+        else:
+            self.waited += 1
+            # early stopping
+            if self.waited > self.patience:
+                self.stopped_epoch = epoch
+                self.model.stop_training = True
+
+        self.log.write(string + "\n")
+
+        self.log.flush()
+
+    def on_train_end(self, logs=None):
+        self.log.close()
+
+
+def create_lr_annealing_function(initial_lr=0.001, k=0.001, fixed_epoch=-1):
+
+    def lr_annealing(epoch, lr=0):
+        """
+        # Arguments
+            epoch (int): The number of epochs
+        # Returns
+            lr (float32): learning rate
+        """
+        if fixed_epoch <= 0:
+            lr = (initial_lr / (1 + k * epoch))
+        else:
+            lr = (initial_lr / (1 + k * fixed_epoch))
+        print("\tNEW LR: " + str(lr))
+
+        return lr
+
+    return lr_annealing
+
+
+def wrong_lr_annealing_function(epoch, initial_lr=0.001, k=0.001, fixed_epoch=-1):
+
+    if fixed_epoch <= 0:
+        lr = (initial_lr / (1 + k * epoch))
+    else:
+        lr = (initial_lr / (1 + k * fixed_epoch))
+    print("\tNEW LR: " + str(lr))
 
     return lr
 
