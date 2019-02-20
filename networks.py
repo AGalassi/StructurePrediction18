@@ -11,6 +11,7 @@ from keras.layers import (BatchNormalization, Dropout, Dense, Input, Activation,
                           Bidirectional, Concatenate, Flatten, Embedding, TimeDistributed, AveragePooling1D, Multiply,
                           GlobalAveragePooling1D, GlobalMaxPooling1D, Reshape, Permute, RepeatVector)
 from keras.utils.vis_utils import plot_model
+from tensorflow.contrib.sparsemax import sparsemax
 import pydot
 from glove_loader import DIM
 
@@ -2005,7 +2006,9 @@ def build_net_8(bow=None,
                 context=True,
                 distance=5,
                 temporalBN=False,
-                merge="a_self"):
+                merge="a_self",
+                distribution="softmax",
+                classification="softmax"):
     """
     Creates a network that (1) has a residual block to refine embeddings, (2) uses attention on the sequences,
     (3) uses a residual network to elaborate the vectors, (4) performs the classifications
@@ -2034,6 +2037,8 @@ def build_net_8(bow=None,
     :param merge: "a_self" to use self-attention, "a_self_shared" to use self-attention with a shared model for all
                   the 3 inputs, "a_coars" to use parallel coarse co-attention (problem to solve: the average is
                   computed also with the padding"
+    :param distribution: distribution function for the attention model, "softmax" or "sparsemax"
+    :param classification: "softmax" or "sparsemax"
     :return:
     """
 
@@ -2123,6 +2128,11 @@ def build_net_8(bow=None,
 
     # prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
+    if distribution == "sparsemax":
+        distribution = sparsemax
+    if classification == "sparsemax":
+        classification = sparsemax
+
     # ATTENTION
     # simple self attention
     if "a_self" in merge:
@@ -2194,13 +2204,13 @@ def build_net_8(bow=None,
         prev_source_l = Flatten()(prev_source_l)
         prev_target_l = Flatten()(prev_target_l)
 
-        text_a = Activation(activation='softmax',
+        text_a = Activation(activation=distribution,
                             name='text_attention')(prev_text_l)
 
-        source_a = Activation(activation='softmax',
+        source_a = Activation(activation=distribution,
                             name='source_attention')(prev_source_l)
 
-        target_a = Activation(activation='softmax',
+        target_a = Activation(activation=distribution,
                             name='target_attention')(prev_target_l)
 
         prev_text_l = RepeatVector(shape, name='text_repetition')(text_a)
@@ -2217,9 +2227,8 @@ def build_net_8(bow=None,
         text_embed2 = Lambda(create_sum_fn(1), name='text_asum')(prev_text_l)
         source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
         target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
-
     # parallel coarse grained co-attention
-    elif "a_coarse":
+    elif merge == "a_coarse":
         v_prev_text_l = prev_text_l
         v_prev_source_l = prev_source_l
         v_prev_target_l = prev_target_l
@@ -2285,13 +2294,13 @@ def build_net_8(bow=None,
         prev_source_l = Flatten()(prev_source_l)
         prev_target_l = Flatten()(prev_target_l)
 
-        text_a = Activation(activation='softmax',
+        text_a = Activation(activation=distribution,
                             name='text_attention')(prev_text_l)
 
-        source_a = Activation(activation='softmax',
+        source_a = Activation(activation=distribution,
                             name='source_attention')(prev_source_l)
 
-        target_a = Activation(activation='softmax',
+        target_a = Activation(activation=distribution,
                             name='target_attention')(prev_target_l)
 
         prev_text_l = RepeatVector(shape, name='text_repetition')(text_a)
@@ -2345,7 +2354,7 @@ def build_net_8(bow=None,
 
     rel_ol = Dense(units=outputs[1],
                    name='relation',
-                   activation='softmax',
+                   activation=classification,
                    )(prev_l)
 
     rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
@@ -2360,12 +2369,12 @@ def build_net_8(bow=None,
 
     source_ol = Dense(units=outputs[2],
                       name='source',
-                      activation='softmax',
+                      activation=classification,
                       )(prev_l)
 
     target_ol = Dense(units=outputs[3],
                       name='target',
-                      activation='softmax',
+                      activation=classification,
                       )(prev_l)
 
     full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il),
@@ -2541,9 +2550,11 @@ if __name__ == '__main__':
                         context=True,
                         distance=0,
                         temporalBN=False,
-                        merge="a_coarse")
+                        merge="a_coarse",
+                        classification="sparsemax",
+                        distribution="sparsemax")
 
-    plot_model(model, to_file='8R03.png', show_shapes=True)
+    plot_model(model, to_file='8R04.png', show_shapes=True)
 
     print("YEP")
 
