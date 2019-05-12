@@ -1589,8 +1589,11 @@ def build_net_7(bow=None,
     return full_model
 
 
-def build_net_7_nc(bow=None,
-                   propos_length=75,
+def build_net_7_nc(bow,
+                   propos_length,
+                   outputs,
+                   link_as_sum,
+                   distance,
                    regularizer_weight=0.0001,
                    dropout_embedder=0.1,
                    dropout_resnet=0.1,
@@ -1600,8 +1603,6 @@ def build_net_7_nc(bow=None,
                    resnet_layers=(1, 2),
                    res_size=5,
                    final_size=int(20),
-                   outputs=(2, 5, 5, 5),
-                   link_as_sum=None,
                    bn_embed=True,
                    bn_res=True,
                    bn_final=True,
@@ -1610,7 +1611,6 @@ def build_net_7_nc(bow=None,
                    text_pooling=50,
                    pooling_type='avg',
                    same_DE_layers=False,
-                   distance=5,
                    temporalBN=False, ):
     """
     Creates a neural network that classifies two argumentative components and their relation.
@@ -1627,8 +1627,15 @@ def build_net_7_nc(bow=None,
     :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
                 layer of keras, the input is supposed to be a list of integer which represent the words.
                 If it is None, the input is supposed to already contain pre-trained embeddings.
-    :param text_length: The temporal length of the text input
     :param propos_length: The temporal length of the proposition input
+    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param link_as_sum: if None, the link classifier will be built as a Dense layer.
+                        If it is an array of arrays: the outputs
+                        of the relation classifier will be summed together according to the values in the arrays.
+                        Example: if the link classification is binary, and its contributions from relation
+                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                        [[0, 2], [1, 3, 4]]
+    :param distance: The maximum distance that is taken into account, the input is expected to be twice that size.
     :param regularizer_weight: Regularization weight
     :param dropout_embedder: Dropout used in the embedder
     :param dropout_resnet: Dropout used in the residual network
@@ -1639,12 +1646,6 @@ def build_net_7_nc(bow=None,
                           number of blocks and the second the number of layers per block
     :param res_size: Number of neurons in the residual blocks
     :param final_size: Number of neurons of the final layer
-    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
-    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
-                        of the relation classifier will be summed together according to the values in the arrays.
-                        Example: if the link classification is binary, and its contributions from relation
-                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
-                        [[0, 2], [1, 3, 4]]
     :param bn_embed: Whether the batch normalization should be used in the embedding block
     :param bn_res: Whether the batch normalization should be used in the residual blocks
     :param bn_final: Whether the batch normalization should be used in the final layer
@@ -1653,8 +1654,6 @@ def build_net_7_nc(bow=None,
     :param text_pooling:
     :param pooling_type: 'avg' or 'max' pooling
     :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
-    :param context: If the context (the original text) should be used as input
-    :param distance: The maximum distance that is taken into account, the input is expected to be twice that size.
     :param temporalBN: Whether temporal batch-norm is applied
     :return:
     """
