@@ -1237,6 +1237,7 @@ def build_net_7(bow=None,
                 res_size=50,
                 final_size=int(20),
                 outputs=(2, 5, 5, 5),
+                link_as_sum=None,
                 bn_embed=True,
                 bn_res=True,
                 bn_final=True,
@@ -1250,8 +1251,9 @@ def build_net_7(bow=None,
                 temporalBN=False,):
     """
 
-    :param bow: If it is different from None, it is the Bag of Words matrix that will be used by the Embedding layer to
-                load the pre-trained embeddings
+    :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
+                layer of keras, the input is supposed in BoW form.
+                If it is None, the input is supposed to already contain pre-trained embeddings.
     :param text_length: The temporal length of the text input
     :param propos_length: The temporal length of the proposition input
     :param regularizer_weight: Regularization weight
@@ -1265,6 +1267,11 @@ def build_net_7(bow=None,
     :param res_size: Number of neurons in the residual blocks
     :param final_size: Number of neurons of the final layer
     :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
+                        of the relation classifier will be summed together according to the values in the arrays.
+                        Example: if the link classification is binary, and its contributions from relation
+                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                        [[0, 2], [1, 3, 4]]
     :param bn_embed: Whether the batch normalization should be used in the embedding block
     :param bn_res: Whether the batch normalization should be used in the residual blocks
     :param bn_final: Whether the batch normalization should be used in the final layer
@@ -1526,15 +1533,40 @@ def build_net_7(bow=None,
                    activation='softmax',
                    )(prev_l)
 
+    if link_as_sum is None:
+        link_ol = Dense(units=outputs[0],
+                       name='link',
+                       activation='softmax',
+                       )(prev_l)
+    else:
+        link_scores=[]
+        rel_scores=[]
+        # creates a layer that extracts the score of a single relation classification class
+        for i in range(outputs[1]):
+            rel_scores.append(Lambda(create_crop_fn(1, i, i+1), name='rel'+str(i))(rel_ol))
+
+        # for each link class, sums the relation score contributions
+        for i in range(len(link_as_sum)):
+            # terms to be summed together for one of the link classes
+            link_contribute=[]
+            for j in range(len(link_as_sum[i])):
+                value = link_as_sum[i][j]
+                link_contribute.append(rel_scores[value])
+            link_class = Add(name='link_'+str(i))(link_contribute)
+            link_scores.append(link_class)
+
+    """
+    Custom code for cdcp
     rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
     rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
     rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
     rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
     rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
-
+    
     pos_rel = Add(name='rel_pos')([rel_0, rel_2])
     neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
     link_ol = Concatenate(name='link')([pos_rel, neg_rel])
+    """
 
     source_ol = Dense(units=outputs[2],
                       name='source',
@@ -2033,6 +2065,7 @@ def build_net_8(bow=None,
                 res_scale=int(15),
                 final_scale=int(10),
                 outputs=(2, 5, 5, 5),
+                link_as_sum=None,
                 bn_embed=True,
                 bn_res=True,
                 bn_final=True,
@@ -2062,6 +2095,11 @@ def build_net_8(bow=None,
     :param final_scale: how many times the embeddings size is reduced in the last block of the network
     :param outputs: the number of classes for link prediction, relation classification, source classification,
                     target classification
+    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
+                    of the relation classifier will be summed together according to the values in the arrays.
+                    Example: if the link classification is binary, and its contributions from relation
+                    classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                    [[0, 2], [1, 3, 4]]
     :param bn_embed: if batch normalization is applied in (1)
     :param bn_res: if batch normalization is applied in (3)
     :param bn_final: if batch normalization is applied in the end
@@ -2555,6 +2593,30 @@ def build_net_8(bow=None,
                    activation=classification,
                    )(prev_l)
 
+    if link_as_sum is None:
+        link_ol = Dense(units=outputs[0],
+                        name='link',
+                        activation='softmax',
+                        )(prev_l)
+    else:
+        link_scores = []
+        rel_scores = []
+        # creates a layer that extracts the score of a single relation classification class
+        for i in range(outputs[1]):
+            rel_scores.append(Lambda(create_crop_fn(1, i, i + 1), name='rel' + str(i))(rel_ol))
+
+        # for each link class, sums the relation score contributions
+        for i in range(len(link_as_sum)):
+            # terms to be summed together for one of the link classes
+            link_contribute = []
+            for j in range(len(link_as_sum[i])):
+                value = link_as_sum[i][j]
+                link_contribute.append(rel_scores[value])
+            link_class = Add(name='link_' + str(i))(link_contribute)
+            link_scores.append(link_class)
+
+    """
+    Custom code for cdcp
     rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
     rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
     rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
@@ -2564,6 +2626,7 @@ def build_net_8(bow=None,
     pos_rel = Add(name='rel_pos')([rel_0, rel_2])
     neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
     link_ol = Concatenate(name='link')([pos_rel, neg_rel])
+    """
 
     source_ol = Dense(units=outputs[2],
                       name='source',
