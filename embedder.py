@@ -162,9 +162,14 @@ def save_embeddings(dataset_name='cdcp_ACL17', dataset_version='new_2', mode='te
 
 if __name__ == '__main__':
     global MAX
+    # MAX = 0
+    # save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
+    # print(MAX)
+
+    # MAX = 0
+    # save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
+    # print(MAX)
+
     MAX = 0
-    save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
-    print(MAX)
-    MAX = 0
-    save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
+    save_embeddings('DrInventor', 'new_0', 'propositions', 'bow')
     print(MAX)

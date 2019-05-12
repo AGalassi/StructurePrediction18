@@ -573,6 +573,27 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
     X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation,
                      X_marks_validation]
 
+    if context and distance:
+        X = {'test': X3_test,
+             'train': X3_train,
+             'validation': X3_validation}
+    elif distance:
+        X = {'test': X3_test[1:-1],
+             'train': X3_train[1:-1],
+             'validation': X3_validation[1:-1]}
+    elif context:
+        X = {'test': X3_test[:-2] + X3_test[-1:],
+             'train': X3_train[:-2] + X3_train[-1:],
+             'validation': X3_validation[:-2] + X3_validation[-1:]}
+    else:
+        X = {'test': X3_test[1:-2],
+             'train': X3_train[1:-2],
+             'validation': X3_validation[1:-2]}
+
+    Y = {'test': Y_test,
+         'train': Y_train,
+         'validation': Y_validation}
+
     print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
     print(str(time.ctime()) + "\t\tCREATING MODEL...")
 
@@ -648,30 +669,10 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
                 model = load_model(last_path, custom_objects=custom_objects)
             break
 
+    if training.DEBUG:
+        plot_model(model, netname + ".png", show_shapes=True)
 
     print("\n\n\tLOADED NETWORK: " + last_path + "\n")
-
-
-    if context and distance:
-        X = {'test': X3_test,
-             'train': X3_train,
-             'validation': X3_validation}
-    elif distance:
-        X = {'test': X3_test[1:-1],
-             'train': X3_train[1:-1],
-             'validation': X3_validation[1:-1]}
-    elif context:
-        X = {'test': X3_test[1:-2, -1:],
-             'train': X3_train[1:-2, -1:],
-             'validation': X3_validation[1:-2, -1:]}
-    else:
-        X = {'test': X3_test[1:-2],
-             'train': X3_train[1:-2],
-             'validation': X3_validation[1:-2]}
-
-    Y = {'test': Y_test,
-         'train': Y_train,
-         'validation': Y_validation}
 
     testfile = open(os.path.join(save_dir, name + "_eval.txt"), 'w')
 
@@ -928,7 +929,7 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
             string = json.load(f)
             model = model_from_json(string, custom_objects=custom_objects)
 
-    for epoch in range(last_epoch , 0, -1):
+    for epoch in range(last_epoch, 0, -1):
         if save_weights_only:
             netpath = os.path.join(save_dir, netname + '_weights.%03d.h5' % epoch)
         else:
@@ -947,6 +948,8 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
     print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
+    if training.DEBUG:
+        plot_model(model, netname, show_shapes=True)
 
     if context and distance:
         X = {'test': X3_test,
@@ -957,9 +960,9 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
              'train': X3_train[1:-1],
              'validation': X3_validation[1:-1]}
     elif context:
-        X = {'test': X3_test[1:-2, -1:],
-             'train': X3_train[1:-2, -1:],
-             'validation': X3_validation[1:-2, -1:]}
+        X = {'test': X3_test[:-2] + X3_test[-1:],
+             'train': X3_train[:-2] + X3_train[-1:],
+             'validation': X3_validation[:-2] + X3_validation[-1:]}
     else:
         X = {'test': X3_test[1:-2],
              'train': X3_train[1:-2],

@@ -241,6 +241,20 @@ if __name__ == '__main__':
 
     m1 = model.copy()
 
+
+    dataset_name = 'DrInventor'
+    version = 'new_1'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    version_path = os.path.join(os.path.join(pickles_path, version))
+    dataframe_path = os.path.join(version_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove', version)
+
+    vocabulary_creator(m1, glove_path, dataframe_path)
+
+    """
+
     dataset_name = 'AAEC_v2'
     version = 'new_2'
 
@@ -263,3 +277,6 @@ if __name__ == '__main__':
     glove_path = os.path.join(dataset_path, 'glove', version)
 
     vocabulary_creator(model, glove_path, dataframe_path)
+
+    """
+

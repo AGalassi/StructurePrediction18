@@ -203,7 +203,7 @@ def fmeasure(y_true, y_pred):
 
 def get_avgF1(indexes):
     """
-    Create the average f1-measure between for the classes indicated by indexes
+    Create the average f1-measure for the classes indicated by indexes
     :param indexes: iterable object of ints that represent classes
     :return: the average f1-measure
     """
