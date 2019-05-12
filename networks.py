@@ -7,9 +7,10 @@ __email__ = "a.galassi@unibo.it"
 
 import keras
 import numpy as np
+import keras.backend as K
 from keras.layers import (BatchNormalization, Dropout, Dense, Input, Activation, LSTM, Conv1D, Add, Lambda, MaxPool1D,
                           Bidirectional, Concatenate, Flatten, Embedding, TimeDistributed, AveragePooling1D, Multiply,
-                          GlobalAveragePooling1D, GlobalMaxPooling1D, Reshape, Permute, RepeatVector)
+                          GlobalAveragePooling1D, GlobalMaxPooling1D, Reshape, Permute, RepeatVector, Masking)
 from keras.utils.vis_utils import plot_model
 from tensorflow.contrib.sparsemax import sparsemax
 import pydot
@@ -1223,6 +1224,7 @@ def build_net_5(bow=None,
 
     return full_model
 
+
 def build_net_7(bow=None,
                 text_length=200, propos_length=75,
                 regularizer_weight=0.001,
@@ -1246,6 +1248,36 @@ def build_net_7(bow=None,
                 context=True,
                 distance=5,
                 temporalBN=False,):
+    """
+
+    :param bow: If it is different from None, it is the Bag of Words matrix that will be used by the Embedding layer to
+                load the pre-trained embeddings
+    :param text_length: The temporal length of the text input
+    :param propos_length: The temporal length of the proposition input
+    :param regularizer_weight: Regularization weight
+    :param dropout_embedder: Dropout used in the embedder
+    :param dropout_resnet: Dropout used in the residual network
+    :param dropout_final: Dropout used in the final classifiers
+    :param embedding_size: Size of the spatial reduced embeddings
+    :param embedder_layers: Number of layers in the initial embedder (int)
+    :param resnet_layers: Number of layers in the final residual network. Tuple where the first value indicates the
+                          number of blocks and the second the number of layers per block
+    :param res_size: Number of neurons in the residual blocks
+    :param final_size: Number of neurons of the final layer
+    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param bn_embed: Whether the batch normalization should be used in the embedding block
+    :param bn_res: Whether the batch normalization should be used in the residual blocks
+    :param bn_final: Whether the batch normalization should be used in the final layer
+    :param single_LSTM: Whether the same LSTM should be used both for processing the target and the source
+    :param pooling:
+    :param text_pooling:
+    :param pooling_type: 'avg' or 'max' pooling
+    :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
+    :param context: If the context (the original text) should be used as input
+    :param distance: The maximum distance that is taken into account
+    :param temporalBN: Whether temporal batch-norm is applied
+    :return:
+    """
 
     if bow is not None:
         text_il = Input(shape=(text_length,), name="text_input_L")
@@ -1351,6 +1383,7 @@ def build_net_7(bow=None,
 
     prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
+    # TODO: fix this mess
     if pooling > 0:
         if not text_pooling > 0:
             text_pooling = pooling
@@ -1993,7 +2026,7 @@ def build_net_8(bow=None,
                 regularizer_weight=0.001,
                 dropout_embedder=0.1,
                 dropout_resnet=0.1,
-                dropout_final=0,
+                dropout_final=0.1,
                 embedding_scale=int(10),
                 embedder_layers=2,
                 resnet_layers=(2, 2),
@@ -2008,7 +2041,9 @@ def build_net_8(bow=None,
                 temporalBN=False,
                 merge="a_self",
                 distribution="softmax",
-                classification="softmax"):
+                classification="softmax",
+                space_scale=2,
+                use_lstm=True):
     """
     Creates a network that (1) has a residual block to refine embeddings, (2) uses attention on the sequences,
     (3) uses a residual network to elaborate the vectors, (4) performs the classifications
@@ -2031,16 +2066,26 @@ def build_net_8(bow=None,
     :param bn_res: if batch normalization is applied in (3)
     :param bn_final: if batch normalization is applied in the end
     :param context: make use of the full text or not
-    :param distance: if it's greater than 0 indicates the maximum number of distance, if it's 0 only previous and before
-                     features are used, if it's lower than 0 it's not used
+    :param distance: if it's greater than 0 indicates the maximum number of distance (both for positive and negative),
+                     if it's lower or equal to 0 it's not used. Using 1, the feature will represent the cocept of
+                     previous and following
     :param temporalBN: if the batch normalization is computed along the temporal axis
     :param merge: "a_self" to use self-attention, "a_self_shared" to use self-attention with a shared model for all
                   the 3 inputs, "a_coars" to use parallel coarse co-attention (problem to solve: the average is
                   computed also with the padding"
     :param distribution: distribution function for the attention model, "softmax" or "sparsemax"
     :param classification: "softmax" or "sparsemax"
+    :param space_scale: if each temporal data has to be mapped in a smaller space through a dense layer,
+                        the scale of the reduction; -1 to avoid this feature
+    :param lstm: whether a biLSTM has to be applied before attention; the two LSTMs output feature of the same dimension
+                 of the input /2 and *2
     :return:
     """
+
+    if distribution == "sparsemax":
+        distribution = sparsemax
+    if classification == "sparsemax":
+        classification = sparsemax
 
     # input: BOW model, this piece of code loads the pre-trained embeddings
     if bow is not None:
@@ -2082,19 +2127,26 @@ def build_net_8(bow=None,
     # distance feature
     if distance > 0:
         dist_il = Input(shape=(int(distance*2),), name="dist_input_L")
-    # previous / following feature
-    elif distance == 0:
-        dist_il = Input(shape=(2,), name="dist_input_L")
     # no feature
     else:
         dist_il = Input(shape=(0,), name="dist_input_L")
 
-    shape = int(np.shape(prev_text_l)[2])
+    source_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="source_nonpad_L")(prev_source_l)
+    target_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="target_nonpad_L")(prev_target_l)
+    text_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="text_nonpad_L")(prev_text_l)
+
+    original_space_shape = int(np.shape(prev_source_l)[2])
+
+    # TODO: find an alternative to masking since it can't be applied
+    # mask = Masking(mask_value=0, name="masking_l")
+    # prev_text_l = mask(prev_text_l)
+    # prev_source_l = mask(prev_source_l)
+    # prev_target_l = mask(prev_target_l)
 
     # DEEP EMBEDDER
     if embedder_layers > 0:
-        embedding_size = int(shape/embedding_scale)
-        layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
+        embedding_size = int(original_space_shape/embedding_scale)
+        layers = make_embedder_layers(regularizer_weight, shape=original_space_shape, layers=embedder_layers,
                                       layers_size=embedding_size, temporalBN=temporalBN, dropout=dropout_embedder)
 
         make_embedder = make_embedder_with_all_layers
@@ -2125,13 +2177,64 @@ def build_net_8(bow=None,
     prev_source_l = drop_layer(prev_source_l)
     prev_target_l = drop_layer(prev_target_l)
 
-
     # prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
-    if distribution == "sparsemax":
-        distribution = sparsemax
-    if classification == "sparsemax":
-        classification = sparsemax
+    # DIMENSIONALITY REDUCTION
+    space_shape = int(original_space_shape / space_scale)
+    if space_scale > 0:
+        relu_embedder = Dense(units=int(space_shape),
+                              activation='relu',
+                              kernel_initializer='he_normal',
+                              kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                              bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                              name='relu_reduction')
+
+        prev_text_l = TimeDistributed(relu_embedder, name='TD_text_reduction')(prev_text_l)
+        TD_prop = TimeDistributed(relu_embedder, name='TD_prop_reduction')
+        prev_source_l = TD_prop(prev_source_l)
+        prev_target_l = TD_prop(prev_target_l)
+
+    # biLSTM
+    if use_lstm:
+        shape_lstm = int(int(np.shape(prev_source_l)[2])/2)
+        prev_text_l = Bidirectional(LSTM(units=shape_lstm,
+                                       dropout=dropout_embedder,
+                                       recurrent_dropout=dropout_embedder,
+                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       return_sequences=True,
+                                       unroll=False, # not possible to unroll if the time shape is not specified
+                                       name='text_LSTM'),
+                                  merge_mode='concat',
+                                  name='text_biLSTM'
+                                  )(prev_text_l)
+
+        prev_source_l = Bidirectional(LSTM(units=shape_lstm,
+                                       dropout=dropout_embedder,
+                                       recurrent_dropout=dropout_embedder,
+                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                       return_sequences=True,
+                                       unroll=False,  # not possible to unroll if the time shape is not specified
+                                       name='source_LSTM'),
+                                      merge_mode='concat',
+                                      name='source_biLSTM'
+                                      )(prev_source_l)
+
+        prev_target_l = Bidirectional(LSTM(units=shape_lstm,
+                                         dropout=dropout_embedder,
+                                         recurrent_dropout=dropout_embedder,
+                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         return_sequences=True,
+                                         unroll=False,  # not possible to unroll if the time shape is not specified
+                                         name='target_LSTM'),
+                                    merge_mode='concat',
+                                  name='target_biLSTM'
+                                    )(prev_target_l)
 
     # ATTENTION
     # simple self attention
@@ -2143,7 +2246,7 @@ def build_net_8(bow=None,
         # the importance model is shared by all the 3 inputs
         if merge == "a_self_shared":
 
-            relu_attention = Dense(units=shape,
+            relu_attention = Dense(units=space_shape,
                                     activation='relu',
                                     kernel_initializer='he_normal',
                                     name='attention_mlp')
@@ -2162,7 +2265,7 @@ def build_net_8(bow=None,
         # each input develops a different importance model
         else:
 
-            text_relu_attention = Dense(units=shape,
+            text_relu_attention = Dense(units=space_shape,
                                    activation='relu',
                                    kernel_initializer='he_normal',
                                    name='text_attention_mlp')
@@ -2171,7 +2274,7 @@ def build_net_8(bow=None,
                                          activation=None,
                                          name='text_attention_importance')
 
-            source_relu_attention = Dense(units=shape,
+            source_relu_attention = Dense(units=space_shape,
                                    activation='relu',
                                    kernel_initializer='he_normal',
                                    name='source_attention_mlp')
@@ -2180,7 +2283,7 @@ def build_net_8(bow=None,
                                          activation=None,
                                          name='source_attention_importance')
 
-            target_relu_attention = Dense(units=shape,
+            target_relu_attention = Dense(units=space_shape,
                                    activation='relu',
                                    kernel_initializer='he_normal',
                                    name='target_attention_mlp')
@@ -2213,11 +2316,11 @@ def build_net_8(bow=None,
         target_a = Activation(activation=distribution,
                             name='target_attention')(prev_target_l)
 
-        prev_text_l = RepeatVector(shape, name='text_repetition')(text_a)
+        prev_text_l = RepeatVector(space_shape, name='text_repetition')(text_a)
         prev_text_l = Permute(dims=(2, 1), name='text_swap')(prev_text_l)
-        prev_source_l = RepeatVector(shape, name='source_repetition')(source_a)
+        prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
         prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-        prev_target_l = RepeatVector(shape, name='target_repetition')(target_a)
+        prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
         prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
 
         prev_text_l = Multiply(name='text_amul')([v_prev_text_l, prev_text_l])
@@ -2228,15 +2331,19 @@ def build_net_8(bow=None,
         source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
         target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
     # parallel coarse grained co-attention
+    # TODO: FIND A WAY TO DEAL WITH THIS DAMN PADDING!!!
+    # CAN'T USE "non-padding finder" cause of the dimensionality reduction!
     elif merge == "a_coarse":
         v_prev_text_l = prev_text_l
         v_prev_source_l = prev_source_l
         v_prev_target_l = prev_target_l
 
-        # TODO: come rimuovere i dati di padding???
-        text_avg = Lambda(create_mean_fn(1), name='text_amean')(prev_text_l)
-        source_avg = Lambda(create_mean_fn(1), name='source_amean')(prev_source_l)
-        target_avg = Lambda(create_mean_fn(1), name='target_amean')(prev_target_l)
+        text_sum = Lambda(create_sum_fn(1), name="text_aavg_sum")(prev_text_l)
+        text_avg = Lambda(create_elementwise_division_fn(), name='text_aavg_div')([text_sum, text_padding])
+        source_sum = Lambda(create_sum_fn(1), name="source_aavg_sum")(prev_source_l)
+        source_avg = Lambda(create_elementwise_division_fn(), name='source_aavg_div')([source_sum, source_padding])
+        target_sum = Lambda(create_sum_fn(1), name="target_aavg_sum")(prev_target_l)
+        target_avg = Lambda(create_elementwise_division_fn(), name='target_aavg_div')([target_sum, target_padding])
 
         text_query_p = RepeatVector(propos_length, name='text_aquery_p')(text_avg)
         source_query_p = RepeatVector(propos_length, name='source_aquery_p')(source_avg)
@@ -2252,7 +2359,7 @@ def build_net_8(bow=None,
             prev_source_l = Concatenate(name='source_aconcat')([prev_source_l, target_query_p])
             prev_target_l = Concatenate(name='target_aconcat')([prev_target_l, source_query_p])
 
-        text_relu_attention = Dense(units=shape,
+        text_relu_attention = Dense(units=space_shape,
                                activation='relu',
                                kernel_initializer='he_normal',
                                name='text_attention_mlp')
@@ -2261,7 +2368,7 @@ def build_net_8(bow=None,
                                      activation=None,
                                      name='text_attention_importance')
 
-        source_relu_attention = Dense(units=shape,
+        source_relu_attention = Dense(units=space_shape,
                                activation='relu',
                                kernel_initializer='he_normal',
                                name='source_attention_mlp')
@@ -2270,7 +2377,7 @@ def build_net_8(bow=None,
                                      activation=None,
                                      name='source_attention_importance')
 
-        target_relu_attention = Dense(units=shape,
+        target_relu_attention = Dense(units=space_shape,
                                activation='relu',
                                kernel_initializer='he_normal',
                                name='target_attention_mlp')
@@ -2303,11 +2410,11 @@ def build_net_8(bow=None,
         target_a = Activation(activation=distribution,
                             name='target_attention')(prev_target_l)
 
-        prev_text_l = RepeatVector(shape, name='text_repetition')(text_a)
+        prev_text_l = RepeatVector(space_shape, name='text_repetition')(text_a)
         prev_text_l = Permute(dims=(2, 1), name='text_swap')(prev_text_l)
-        prev_source_l = RepeatVector(shape, name='source_repetition')(source_a)
+        prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
         prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-        prev_target_l = RepeatVector(shape, name='target_repetition')(target_a)
+        prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
         prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
 
         prev_text_l = Multiply(name='text_amul')([v_prev_text_l, prev_text_l])
@@ -2317,6 +2424,97 @@ def build_net_8(bow=None,
         text_embed2 = Lambda(create_sum_fn(1), name='text_asum')(prev_text_l)
         source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
         target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
+    # TODO: Don't know which parts of this code are working and which are not. Need to check properly everything!!!
+    elif merge == "a_flat":
+        v_prev_text_l = prev_text_l
+        v_prev_source_l = prev_source_l
+        v_prev_target_l = prev_target_l
+
+        if context:
+            raise NotImplemented("Fine-grained attention has not been implemented for use with context")
+        else:
+            concat_l = Concatenate(name='total_aconcat', axis=-2)([prev_source_l, prev_target_l])
+
+            flatten_l = Flatten(name='aflatten')(concat_l)
+
+            prev_source_l = Dense(name='source_attention_mlp',
+                                            units=propos_length,
+                                            activation='relu',
+                                            kernel_initializer='he_normal',)(flatten_l)
+
+            prev_target_l = Dense(name='target_attention_mlp',
+                                            units=propos_length,
+                                            activation='relu',
+                                            kernel_initializer='he_normal',)(flatten_l)
+
+            source_a = Activation(activation=distribution,
+                                  name='source_attention')(prev_source_l)
+
+            target_a = Activation(activation=distribution,
+                                  name='target_attention')(prev_target_l)
+
+            prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
+            prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
+            prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
+            prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
+
+            prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
+            prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
+
+            source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
+            target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
+
+    # TODO: FINISH TO IMPLEMENT THIS
+    # DECOMPOSABLE FINE GRAINED CO ATTENTION
+    elif merge == "a_fine":
+        v_prev_text_l = prev_text_l
+        v_prev_source_l = prev_source_l
+        v_prev_target_l = prev_target_l
+
+        if context:
+            raise NotImplemented("Fine-grained attention has not been implemented for use with context")
+        else:
+            prev_source_l = TimeDistributed(Dense(name='source_attention_mlp',
+                                  units=space_shape,
+                                  activation='relu',
+                                  kernel_initializer='he_normal', ), name='source_attention_mlp_TD')(prev_source_l)
+            prev_source_l = TimeDistributed(Dense(name='source_attention_iv',
+                                                  units=1,), name='source_attention_iv_TD')(prev_source_l)
+
+            prev_target_l = TimeDistributed(Dense(name='target_attention_mlp',
+                                  units=space_shape,
+                                  activation='relu',
+                                  kernel_initializer='he_normal', ), name='target_attention_mlp_TD')(prev_target_l)
+            prev_target_l = TimeDistributed(Dense(name='target_attention_iv',
+                                                  units=1,), name='target_attention_iv_TD')(prev_target_l)
+
+            prev_source_l = Flatten(name='source_flatten_attention')(prev_source_l)
+            prev_target_l = Flatten(name='target_flatten_attention')(prev_target_l)
+
+            prev_source_l = RepeatVector(propos_length, "source_fine_repetition")(prev_source_l)
+
+
+            prev_target_l = Dense(name='target_attention_mlp',
+                                  units=propos_length,
+                                  activation='relu',
+                                  kernel_initializer='he_normal', )(flatten_l)
+
+            source_a = Activation(activation=distribution,
+                                  name='source_attention')(prev_source_l)
+
+            target_a = Activation(activation=distribution,
+                                  name='target_attention')(prev_target_l)
+
+            prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
+            prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
+            prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
+            prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
+
+            prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
+            prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
+
+            source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
+            target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
 
 
     if context and distance >= 0:
@@ -2333,8 +2531,8 @@ def build_net_8(bow=None,
 
     prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
 
-    final_size = int(shape/final_scale)
-    res_size = int(shape/res_scale)
+    final_size = int(original_space_shape/final_scale)
+    res_size = int(original_space_shape/res_scale)
 
     prev_l = Dense(units=final_size,
                    activation='relu',
@@ -2377,8 +2575,10 @@ def build_net_8(bow=None,
                       activation=classification,
                       )(prev_l)
 
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il),
-                             outputs=(link_ol, rel_ol, source_ol, target_ol, source_a, target_a, text_a),
+    # TODO: implement the use of attention visualization
+    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
+                             # outputs=(link_ol, rel_ol, source_ol, target_ol, source_a, target_a, text_a),
+                             outputs=(link_ol, rel_ol, source_ol, target_ol),
                              )
 
     return full_model
@@ -2418,29 +2618,63 @@ def create_sum_fn(axis):
     :return:
     """
     def func(x):
-        return keras.backend.sum(x, axis=axis)
+        return K.sum(x, axis=axis)
 
     func.__name__ = "sumalong_" + str(axis)
     return func
 
 
-def create_mean_fn(axis):
+def create_average_fn(axis):
     """
     Average a tensor along an axis
-    :param axis: axis along which to sum
-    :return:
+    Source: https://stackoverflow.com/questions/53303724/how-to-average-only-non-zero-entries-in-tensor
+    :param axis: axis along which to average
+    :return: The average computed ignoring 0 values
     """
     def func(x):
-        return keras.backend.mean(x, axis=axis)
+        nonzero = K.any(K.not_equal(x, 0.000), axis=axis)
+        n = K.sum(K.cast(nonzero, 'float32'), axis=axis, keepdims=True)
+        x_mean = K.sum(x, axis=axis-1) / n
+        return x_mean
 
-    func.__name__ = "meanalong_" + str(axis)
+    func.__name__ = "avgalong_" + str(axis)
     return func
 
 
 
+def create_count_nonpadding_fn(axis, pad_dims):
+    """
+    Given a padded tensor, counts how many elements are not padded
+    :param axis: The axis along which the padding elements are to be searched
+    :param pad_dims: Dimensionality of a padding element e.g. (300,)
+    :return: a tensor whose elements are the number of non-padding elements that were present in that position
+    """
+    def func(x):
+        nonzero = K.any(K.not_equal(x, K.zeros(pad_dims, dtype='float32')), axis=axis)
+        n = K.sum(K.cast(nonzero, 'float32'), axis=axis, keepdims=True)
+        return n
+
+    func.__name__ = "count_nonpadding_" + str(axis) + "_" + str(pad_dims)
+    return func
+
+
+
+def create_elementwise_division_fn():
+    """
+    Divide a tensor by the element of the second one
+    :return:
+    """
+    def func(x):
+        res = x[0]/x[1]
+        return res
+
+    func.__name__ = "elementwise_division"
+    return func
+
+
 if __name__ == '__main__':
 
-    bow = np.array([[0]*300]*50)
+    bow = np.array([[0]*DIM]*50)
 
     """
 
@@ -2547,14 +2781,16 @@ if __name__ == '__main__':
                         bn_embed=False,
                         bn_res=False,
                         bn_final=False,
-                        context=True,
-                        distance=0,
+                        context=False,
+                        distance=5,
                         temporalBN=False,
                         merge="a_coarse",
                         classification="sparsemax",
-                        distribution="sparsemax")
+                        distribution="sparsemax",
+                        space_scale=int(6),
+                        use_lstm=True)
 
-    plot_model(model, to_file='8R04.png', show_shapes=True)
+    plot_model(model, to_file='8R05.png', show_shapes=True)
 
     print("YEP")
 
