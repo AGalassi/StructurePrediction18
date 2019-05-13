@@ -5,6 +5,11 @@ __version__ = "0.0.1"
 __email__ = "a.galassi@unibo.it"
 
 
+"""
+Code for creating some neural network models. Don't judge them, please. They are just born this way.
+"""
+
+
 import keras
 import numpy as np
 import keras.backend as K

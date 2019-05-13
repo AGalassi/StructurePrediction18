@@ -4,6 +4,11 @@ __license__ = "BSD 3-clause"
 __version__ = "0.0.1"
 __email__ = "a.galassi@unibo.it"
 
+"""
+Bunch of stuff that should make the training do what it is supposed to do
+"""
+
+
 import os
 import pandas
 import numpy as np

@@ -859,14 +859,14 @@ def create_inv_pickle(dataset_path, dataset_version, link_types, test=0.3, valid
 def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                       asymmetric_link_types, symmetric_link_types, reflexive):
     """
-
-    :param dataset_path:
-    :param dataset_version:
-    :param documents_path:
+    Creates a pickle for each split of the specific version of the RCT dataset.
+    :param dataset_path: the working directory for the RCT dataset
+    :param dataset_version: the name of the specific sub-dataset in exam
+    :param documents_path: the path of the .ann and .txt file repository (regardless of the version)
     :param asymmetric_link_types: list of links that are asymmetric. For these, the "inv_..." non-links will be created
     :param symmetric_link_types: list of links that are symmetric. For these, 2 links rows will be created
     :param reflexive: whether reflexive links should be added
-    :return:
+    :return: None
     """
 
     link_types = []
@@ -1126,6 +1126,11 @@ def print_dataframe_details(dataframe_path):
 
 
 def create_total_dataframe(pickles_path):
+    """
+    Given a path with train, test, and/or validation dataframes, merge them together in a total dataframe
+    :param pickles_path:
+    :return:
+    """
     frames = []
     for split in ["train", "test", "validation"]:
         dataframe_path = os.path.join(pickles_path, split + ".pkl")
@@ -1139,7 +1144,86 @@ def create_total_dataframe(pickles_path):
         dataframe.to_pickle(dataframe_path)
 
 
+def create_collective_version_dataframe(pickle_path, split):
+    """
+    Given a path containing a set of "dataset version" folders, with dataframes, merge together all the ones from the
+    same split
+    :param pickle_path:
+    :param split: One between "train", "test", "validation", or "total"
+    :return:
+    """
+    frames = []
+    for path in os.listdir(pickle_path):
+        if os.path.isdir(path):
+            dataframe_path = os.path.join(path, split + ".pkl")
+            if os.path.exists(dataframe_path):
+                df1 = pandas.read_pickle(dataframe_path)
+                frames.append(df1)
+
+    if len(frames) > 0:
+        dataframe = pandas.concat(frames).sort_values('text_ID')
+        dataframe_path = os.path.join(pickle_path, split + ".pkl")
+        dataframe.to_pickle(dataframe_path)
+
+
+def print_distance_analysis(pickles_path):
+
+    for split in ['total', 'train', 'test', 'validation']:
+        print(split)
+        dataframe_path = os.path.join(pickles_path, split + '.pkl')
+
+        if os.path.exists(dataframe_path):
+            df = pandas.read_pickle(dataframe_path)
+
+            diff_l = {}
+            diff_nl = {}
+
+            highest = 0
+            lowest = 0
+
+            for index, row in df.iterrows():
+                s_index = int(row['source_ID'].split('_')[-1])
+                t_index = int(row['target_ID'].split('_')[-1])
+
+                difference = (s_index - t_index)
+
+                if highest < difference:
+                    highest = difference
+                if lowest > difference:
+                    lowest = difference
+
+                if row['source_to_target']:
+                    voc = diff_l
+                else:
+                    voc = diff_nl
+
+                if difference in voc.keys():
+                    voc[difference] += 1
+                else:
+                    voc[difference] = 1
+
+            print()
+            print()
+            print(split)
+            print("distance\tnot links\tlinks")
+            for key in range(lowest, highest + 1):
+                if key not in diff_nl.keys():
+                    diff_nl[key] = 0
+                if key not in diff_l.keys():
+                    diff_l[key] = 0
+
+                print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
+
+            sys.stdout.flush()
+
+
+
 def routine_RCT_corpus():
+    """
+    Creates pickles for the RCT corpus. For each dataset version, creates a specific pickle file.
+    It creates also a collective pickle file with all the previous versions mixed together.
+    :return:
+    """
     a_link_types = ['support', 'attack', 'partial-attack']
     s_link_types = []
     dataset_name = "RCT"
@@ -1162,9 +1246,30 @@ def routine_RCT_corpus():
 
         create_total_dataframe(pickles_path)
 
+    for split in splits:
+        pickle_path = os.path.join(dataset_path, "pickles")
+        create_collective_version_dataframe(pickle_path, split)
+
     print("-------------------------------------------------------------")
     print("DATASETS DETAILS")
     print("-------------------------------------------------------------")
+
+    pickles_path = os.path.join(dataset_path, "pickles")
+    print("all")
+    print()
+
+    for split in splits:
+        print('_______________________')
+        print(split)
+        dataframe_path = os.path.join(pickles_path, split + '.pkl')
+        if os.path.exists(dataframe_path):
+            print_dataframe_details(dataframe_path)
+            print('_______________________')
+            sys.stdout.flush()
+
+    print('_______________________')
+    print('_______________________')
+    print('_______________________')
 
     for dataset_version in dataset_versions:
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
@@ -1184,62 +1289,17 @@ def routine_RCT_corpus():
         print('_______________________')
         print('_______________________')
 
-        highest = 0
-        lowest = 0
-
     print("-------------------------------------------------------------")
     print("DISTANCE ANALYSIS")
     print("-------------------------------------------------------------")
 
+    pickles_path = os.path.join(dataset_path, "pickles")
+    print_distance_analysis(pickle_path)
+
     for dataset_version in dataset_versions:
         # distance analysis
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
-
-
-        for split in splits:
-            print(split)
-            dataframe_path = os.path.join(pickles_path, split + '.pkl')
-
-            if os.path.exists(dataframe_path):
-                df = pandas.read_pickle(dataframe_path)
-
-                diff_l = {}
-                diff_nl = {}
-
-                for index, row in df.iterrows():
-                    s_index = int(row['source_ID'].split('_')[i])
-                    t_index = int(row['target_ID'].split('_')[i])
-
-                    difference = (s_index - t_index)
-
-                    if highest < difference:
-                        highest = difference
-                    if lowest > difference:
-                        lowest = difference
-
-                    if row['source_to_target']:
-                        voc = diff_l
-                    else:
-                        voc = diff_nl
-
-                    if difference in voc.keys():
-                        voc[difference] += 1
-                    else:
-                        voc[difference] = 1
-
-                print()
-                print()
-                print(split)
-                print("distance\tnot links\tlinks")
-                for key in range(lowest, highest + 1):
-                    if key not in diff_nl.keys():
-                        diff_nl[key] = 0
-                    if key not in diff_l.keys():
-                        diff_l[key] = 0
-
-                    print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
-
-                sys.stdout.flush()
+        print_distance_analysis(pickle_path)
 
 
 

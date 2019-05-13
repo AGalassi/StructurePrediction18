@@ -14,8 +14,6 @@ import evaluate_net
 import json
 import tensorflow as tf
 
-
-
 from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
                       create_count_nonpadding_fn, create_elementwise_division_fn)
 from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
@@ -162,7 +160,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         dataset[split]['distance'].append(difference_array)
 
 
-        # TODO: remove context loading avoiding unpleasant explosions everywhere
+        # TODO: remove context loading, but avoiding unpleasant explosions everywhere
         # load the document as list of argumentative component
         embed_length = 0
         text_embeddings = []
@@ -322,7 +320,6 @@ def perform_training(name = 'prova999',
                      context=True,
                      distance=5,
                      temporalBN=False,
-                     two_rounds=False,
                      iterations=1,
                      merge="a_self",
                      distribution="softmax",
@@ -335,7 +332,7 @@ def perform_training(name = 'prova999',
     parameters = locals()
     paramfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name + "_info.txt"),
                      'w')
-    for parameter in parameters.keys():
+    for parameter in sorted(parameters.keys()):
         value = parameters[parameter]
         paramfile.write(parameter + " = " + str(value) + "\n")
     paramfile.close()
@@ -451,6 +448,19 @@ def perform_training(name = 'prova999',
         print(str(time.ctime()) + "\t\t\tEMBEDDINGS LOADED...")
 
     realname = name
+
+
+    # multi-iteration evaluation setting
+    final_scores = {'train': [], 'test': [], 'validation': []}
+    evaluation_headline = ""
+    if dataset_name == "AAEC_v2":
+        evaluation_headline = ("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
+                                "P AVG\tP premise\tP claim\tP major claim\n\n")
+    elif dataset_name == "cdcp_ACL17":
+        evaluation_headline = ("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
+                                "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n\n")
+
+    # train and test iterations
     for i in range(iterations):
 
         name = realname + "_" + str(i)
@@ -787,163 +797,6 @@ def perform_training(name = 'prova999',
             val_file.close()
             waited = 0
 
-            # TODO: What is this???
-            if two_rounds:
-                log_path = os.path.join(save_dir, name + '_validation_2.log')
-                val_file = open(log_path, 'w')
-
-                if save_weights_only:
-                    model = model_from_json(json_model, custom_objects=custom_objects)
-
-                    for epoch in range(last_epoch, 0, -1):
-                        netpath = os.path.join(save_dir, name + '_weights.%03d.h5' % epoch)
-                        if os.path.exists(netpath):
-                            last_path = netpath
-                            last_epoch = epoch
-                            break
-                    model.load_weights(last_path)
-
-                else:
-                    for epoch in range(last_epoch, 0, -1):
-                        netpath = os.path.join(save_dir, name + '_completemodel.%03d.h5' % epoch)
-                        if os.path.exists(netpath):
-                            last_path = netpath
-                            last_epoch = epoch
-                            break
-
-                    model = load_model(last_path, custom_objects=custom_objects)
-
-                print("\n\n\tLOADED NETWORK: " + last_path + "\n")
-
-                if monitor == 'prop' or monitor == 'proposition' or monitor == 'propositions' or monitor == 'props':
-                    loss_weights[0] = 0
-                    loss_weights[1] = 0
-                elif monitor == 'links' or monitor == 'link':
-                    loss_weights[2] = 0
-                    loss_weights[3] = 0
-
-                model.compile(loss='categorical_crossentropy',
-                              loss_weights=loss_weights,
-                              optimizer=Adam(lr=lr_function(0),
-                                             beta_1=beta_1,
-                                             beta_2=beta_2),
-                              metrics={'link': [fmeasure_0],
-                                       # 'relation': [fmeasure_0, fmeasure_2, fmeasure_0_2, fmeasure_0_1_2_3],
-                                       'relation': [fmeasure_0_2, fmeasure_0_1_2_3],
-                                       'source': props_fmeasures,
-                                       'target': props_fmeasures}
-                              )
-
-                if context and distance:
-                    X = X3_train
-                    X3_v = X3_validation
-                elif distance:
-                    X = X3_train[1:-1]
-                    X3_v = X3_validation[1:-1]
-                elif context:
-                    X = X3_train[:-2] + X3_train[-1:]
-                    X3_v = X3_validation[:-2] + X3_validation[-1:]
-                else:
-                    X = X3_train[1:-2]
-                    X3_v = X3_validation[1:-2]
-
-                for epoch in range(last_epoch, epochs + 1):
-                    print("\nEPOCH: " + str(epoch))
-                    lr_annealing_fn = create_lr_annealing_function(initial_lr=lr_alfa, k=lr_kappa, fixed_epoch=epoch)
-                    lr_scheduler = LearningRateScheduler(lr_annealing_fn)
-                    callbacks = [lr_scheduler, logger, timer]
-                    model.fit(x=X,
-                              # y=Y_links_train,
-                              y=Y_train,
-                              batch_size=batch_size,
-                              epochs=epoch + 1,
-                              verbose=2,
-                              callbacks=callbacks,
-                              initial_epoch=epoch
-                              )
-
-                    # evaluation
-                    Y_pred = model.predict(X3_v)
-
-                    s_pred_scores = {}
-                    t_pred_scores = {}
-
-                    for index in range(len(sids)):
-                        sid = sids[index]
-                        tid = tids[index]
-
-                        if sid not in s_pred_scores.keys():
-                            s_pred_scores[sid] = []
-                        s_pred_scores[sid].append(Y_pred[2][index])
-
-                        if tid not in t_pred_scores.keys():
-                            t_pred_scores[tid] = []
-                        t_pred_scores[tid].append(Y_pred[3][index])
-
-                    Y_pred_prop_real_list = []
-
-                    for p_id in t_test_scores.keys():
-                        Y_pred_prop_real_list.append(np.concatenate([s_pred_scores[p_id], t_pred_scores[p_id]]))
-
-                    Y_pred_prop_real_list = np.array(Y_pred_prop_real_list)
-
-                    Y_pred_prop_real = []
-                    for index in range(len(Y_test_prop_real_list)):
-                        Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
-
-                    Y_pred_prop_real = np.array(Y_pred_prop_real)
-                    Y_pred_prop_real = np.argmax(Y_pred_prop_real, axis=-1)
-
-                    Y_pred_links = np.argmax(Y_pred[0], axis=-1)
-                    Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
-
-                    score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-                    score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-                    score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
-                    score_prop = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
-                    score_prop_AVG = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
-
-                    score_AVG_LP = np.mean([score_link, score_prop_AVG])
-                    score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
-
-                    string = str(epoch) + "\t" + str(round(score_AVG_all[0], 5)) + "\t" + str(round(score_AVG_LP[0], 5))
-                    string += "\t" + str(round(score_link[0], 5)) + "\t" + str(round(score_rel_AVG, 5))
-                    for score in score_rel:
-                        string += "\t" + str(round(score, 5))
-                    string += "\t" + str(round(score_prop_AVG, 5))
-                    for score in score_prop:
-                        string += "\t" + str(round(score, 5))
-
-                    monitor_score = score_link
-
-                    if monitor == 'prop' or monitor == 'proposition' or monitor == 'propositions' or monitor == 'props':
-                        monitor_score = score_prop_AVG
-                    elif monitor == 'AVG_LP':
-                        monitor_score = score_AVG_LP
-
-                    if monitor_score > best_score:
-                        best_score = score_link
-                        string += "\t!"
-
-                        file_path = os.path.join(save_dir, name + '_weights.%03d.h5' % epoch)
-                        # save
-                        print("Saving to " + file_path)
-                        model.save_weights(file_path)
-                        waited = 0
-                    else:
-                        waited += 1
-                        # early stopping
-                        if waited > patience:
-                            break
-
-                    val_file.write(string + "\n")
-
-                    val_file.flush()
-                    last_epoch = epoch
-
-
-                val_file.close()
-
         else:
 
             # save the networks each epoch
@@ -1040,17 +893,12 @@ def perform_training(name = 'prova999',
              'train': Y_train,
              'validation': Y_validation}
 
-        testfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version,
+        testfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, realname,
                                      name + "_eval.txt"), 'w')
 
         print("\n-----------------------\n")
 
-        if dataset_name=="AAEC_v2":
-            testfile.write("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
-                           "P AVG\tP premise\tP claim\tP major claim\n\n")
-        elif dataset_name=="cdcp_ACL17":
-            testfile.write("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
-                           "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n\n")
+        testfile.write(evaluation_headline)
 
         for split in ['test', 'validation', 'train']:
 
@@ -1145,22 +993,52 @@ def perform_training(name = 'prova999',
 
             # string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
             # string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
-            string = split + "\t" + str(score_AVG_all_real[0]) + "\t" + str(score_AVG_LP_real[0])
-            string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
+
+
+            iteration_scores = []
+            iteration_scores.append(score_AVG_all_real[0])
+            iteration_scores.append(score_AVG_LP_real[0])
+            iteration_scores.append(score_link[0])
+            iteration_scores.append(score_rel_AVG)
             for score in score_rel:
-                string += "\t" + str(score)
-            string += "\t" + str(score_prop_AVG_real)
-            # for score in score_prop:
-            #     string += "\t" + str(score)
+                iteration_scores.append(score)
+            iteration_scores.append(score_prop_AVG_real)
             for score in score_prop_real:
-                string += "\t" + str(score)
+                iteration_scores.append(score)
+
+            final_scores[split].append(iteration_scores)
+
+            # writing single iteration scores
+            string = split
+            for value in iteration_scores:
+                string += "\t" + "{:10.4f}".format(value)
 
             testfile.write(string + "\n")
 
             testfile.flush()
+
         testfile.close()
 
         # END OF A ITERATION
+
+    # FINAL EVALUATION
+    testfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version,
+                                 realname + "_eval.txt"), 'w')
+
+    testfile.write(evaluation_headline)
+    for split in ['test', 'validation', 'train']:
+        split_scores = np.array(final_scores[split], ndim=2)
+        split_scores = np.average(split_scores, axis=0)
+
+        string = split
+        for value in split_scores:
+            string += "\t" + "{:10.4f}".format(value)
+
+        testfile.write(string + "\n")
+
+        testfile.flush()
+    testfile.close()
+
 
 
 
@@ -1180,14 +1058,14 @@ if __name__ == '__main__':
     dataset_version = 'new_3'
     split = 'total'
 
-    name = 'cdcp8test2'
+    name = 'cdcp8t1'
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=1000,
         feature_type='bow',
-        patience=20,
+        patience=30,
         loss_weights=[10, 1, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.01,
@@ -1215,7 +1093,7 @@ if __name__ == '__main__':
         context=False,
         distance=5,
         two_rounds=False,
-        iterations=5,
+        iterations=10,
         merge="a_self",
         distribution="sparsemax",
         classification="softmax",
@@ -1225,16 +1103,16 @@ if __name__ == '__main__':
     )
 
 
-    name = 'cdcp8test3'
-    # more weight on relation loss
+    name = 'cdcp8t2'
+    # more weight on relations
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=1000,
         feature_type='bow',
-        patience=20,
-        loss_weights=[10, 1, 1, 1],
+        patience=30,
+        loss_weights=[10, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.01,
         beta_1=0.9,
@@ -1261,7 +1139,7 @@ if __name__ == '__main__':
         context=False,
         distance=5,
         two_rounds=False,
-        iterations=5,
+        iterations=10,
         merge="a_self",
         distribution="sparsemax",
         classification="softmax",
@@ -1270,17 +1148,16 @@ if __name__ == '__main__':
         dataset_split=split
     )
 
-
-    name = 'cdcp8test4'
-    # more weight on link loss
+    name = 'cdcp8t3'
+    # more weight on relations, less weight on link
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=1000,
         feature_type='bow',
-        patience=20,
-        loss_weights=[30, 1, 1, 1],
+        patience=30,
+        loss_weights=[5, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.01,
         beta_1=0.9,
@@ -1307,7 +1184,7 @@ if __name__ == '__main__':
         context=False,
         distance=5,
         two_rounds=False,
-        iterations=5,
+        iterations=10,
         merge="a_self",
         distribution="sparsemax",
         classification="softmax",
@@ -1315,186 +1192,6 @@ if __name__ == '__main__':
         dataset_version=dataset_version,
         dataset_split=split
     )
-
-    """
-        name = 'cdcp7R13nctv_NDE_R' + str(i)
-
-        perform_training(
-            name=name,
-            save_weights_only=True,
-            epochs=1000,
-            feature_type='bow',
-            patience=200,
-            loss_weights=[0, 10, 1, 1],
-            lr_alfa=0.005,
-            lr_kappa=0.001,
-            beta_1=0.9,
-            beta_2=0.9999,
-            res_size=5,
-            resnet_layers=(1, 2),
-            embedding_size=50,
-            embedder_layers=0,
-            final_size=20,
-            batch_size=500,
-            regularizer_weight=0.0001,
-            dropout_resnet=0.1,
-            dropout_embedder=0.1,
-            dropout_final=0.1,
-            bn_embed=True,
-            bn_res=True,
-            bn_final=True,
-            single_LSTM=True,
-            pooling=10,
-            text_pooling=50,
-            pooling_type='avg',
-            network=7,
-            monitor="links",
-            true_validation=True,
-            temporalBN=False,
-            same_layers=False,
-            context=False,
-            distance=5,
-            two_rounds=False,
-            dataset_name=dataset_name,
-            dataset_version=dataset_version
-        )
-    """
-
-    """
-        name = 'cdcp7R13-nores-wider-REP' + str(i)
-
-        perform_training(
-            name=name,
-            save_weights_only=True,
-            use_conv=False,
-            epochs=1000,
-            feature_type='bow',
-            patience=200,
-            loss_weights=[0, 10, 1, 1],
-            lr_alfa=0.005,
-            lr_kappa=0.001,
-            beta_1=0.9,
-            beta_2=0.9999,
-            res_size=20,
-            resnet_layers=(1, 2),
-            embedding_size=50,
-            embedder_layers=4,
-            final_size=20,
-            batch_size=500,
-            regularizer_weight=0.0001,
-            dropout_resnet=0.1,
-            dropout_embedder=0.1,
-            dropout_final=0.1,
-            bn_embed=True,
-            bn_res=True,
-            bn_final=True,
-            single_LSTM=True,
-            pooling=10,
-            text_pooling=50,
-            pooling_type='avg',
-            network="7N",
-            monitor="links",
-            true_validation=True,
-            temporalBN=False,
-            same_layers=False,
-            context=False,
-            distance=5,
-            two_rounds=False,
-            dataset_name=dataset_name,
-            dataset_version=dataset_version
-        )
-
-
-        name = 'cdcp7R13-nores-wider-shallow-REP' + str(i)
-
-        perform_training(
-            name=name,
-            save_weights_only=True,
-            use_conv=False,
-            epochs=1000,
-            feature_type='bow',
-            patience=200,
-            loss_weights=[0, 10, 1, 1],
-            lr_alfa=0.005,
-            lr_kappa=0.001,
-            beta_1=0.9,
-            beta_2=0.9999,
-            res_size=20,
-            resnet_layers=(0, 0),
-            embedding_size=50,
-            embedder_layers=4,
-            final_size=20,
-            batch_size=500,
-            regularizer_weight=0.0001,
-            dropout_resnet=0.1,
-            dropout_embedder=0.1,
-            dropout_final=0.1,
-            bn_embed=True,
-            bn_res=True,
-            bn_final=True,
-            single_LSTM=True,
-            pooling=10,
-            text_pooling=50,
-            pooling_type='avg',
-            network="7N",
-            monitor="links",
-            true_validation=True,
-            temporalBN=False,
-            same_layers=False,
-            context=False,
-            distance=5,
-            two_rounds=False,
-            dataset_name=dataset_name,
-            dataset_version=dataset_version
-        )
-
-
-
-        name = 'cdcp7R13-nores-shallow-REP' + str(i)
-
-        perform_training(
-            name=name,
-            save_weights_only=True,
-            use_conv=False,
-            epochs=1000,
-            feature_type='bow',
-            patience=200,
-            loss_weights=[0, 10, 1, 1],
-            lr_alfa=0.005,
-            lr_kappa=0.001,
-            beta_1=0.9,
-            beta_2=0.9999,
-            res_size=5,
-            resnet_layers=(0, 0),
-            embedding_size=50,
-            embedder_layers=4,
-            final_size=20,
-            batch_size=500,
-            regularizer_weight=0.0001,
-            dropout_resnet=0.1,
-            dropout_embedder=0.1,
-            dropout_final=0.1,
-            bn_embed=True,
-            bn_res=True,
-            bn_final=True,
-            single_LSTM=True,
-            pooling=10,
-            text_pooling=50,
-            pooling_type='avg',
-            network="7N",
-            monitor="links",
-            true_validation=True,
-            temporalBN=False,
-            same_layers=False,
-            context=False,
-            distance=5,
-            two_rounds=False,
-            dataset_name=dataset_name,
-            dataset_version=dataset_version
-        )
-        """
-
-
 
 
     
