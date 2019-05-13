@@ -856,6 +856,244 @@ def create_inv_pickle(dataset_path, dataset_version, link_types, test=0.3, valid
 
 
 
+def create_RCT_pickle(dataset_path, dataset_version, documents_path,
+                      asymmetric_link_types, symmetric_link_types, reflexive):
+    """
+
+    :param dataset_path:
+    :param dataset_version:
+    :param documents_path:
+    :param asymmetric_link_types: list of links that are asymmetric. For these, the "inv_..." non-links will be created
+    :param symmetric_link_types: list of links that are symmetric. For these, 2 links rows will be created
+    :param reflexive: whether reflexive links should be added
+    :return:
+    """
+
+    link_types = []
+    link_types.extend(asymmetric_link_types)
+    link_types.extend(symmetric_link_types)
+
+    for split in ["train", "test", "validation"]:
+
+        row_list = []
+        rel_count = {}
+        prop_count = {}
+        link_count = 0
+
+        splitname = split
+        if split == "validation":
+            splitname = "dev"
+
+        split_documents_path = os.path.join(documents_path, "" + dataset_version + "_" + splitname)
+
+        # if this split does not exists, skip to the next
+        if not os.path.exists(split_documents_path):
+            continue
+
+        document_list = os.listdir(split_documents_path)
+
+        print(str(len(document_list)) + " documents found for " + dataset_version + ", " + split)
+
+
+        for document_path in document_list:
+            if ".ann" not in document_path:
+                continue
+            i = int(document_path.split(".")[0])
+
+            labels_file = open(os.path.join(split_documents_path, document_path), 'r')
+
+            labels_line = []
+
+            for splits in labels_file.read().split('\n'):
+                labels_line.append(splits)
+
+            labels_file.close()
+
+            data = {'prop_labels': {},
+                    'prop_offsets': {},
+                    'T_ids': [],
+                    'propositions': {},
+                    'start_offsets': {}
+                    }
+
+            for link_type in link_types:
+                data[link_type] = []
+
+            for line in labels_line:
+                splits = line.split(maxsplit=4)
+                if len(splits) <= 0:
+                    continue
+                # if it is a component label
+                if splits[0][0] == 'T':
+                    T_id = int(splits[0][1:]) - 1
+                    data['T_ids'].append(T_id)
+                    data['prop_labels'][T_id] = splits[1]
+                    data['prop_offsets'][T_id] = [int(splits[2]), int(splits[3])]
+                    # each starting offset is linked to a proposition ID
+                    data['start_offsets'][int(splits[2])] = T_id
+                    data['propositions'][T_id] = splits[4].split('\n')
+                # if it is a relation label
+                elif splits[0][0] == 'R':
+                    source = int(splits[2][6:]) - 1
+                    target = int(splits[3][6:]) - 1
+
+                    relation = splits[1].lower()
+
+                    # to correct the ambiguity in the labelling
+                    if relation == "supports":
+                        relation = "support"
+                    elif relation == "attacks":
+                        relation = "attacl"
+
+                    data[relation].append([source, target])
+
+            # in case annotations are not made following the temporal order
+            # new order given by the starting offsets
+            new_order = {}
+            new_id = 0
+            # find the match between the starting offsets and set the new id
+            # for each initial offset, from lowest to highest
+            for offset in sorted(data['start_offsets'].keys()):
+                # find the corresponding ID
+                old_id = data['start_offsets'][offset]
+                # give it the lowest ID
+                new_order[old_id] = new_id
+                # increase the lowest ID to assign
+                new_id += 1
+
+            # adjust data to the new order
+            new_data = {'prop_labels': [-1] * len(data['prop_labels']),
+                        'prop_offsets': [-1] * len(data['prop_labels']),
+                        'propositions': [-1] * len(data['prop_labels']), }
+
+            for link_type in link_types:
+                new_data[link_type] = []
+
+            for link_type in link_types:
+                for link in data[link_type]:
+                    old_source = link[0]
+                    old_target = link[1]
+                    new_source = new_order[old_source]
+                    new_target = new_order[old_target]
+                    new_data[link_type].append([new_source, new_target])
+
+            for old_id in data['T_ids']:
+                new_id = new_order[old_id]
+                new_data['prop_labels'][new_id] = data['prop_labels'][old_id]
+                new_data['prop_offsets'][new_id] = data['prop_offsets'][old_id]
+                new_data['propositions'][new_id] = data['propositions'][old_id]
+
+            data = new_data
+
+            # CREATE THE PROPER DATAFRAME
+
+            propositions = data['propositions']
+
+            num_propositions = len(propositions)
+
+            assert (num_propositions >= 1)
+
+            for sourceID in range(num_propositions):
+
+                source_start = data['prop_offsets'][sourceID][0]
+                type1 = data['prop_labels'][sourceID]
+
+                for targetID in range(num_propositions):
+                    # proposition type
+                    type2 = data['prop_labels'][targetID]
+
+                    target_start = data['prop_offsets'][targetID][0]
+
+                    # skip reflexive relations if they are present
+                    if sourceID == targetID and not reflexive:
+                        continue
+
+                    relation_type = None
+                    relation1to2 = False
+
+                    # relation type
+                    for link_type in link_types:
+                        links = data[link_type]
+
+                        for link in links:
+                            # DEBUG
+                            # if not link[0][0] == link[0][1]:
+                            # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
+
+                            if link[0] == sourceID and link[1] == targetID:
+                                if relation_type is not None and not relation_type == link_type:
+                                    raise Exception('MORE DIFFERENT RELATIONS FOR THE SAME COUPLE OF PROPOSITIONS:'
+                                                    + documents_path)
+                                relation_type = link_type
+                                relation1to2 = True
+
+                            # create the symmetric or the asymmetric (inverse) relation
+                            elif link[0] == targetID and link[1] == sourceID:
+                                if link in asymmetric_link_types:
+                                    relation_type = "inv_" + link_type
+                                elif link in symmetric_link_types:
+                                    relation_type = link_type
+                                    relation1to2 = True
+
+                    dataframe_row = {'text_ID': str(i),
+                                     'source_proposition': propositions[sourceID],
+                                     'source_ID': str(i) + "_" + str(sourceID),
+                                     'target_proposition': propositions[targetID],
+                                     'target_ID': str(i) + "_" + str(targetID),
+                                     'source_type': type1,
+                                     'target_type': type2,
+                                     'relation_type': relation_type,
+                                     'source_to_target': relation1to2,
+                                     'set': split
+                                     }
+
+                    row_list.append(dataframe_row)
+
+                    if relation_type not in rel_count.keys():
+                        rel_count[relation_type] = 0
+                    rel_count[relation_type] += 1
+
+                    if relation1to2 == True:
+                        link_count += 1
+
+                if type1 not in prop_count.keys():
+                    prop_count[type1] = 0
+                prop_count[type1] += 1
+            i += 1
+
+        pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+        if not os.path.exists(pickles_path):
+            os.makedirs(pickles_path)
+
+        if len(row_list) > 0:
+            dataframe = pandas.DataFrame(row_list)
+
+            dataframe = dataframe[['text_ID',
+                                   'source_proposition',
+                                   'source_ID',
+                                   'target_proposition',
+                                   'target_ID',
+                                   'source_type',
+                                   'target_type',
+                                   'relation_type',
+                                   'source_to_target',
+                                   'set']]
+
+            dataframe_path = os.path.join(pickles_path, split + ".pkl")
+
+            dataframe.to_pickle(dataframe_path)
+
+            print("_______________")
+            print(split)
+            print(prop_count)
+            print(rel_count)
+            print("links: " + str(link_count))
+            print("_______________")
+
+
+
+
+
 def print_dataframe_details(dataframe_path):
     df = pandas.read_pickle(dataframe_path)
 
@@ -889,21 +1127,122 @@ def print_dataframe_details(dataframe_path):
 
 def create_total_dataframe(pickles_path):
     frames = []
-    dataframe_path = os.path.join(pickles_path, 'train.pkl')
-    df1 = pandas.read_pickle(dataframe_path)
-    frames.append(df1)
-    dataframe_path = os.path.join(pickles_path, 'test.pkl')
-    df2 = pandas.read_pickle(dataframe_path)
-    frames.append(df2)
-    dataframe_path = os.path.join(pickles_path, 'validation.pkl')
-    if os.path.exists(dataframe_path):
-        df3 = pandas.read_pickle(dataframe_path)
-        frames.append(df3)
+    for split in ["train", "test", "validation"]:
+        dataframe_path = os.path.join(pickles_path, split + ".pkl")
+        if os.path.exists(dataframe_path):
+            df1 = pandas.read_pickle(dataframe_path)
+            frames.append(df1)
 
-    dataframe = pandas.concat(frames).sort_values('text_ID')
+    if len(frames) > 0:
+        dataframe = pandas.concat(frames).sort_values('text_ID')
+        dataframe_path = os.path.join(pickles_path, 'total.pkl')
+        dataframe.to_pickle(dataframe_path)
 
-    dataframe_path = os.path.join(pickles_path, 'total.pkl')
-    dataframe.to_pickle(dataframe_path)
+
+def routine_RCT_corpus():
+    a_link_types = ['support', 'attack', 'partial-attack']
+    s_link_types = []
+    dataset_name = "RCT"
+    i = 1
+    dataset_versions = ["neo", "glaucoma"]
+    splits = ['total', 'train', 'test', 'validation']
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    document_path = os.path.join(os.getcwd(), 'Datasets', dataset_name, "original_files")
+
+    print("-------------------------------------------------------------")
+    print("DATASETS CREATION")
+    print("-------------------------------------------------------------")
+    for dataset_version in dataset_versions:
+        print(dataset_version)
+        print()
+        create_RCT_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types, False)
+
+        pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+
+        create_total_dataframe(pickles_path)
+
+    print("-------------------------------------------------------------")
+    print("DATASETS DETAILS")
+    print("-------------------------------------------------------------")
+
+    for dataset_version in dataset_versions:
+        pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+        print(dataset_version)
+        print()
+
+        for split in splits:
+            print('_______________________')
+            print(split)
+            dataframe_path = os.path.join(pickles_path, split + '.pkl')
+            if os.path.exists(dataframe_path):
+                print_dataframe_details(dataframe_path)
+                print('_______________________')
+                sys.stdout.flush()
+
+        print('_______________________')
+        print('_______________________')
+        print('_______________________')
+
+        highest = 0
+        lowest = 0
+
+    print("-------------------------------------------------------------")
+    print("DISTANCE ANALYSIS")
+    print("-------------------------------------------------------------")
+
+    for dataset_version in dataset_versions:
+        # distance analysis
+        pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+
+
+        for split in splits:
+            print(split)
+            dataframe_path = os.path.join(pickles_path, split + '.pkl')
+
+            if os.path.exists(dataframe_path):
+                df = pandas.read_pickle(dataframe_path)
+
+                diff_l = {}
+                diff_nl = {}
+
+                for index, row in df.iterrows():
+                    s_index = int(row['source_ID'].split('_')[i])
+                    t_index = int(row['target_ID'].split('_')[i])
+
+                    difference = (s_index - t_index)
+
+                    if highest < difference:
+                        highest = difference
+                    if lowest > difference:
+                        lowest = difference
+
+                    if row['source_to_target']:
+                        voc = diff_l
+                    else:
+                        voc = diff_nl
+
+                    if difference in voc.keys():
+                        voc[difference] += 1
+                    else:
+                        voc[difference] = 1
+
+                print()
+                print()
+                print(split)
+                print("distance\tnot links\tlinks")
+                for key in range(lowest, highest + 1):
+                    if key not in diff_nl.keys():
+                        diff_nl[key] = 0
+                    if key not in diff_l.keys():
+                        diff_l[key] = 0
+
+                    print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
+
+                sys.stdout.flush()
+
+
+
 
 
 if __name__ == '__main__':
@@ -914,12 +1253,19 @@ if __name__ == '__main__':
     # dataset_version = 'new_3'
     # i = 1
 
+
+
+
     # UKP CORPUS
     # dataset_name = 'AAEC_v2'
     # dataset_version = 'new_2'
     # link_types = ['supports', 'attacks']
     # i = 2
 
+    # RCT CORPUS
+    routine_RCT_corpus()
+
+    """
     # DR INVENTOR CORPUS
     link_types = ['supports', 'contradicts', 'semantically_same', 'parts_of_same']
     dataset_name = 'DrInventor'
@@ -995,7 +1341,9 @@ if __name__ == '__main__':
 
 
         sys.stdout.flush()
-    
+    """
+
+
     """
 
     dataset_type = 'train'
