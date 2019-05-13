@@ -30,5 +30,5 @@ To use this framework, follow this pipeline:
 Out of the pipeline:
 - networks.py contains neural network models
 - training_utils.py contains custom function that will be used during the training
-- evaluate_net.py contains functions to evaluate a network without the need of a training
+- evaluate_net.py contains functions to evaluate an already trained network
 
