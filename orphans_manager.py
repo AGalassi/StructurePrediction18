@@ -4,6 +4,11 @@ __license__ = "BSD 3-clause"
 __version__ = "0.0.1"
 __email__ = "a.galassi@unibo.it"
 
+"""
+Honestly I don't remember the purpose for this. I guess it is useful to find where an orphan belongs. Maybe.
+"""
+
+
 import pandas
 import os
 import numpy as np
@@ -18,7 +23,7 @@ if __name__ == '__main__':
 
     df = pandas.read_pickle(dataframe_path)
 
-    propositions = df['rawtext'].drop_duplicates()
+    propositions = df['source_proposition'].drop_duplicates()
 
     orphans_path = os.path.join(glove_path, 'glove.orphans.txt')
     vocabulary_path = os.path.join(glove_path, 'glove.vocabulary.txt')

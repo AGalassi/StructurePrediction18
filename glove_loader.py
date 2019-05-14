@@ -13,6 +13,7 @@ import re
 DIM = 300
 SEPARATORS = ['(', ')', '[', ']', '...', '_', '--',
               ';', ':',
+              "±", "·", "≥", "≤", "≈", '=', "<", ">", "£", "$", "€",
               '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
               '!', '?',
               '/', '"', '%', '$', '*', '#', '+',
@@ -52,6 +53,9 @@ def vocabulary_creator(model, vocabulary_destination_path, dataframe_path):
     df = pandas.read_pickle(dataframe_path)
 
     propositions = df['source_proposition'].drop_duplicates()
+
+
+    print(len(propositions))
 
     documents = []
     for proposition in propositions:
@@ -233,25 +237,30 @@ def regular_split(old_orphans, vocabulary, model, separator):
     return orphans, vocabulary
 
 
-if __name__ == '__main__':
 
+def RCT_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+
+    dataset_name = 'RCT'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove')
+
 
     model = load_glove(vocabulary_source_path)
 
     m1 = model.copy()
 
-
-    dataset_name = 'DrInventor'
-    version = 'new_1'
-
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
-    version_path = os.path.join(os.path.join(pickles_path, version))
-    dataframe_path = os.path.join(version_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove', version)
-
     vocabulary_creator(m1, glove_path, dataframe_path)
+
+
+if __name__ == '__main__':
+
+
+    RCT_routine()
+
 
     """
 

@@ -859,7 +859,8 @@ def create_inv_pickle(dataset_path, dataset_version, link_types, test=0.3, valid
 def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                       asymmetric_link_types, symmetric_link_types, reflexive):
     """
-    Creates a pickle for each split of the specific version of the RCT dataset.
+    Creates a pickle for each split of the specific version of the RCT dataset. IMPORTANT: if "PARTIAL-ATTACK" is not
+    in the link list, they will be converted to "attack". MajorClaim will be converted to Claim.
     :param dataset_path: the working directory for the RCT dataset
     :param dataset_version: the name of the specific sub-dataset in exam
     :param documents_path: the path of the .ann and .txt file repository (regardless of the version)
@@ -890,17 +891,33 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
         if not os.path.exists(split_documents_path):
             continue
 
-        document_list = os.listdir(split_documents_path)
+        documents_names_list = os.listdir(split_documents_path)
+        documents_paths_list = []
+        for document_name in documents_names_list:
+            documents_paths_list.append(os.path.join(split_documents_path, document_name))
+        del documents_names_list
 
-        print(str(len(document_list)) + " documents found for " + dataset_version + ", " + split)
+        print(str(len(documents_paths_list)) + " documents found for " + dataset_version + ", " + split)
 
+        for document_path in documents_paths_list:
 
-        for document_path in document_list:
-            if ".ann" not in document_path:
+            # in case of subfolders, add their content to the document list
+            if os.path.isdir(document_path):
+                new_list = os.listdir(document_path)
+
+                for name in new_list:
+                    documents_paths_list.append(os.path.join(document_path, name))
+
+                print("More documents: " + str(len(documents_paths_list)) + " documents found for "
+                      + dataset_version + ", " + split)
                 continue
-            i = int(document_path.split(".")[0])
 
-            labels_file = open(os.path.join(split_documents_path, document_path), 'r')
+            document_name = os.path.basename(document_path)
+            if ".ann" not in document_name:
+                continue
+            i = int(document_name.split(".")[0])
+
+            labels_file = open(document_path, 'r')
 
             labels_line = []
 
@@ -931,7 +948,7 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                     data['prop_offsets'][T_id] = [int(splits[2]), int(splits[3])]
                     # each starting offset is linked to a proposition ID
                     data['start_offsets'][int(splits[2])] = T_id
-                    data['propositions'][T_id] = splits[4].split('\n')
+                    data['propositions'][T_id] = splits[4].split('\n')[0]
                 # if it is a relation label
                 elif splits[0][0] == 'R':
                     source = int(splits[2][6:]) - 1
@@ -943,7 +960,11 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                     if relation == "supports":
                         relation = "support"
                     elif relation == "attacks":
-                        relation = "attacl"
+                        relation = "attack"
+
+                    # if the "partial-attack" category is not considered, they are treated as attacks
+                    if relation == "partial-attack" and relation not in data.keys():
+                        relation = "attack"
 
                     data[relation].append([source, target])
 
@@ -998,9 +1019,15 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                 source_start = data['prop_offsets'][sourceID][0]
                 type1 = data['prop_labels'][sourceID]
 
+                if type1 == "MajorClaim":
+                    type1 = "Claim"
+
                 for targetID in range(num_propositions):
                     # proposition type
                     type2 = data['prop_labels'][targetID]
+
+                    if type2 == "MajorClaim":
+                        type2 = "Claim"
 
                     target_start = data['prop_offsets'][targetID][0]
 
@@ -1029,11 +1056,14 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
 
                             # create the symmetric or the asymmetric (inverse) relation
                             elif link[0] == targetID and link[1] == sourceID:
-                                if link in asymmetric_link_types:
+                                if link_type in asymmetric_link_types:
                                     relation_type = "inv_" + link_type
-                                elif link in symmetric_link_types:
+                                elif link_type in symmetric_link_types:
                                     relation_type = link_type
                                     relation1to2 = True
+
+
+
 
                     dataframe_row = {'text_ID': str(i),
                                      'source_proposition': propositions[sourceID],
@@ -1092,8 +1122,6 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
 
 
 
-
-
 def print_dataframe_details(dataframe_path):
     df = pandas.read_pickle(dataframe_path)
 
@@ -1139,7 +1167,7 @@ def create_total_dataframe(pickles_path):
             frames.append(df1)
 
     if len(frames) > 0:
-        dataframe = pandas.concat(frames).sort_values('text_ID')
+        dataframe = pandas.concat(frames).sort_values('source_ID')
         dataframe_path = os.path.join(pickles_path, 'total.pkl')
         dataframe.to_pickle(dataframe_path)
 
@@ -1154,14 +1182,14 @@ def create_collective_version_dataframe(pickle_path, split):
     """
     frames = []
     for path in os.listdir(pickle_path):
-        if os.path.isdir(path):
-            dataframe_path = os.path.join(path, split + ".pkl")
+        if os.path.isdir(os.path.join(pickle_path, path)):
+            dataframe_path = os.path.join(pickle_path, path, split + ".pkl")
             if os.path.exists(dataframe_path):
                 df1 = pandas.read_pickle(dataframe_path)
                 frames.append(df1)
 
     if len(frames) > 0:
-        dataframe = pandas.concat(frames).sort_values('text_ID')
+        dataframe = pandas.concat(frames).sort_values('source_ID')
         dataframe_path = os.path.join(pickle_path, split + ".pkl")
         dataframe.to_pickle(dataframe_path)
 
@@ -1224,11 +1252,11 @@ def routine_RCT_corpus():
     It creates also a collective pickle file with all the previous versions mixed together.
     :return:
     """
-    a_link_types = ['support', 'attack', 'partial-attack']
+    a_link_types = ['support', 'attack']
     s_link_types = []
     dataset_name = "RCT"
     i = 1
-    dataset_versions = ["neo", "glaucoma"]
+    dataset_versions = ["neo", "glaucoma", "mixed"]
     splits = ['total', 'train', 'test', 'validation']
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
@@ -1238,13 +1266,14 @@ def routine_RCT_corpus():
     print("DATASETS CREATION")
     print("-------------------------------------------------------------")
     for dataset_version in dataset_versions:
-        print(dataset_version)
+        print("DATASET VERSION: " + dataset_version)
         print()
         create_RCT_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types, False)
-
+        print('____________________________________________________________________________________________')
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
 
         create_total_dataframe(pickles_path)
+        print('____________________________________________________________________________________________')
 
     for split in splits:
         pickle_path = os.path.join(dataset_path, "pickles")
@@ -1255,7 +1284,7 @@ def routine_RCT_corpus():
     print("-------------------------------------------------------------")
 
     pickles_path = os.path.join(dataset_path, "pickles")
-    print("all")
+    print("DATASET VERSION: " + "all")
     print()
 
     for split in splits:
@@ -1269,11 +1298,11 @@ def routine_RCT_corpus():
 
     print('_______________________')
     print('_______________________')
-    print('_______________________')
+    print('_____________________________________________________________________')
 
     for dataset_version in dataset_versions:
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
-        print(dataset_version)
+        print("DATASET VERSION: " + dataset_version)
         print()
 
         for split in splits:
@@ -1287,19 +1316,19 @@ def routine_RCT_corpus():
 
         print('_______________________')
         print('_______________________')
-        print('_______________________')
+        print('_____________________________________________________________________')
 
     print("-------------------------------------------------------------")
     print("DISTANCE ANALYSIS")
     print("-------------------------------------------------------------")
 
     pickles_path = os.path.join(dataset_path, "pickles")
-    print_distance_analysis(pickle_path)
+    print_distance_analysis(pickles_path)
 
     for dataset_version in dataset_versions:
         # distance analysis
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
-        print_distance_analysis(pickle_path)
+        print_distance_analysis(pickles_path)
 
 
 
@@ -1313,9 +1342,6 @@ if __name__ == '__main__':
     # dataset_version = 'new_3'
     # i = 1
 
-
-
-
     # UKP CORPUS
     # dataset_name = 'AAEC_v2'
     # dataset_version = 'new_2'
@@ -1324,6 +1350,9 @@ if __name__ == '__main__':
 
     # RCT CORPUS
     routine_RCT_corpus()
+
+
+
 
     """
     # DR INVENTOR CORPUS

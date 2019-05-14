@@ -25,7 +25,7 @@ from keras.models import load_model, model_from_json
 from keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, create_lr_annealing_function, fmeasure, get_avgF1, RealValidationCallback
 from glove_loader import DIM
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_recall_fscore_support
 from keras import backend as K
 from tensorflow.contrib.sparsemax import sparsemax
 
@@ -41,7 +41,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
                  feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5, context=False):
 
     if distance < 0:
-        distance = 1
+        distance = 0
 
     # maximum amount of components in a document
     if context:
@@ -68,7 +68,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
     df = pandas.read_pickle(dataframe_path)
 
-    if dataset_name=='cdcp_ACL17':
+    if dataset_name == 'cdcp_ACL17':
         categorical_prop = {'policy': [1, 0, 0, 0, 0],
                             'fact': [0, 1, 0, 0, 0],
                             'testimony': [0, 0, 1, 0, 0],
@@ -83,7 +83,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
                             None: [0, 0, 0, 0, 1],
                             }
                             
-    elif dataset_name=='AAEC_v2':
+    elif dataset_name == 'AAEC_v2':
         categorical_prop = {'Premise': [1, 0, 0,],
                             'Claim': [0, 1, 0,],
                             'MajorClaim': [0, 0, 1],
@@ -96,19 +96,36 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
                             None: [0, 0, 0, 0, 1],
                             }
 
+    elif dataset_name == 'RCT':
+        categorical_prop = {'Premise': [1, 0,],
+                            'Claim': [0, 1,]
+                            }
+
+        categorical_link = {'support': [1, 0, 0, 0, 0],
+                            'inv_support': [0, 1, 0, 0, 0],
+                            'attack': [0, 0, 1, 0, 0],
+                            'inv_attack': [0, 0, 0, 1, 0],
+                            None: [0, 0, 0, 0, 1],
+                            }
+
     dataset = {}
 
     for split in ('train', 'validation', 'test'):
         dataset[split] = {}
-        dataset[split]['texts'] = []
         dataset[split]['source_props'] = []
         dataset[split]['target_props'] = []
         dataset[split]['links'] = []
         dataset[split]['relations_type'] = []
         dataset[split]['sources_type'] = []
         dataset[split]['targets_type'] = []
-        dataset[split]['distance'] = []
-        dataset[split]['mark'] = []
+
+        if distance > 0:
+            dataset[split]['distance'] = []
+
+        if context:
+            dataset[split]['texts'] = []
+            dataset[split]['mark'] = []
+
         dataset[split]['s_id'] = []
         dataset[split]['t_id'] = []
 
@@ -148,49 +165,51 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         t_index = int(row['target_ID'].split('_')[i])
         difference = t_index - s_index
 
-        difference_array = [0] * distance * 2
-        if difference > distance:
-            difference_array[-distance:] = [1] * distance
-        elif difference < -distance:
-            difference_array[:distance] = [1] * distance
-        elif difference > 0:
-            difference_array[-distance: distance + difference] = [1] * difference
-        elif difference < 0:
-            difference_array[distance + difference: distance] = [1] * -difference
-        dataset[split]['distance'].append(difference_array)
+        if distance > 0:
+            difference_array = [0] * distance * 2
+            if difference > distance:
+                difference_array[-distance:] = [1] * distance
+            elif difference < -distance:
+                difference_array[:distance] = [1] * distance
+            elif difference > 0:
+                difference_array[-distance: distance + difference] = [1] * difference
+            elif difference < 0:
+                difference_array[distance + difference: distance] = [1] * -difference
+            dataset[split]['distance'].append(difference_array)
 
 
-        # TODO: remove context loading, but avoiding unpleasant explosions everywhere
-        # load the document as list of argumentative component
-        embed_length = 0
-        text_embeddings = []
-        text_mark = []
-        for prop_id in range(0, max_prop_in_text):
-            complete_prop_id = str(text_ID) + "_" + str(prop_id)
-            file_path = os.path.join(embed_path, complete_prop_id + '.npz')
+        if not context:
+            # TODO: remove context loading, but avoiding unpleasant explosions everywhere
+            # load the document as list of argumentative component
+            embed_length = 0
+            text_embeddings = []
+            text_mark = []
+            for prop_id in range(0, max_prop_in_text):
+                complete_prop_id = str(text_ID) + "_" + str(prop_id)
+                file_path = os.path.join(embed_path, complete_prop_id + '.npz')
 
-            if os.path.exists(file_path):
-                embeddings = np.load(file_path)['arr_0']
-                text_embeddings.extend(embeddings)
-                prop_length = len(embeddings)
+                if os.path.exists(file_path):
+                    embeddings = np.load(file_path)['arr_0']
+                    text_embeddings.extend(embeddings)
+                    prop_length = len(embeddings)
 
-                # create the marks
-                if complete_prop_id == source_ID:
-                    prop_mark = [[1, 0]] * prop_length
-                elif complete_prop_id == target_ID:
-                    prop_mark = [[0, 1]] * prop_length
-                else:
-                    prop_mark = [[0, 0]] * prop_length
-                text_mark.append(prop_mark)
+                    # create the marks
+                    if complete_prop_id == source_ID:
+                        prop_mark = [[1, 0]] * prop_length
+                    elif complete_prop_id == target_ID:
+                        prop_mark = [[0, 1]] * prop_length
+                    else:
+                        prop_mark = [[0, 0]] * prop_length
+                    text_mark.append(prop_mark)
 
 
-        text_mark = np.concatenate(text_mark)
-        dataset[split]['mark'].append(text_mark)
-        # embeddings = np.concatenate([text_embeddings])
-        dataset[split]['texts'].append(text_embeddings)
-        embed_length = len(text_embeddings)
-        if embed_length > max_text_len:
-            max_text_len = embed_length
+            text_mark = np.concatenate(text_mark)
+            dataset[split]['mark'].append(text_mark)
+            # embeddings = np.concatenate([text_embeddings])
+            dataset[split]['texts'].append(text_embeddings)
+            embed_length = len(text_embeddings)
+            if embed_length > max_text_len:
+                max_text_len = embed_length
 
         """
         if dataset_name=='cdcp_ACL17':
@@ -231,26 +250,27 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         print(str(time.ctime()) + '\t\t\tPADDING ' + split)
 
-        texts = dataset[split]['texts']
-        marks = dataset[split]['mark']
-        for j in range(len(texts)):
-            text = texts[j]
-            mark = marks[j]
-            embeddings = []
-            new_marks = []
-            diff = max_text_len - len(text)
-            for i in range(diff):
-                embeddings.append(pad)
-                new_marks.append([0, 0] * 1)
-            for embedding in text:
-                embeddings.append(embedding)
-            for old_mark in mark:
-                new_marks.append(old_mark)
-            texts[j] = embeddings
-            marks[j] = new_marks
+        if context:
+            texts = dataset[split]['texts']
+            marks = dataset[split]['mark']
+            for j in range(len(texts)):
+                text = texts[j]
+                mark = marks[j]
+                embeddings = []
+                new_marks = []
+                diff = max_text_len - len(text)
+                for i in range(diff):
+                    embeddings.append(pad)
+                    new_marks.append([0, 0] * 1)
+                for embedding in text:
+                    embeddings.append(embedding)
+                for old_mark in mark:
+                    new_marks.append(old_mark)
+                texts[j] = embeddings
+                marks[j] = new_marks
 
-        dataset[split]['texts'] = np.array(texts, ndmin=ndim, dtype=dtype)
-        dataset[split]['mark'] = np.array(marks, dtype=np.int8, ndmin=3)
+            dataset[split]['texts'] = np.array(texts, ndmin=ndim, dtype=dtype)
+            dataset[split]['mark'] = np.array(marks, dtype=np.int8, ndmin=3)
 
         texts = dataset[split]['source_props']
         for j in range(len(texts)):
@@ -345,13 +365,20 @@ def perform_training(name = 'prova999',
         outputs_units = (2, 5, 3, 3)
         min_text = 168
         min_prop = 72
-    else:
+    elif dataset_name == "RCT":
+        outputs_units = (2, 5, 2, 2)
+        min_text = 168
+        min_prop = 72
+    elif dataset_name == "cdcp_ACL17":
         outputs_units = (2, 5, 5, 5)
         min_text = 552
         min_prop = 153
+    else:
+        print("Unknown dataset name")
+        return -1
 
     if not context:
-        min_text = 1
+        min_text = 2
 
     distance_num = distance
     if distance < 0:
@@ -375,10 +402,6 @@ def perform_training(name = 'prova999',
     print(str(time.ctime()) + "\tPROCESSING DATA AND MODEL...")
 
     split = 'train'
-    X_marks_train = dataset[split]['mark']
-    X_dist_train = dataset[split]['distance']
-    X_text_train = dataset[split]['texts']
-    del dataset[split]['texts']
     X_source_train = dataset[split]['source_props']
     del dataset[split]['source_props']
     X_target_train = dataset[split]['target_props']
@@ -387,6 +410,21 @@ def perform_training(name = 'prova999',
     Y_rtype_train = np.array(dataset[split]['relations_type'], dtype=np.float32)
     Y_stype_train = np.array(dataset[split]['sources_type'])
     Y_ttype_train = np.array(dataset[split]['targets_type'])
+
+    # if they are not used, creates a mock (necessary for compatibility with other stuff)
+    numdata = len(Y_links_train)
+    if distance > 0:
+        X_dist_train = dataset[split]['distance']
+    else:
+        X_dist_train = np.zeros((numdata, 2))
+    if context:
+        X_marks_train = dataset[split]['mark']
+        X_text_train = dataset[split]['texts']
+        del dataset[split]['texts']
+    else:
+        X_marks_train = np.zeros((numdata, 2))
+        X_text_train = np.zeros((numdata, 2))
+
     Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
     X3_train = [X_text_train, X_source_train, X_target_train, X_dist_train, X_marks_train,]
 
@@ -394,8 +432,7 @@ def perform_training(name = 'prova999',
     print("Length: " + str(len(X3_train[0])))
 
     split = 'test'
-    X_text_test = dataset[split]['texts']
-    del dataset[split]['texts']
+
     X_source_test = dataset[split]['source_props']
     del dataset[split]['source_props']
     X_target_test = dataset[split]['target_props']
@@ -406,16 +443,27 @@ def perform_training(name = 'prova999',
     Y_ttype_test = np.array(dataset[split]['targets_type'])
     Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
 
-    X_marks_test = dataset[split]['mark']
-    X_dist_test = dataset[split]['distance']
+    # if they are not used, creates a mock (necessary for compatibility with other stuff)
+    numdata = len(Y_links_train)
+    if distance > 0:
+        X_dist_test = dataset[split]['distance']
+    else:
+        X_dist_test= np.zeros((numdata, 2))
+    if context:
+        X_marks_test = dataset[split]['mark']
+        X_text_test = dataset[split]['texts']
+        del dataset[split]['texts']
+    else:
+        X_marks_test = np.zeros((numdata, 2))
+        X_text_test = np.zeros((numdata, 2))
+
+
     X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test,]
 
     print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
     print("Length: " + str(len(X3_test[0])))
 
     split = 'validation'
-    X_text_validation = dataset[split]['texts']
-    del dataset[split]['texts']
     X_source_validation = dataset[split]['source_props']
     del dataset[split]['source_props']
     X_target_validation = dataset[split]['target_props']
@@ -426,8 +474,20 @@ def perform_training(name = 'prova999',
     Y_ttype_validation = np.array(dataset[split]['targets_type'])
     Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
 
-    X_marks_validation = dataset[split]['mark']
-    X_dist_validation = dataset[split]['distance']
+    # if they are not used, creates a mock (necessary for compatibility with other stuff)
+    numdata = len(Y_links_train)
+    if distance > 0:
+        X_dist_validation = dataset[split]['distance']
+    else:
+        X_dist_validation= np.zeros((numdata, 2))
+    if context:
+        X_text_validation = dataset[split]['texts']
+        del dataset[split]['texts']
+        X_marks_validation = dataset[split]['mark']
+    else:
+        X_marks_validation = np.zeros((numdata, 2))
+        X_text_validation = np.zeros((numdata, 2))
+
     X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]
 
     print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
@@ -454,11 +514,15 @@ def perform_training(name = 'prova999',
     final_scores = {'train': [], 'test': [], 'validation': []}
     evaluation_headline = ""
     if dataset_name == "AAEC_v2":
-        evaluation_headline = ("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
-                                "P AVG\tP premise\tP claim\tP major claim\n\n")
+        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
+                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P major claim\tF1 P avg\n\n")
     elif dataset_name == "cdcp_ACL17":
-        evaluation_headline = ("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
-                                "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n\n")
+        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R reason\tF1 R evidence\t" +
+                                "F1 P AVG\t" +
+                                "F1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\n\n")
+    elif dataset_name == "RCT":
+        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
+                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\n\n")
 
     # train and test iterations
     for i in range(iterations):
@@ -467,6 +531,7 @@ def perform_training(name = 'prova999',
         model = None
         if network == 7 or network == "7":
             model = build_net_7(bow=bow,
+                                link_as_sum=sum[[0, 2], [1, 3, 4]],
                                 text_length=max_text_len, propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
@@ -656,12 +721,7 @@ def perform_training(name = 'prova999',
             log_path = os.path.join(save_dir, name + '_validation.log')
             val_file = open(log_path,'w')
 
-            if dataset_name == "AAEC_v2":
-                val_file.write("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
-                               "P AVG\tP premise\tP claim\tP major claim\n")
-            elif dataset_name == "cdcp_ACL17":
-                val_file.write("set\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
-                               "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n")
+            val_file.write(evaluation_headline)
 
             # evaluation of test values
 
@@ -750,24 +810,24 @@ def perform_training(name = 'prova999',
                 Y_pred_links = np.argmax(Y_pred[0], axis=-1)
                 Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
 
-                score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-                score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-                score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+                score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
                 score_prop = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
                 score_prop_AVG = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
 
-                score_AVG_LP = np.mean([score_link, score_prop_AVG])
-                score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
+                score_AVG_LP = np.mean([score_f1_link, score_prop_AVG])
+                score_AVG_all = np.mean([score_f1_link, score_prop_AVG, score_f1_rel_AVGM])
 
                 string = str(epoch) + "\t" + str(round(score_AVG_all[0], 5)) + "\t" + str(round(score_AVG_LP[0], 5))
-                string += "\t" + str(round(score_link[0], 5)) + "\t" + str(round(score_rel_AVG, 5))
-                for score in score_rel:
+                string += "\t" + str(round(score_f1_link[0], 5)) + "\t" + str(round(score_f1_rel_AVGM, 5))
+                for score in score_f1_rel:
                     string += "\t" + str(round(score, 5))
                 string += "\t" + str(round(score_prop_AVG, 5))
                 for score in score_prop:
                     string += "\t" + str(round(score, 5))
 
-                monitor_score = score_link
+                monitor_score = score_f1_link
 
                 if monitor == 'prop' or monitor == 'proposition' or monitor == 'propositions' or monitor == 'props':
                     monitor_score = score_prop_AVG
@@ -960,15 +1020,7 @@ def perform_training(name = 'prova999',
             Y_test_prop_real = np.array(Y_test_prop_real)
             Y_pred_prop_real = np.argmax(Y_pred_prop_real, axis=-1)
             Y_test_prop_real = np.argmax(Y_test_prop_real, axis=-1)
-
             # end of the evaluation of the single propositions scores
-
-
-            # Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
-            # Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
-
-            # Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
-            # Y_test_prop = np.argmax(Y_test_prop, axis=-1)
 
             Y_pred_links = np.argmax(Y_pred[0], axis=-1)
             Y_test_links = np.argmax(Y[split][0], axis=-1)
@@ -976,35 +1028,52 @@ def perform_training(name = 'prova999',
             Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
             Y_test_rel = np.argmax(Y[split][1], axis=-1)
 
-            score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-            score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
-            # score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
-            # score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
+            # predictions computed! Computing measures!
 
-            # score_AVG_LP = np.mean([score_link, score_prop_AVG])
-            # score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
+            # F1s
+            score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
 
-            score_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
-            score_prop_AVG_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
+            score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
+            score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
+            score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
 
-            score_AVG_LP_real = np.mean([score_link, score_prop_AVG_real])
-            score_AVG_all_real = np.mean([score_link, score_prop_AVG_real, score_rel_AVG])
+            score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
+            score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
 
-            # string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
-            # string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
+            """
+            # Precision-recall-fscore-support
+            score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
+            score_prec_prop = score_prfs_prop[0]
+            score_rec_prop = score_prfs_prop[1]
+            score_fscore_prop = score_prfs_prop[2]
+            score_supp_prop = score_prfs_prop[3]
 
+            score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='macro')
+            score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
+            score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
+            score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
+            score_supp_prop_AVGM = score_prfs_prop_AVGM[3]
+
+            score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='micro')
+            score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
+            score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
+            score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
+            score_supp_prop_AVGm = score_prfs_prop_AVGm[3]
+            """
 
             iteration_scores = []
-            iteration_scores.append(score_AVG_all_real[0])
-            iteration_scores.append(score_AVG_LP_real[0])
-            iteration_scores.append(score_link[0])
-            iteration_scores.append(score_rel_AVG)
-            for score in score_rel:
+            iteration_scores.append(score_f1_AVG_all_real[0])
+            iteration_scores.append(score_f1_AVG_LP_real[0])
+            iteration_scores.append(score_f1_link[0])
+            iteration_scores.append(score_f1_rel_AVGM)
+            for score in score_f1_rel:
                 iteration_scores.append(score)
-            iteration_scores.append(score_prop_AVG_real)
-            for score in score_prop_real:
+            iteration_scores.append(score_f1_prop_AVGM_real)
+            for score in score_f1_prop_real:
                 iteration_scores.append(score)
+            iteration_scores.append(score_f1_prop_AVGm_real)
 
             final_scores[split].append(iteration_scores)
 
@@ -1027,7 +1096,7 @@ def perform_training(name = 'prova999',
 
     testfile.write(evaluation_headline)
     for split in ['test', 'validation', 'train']:
-        split_scores = np.array(final_scores[split], ndim=2)
+        split_scores = np.array(final_scores[split], ndmin=2)
         split_scores = np.average(split_scores, axis=0)
 
         string = split
@@ -1058,49 +1127,6 @@ if __name__ == '__main__':
     dataset_version = 'new_3'
     split = 'total'
 
-    name = 'cdcp8t1'
-
-    perform_training(
-        name=name,
-        save_weights_only=True,
-        epochs=1000,
-        feature_type='bow',
-        patience=30,
-        loss_weights=[10, 1, 1, 1],
-        lr_alfa=0.005,
-        lr_kappa=0.01,
-        beta_1=0.9,
-        beta_2=0.9999,
-        res_scale=60,
-        resnet_layers=(1, 2),
-        embedding_scale=10,
-        embedder_layers=4,
-        final_scale=15,
-        space_scale=10,
-        batch_size=150,
-        regularizer_weight=0,
-        dropout_resnet=0,
-        dropout_embedder=0,
-        dropout_final=0,
-        bn_embed=True,
-        bn_res=True,
-        bn_final=True,
-        network=8,
-        monitor="links",
-        true_validation=True,
-        temporalBN=False,
-        same_layers=False,
-        context=False,
-        distance=5,
-        two_rounds=False,
-        iterations=10,
-        merge="a_self",
-        distribution="sparsemax",
-        classification="softmax",
-        dataset_name=dataset_name,
-        dataset_version=dataset_version,
-        dataset_split=split
-    )
 
 
     name = 'cdcp8t2'
@@ -1138,7 +1164,6 @@ if __name__ == '__main__':
         same_layers=False,
         context=False,
         distance=5,
-        two_rounds=False,
         iterations=10,
         merge="a_self",
         distribution="sparsemax",
@@ -1183,7 +1208,6 @@ if __name__ == '__main__':
         same_layers=False,
         context=False,
         distance=5,
-        two_rounds=False,
         iterations=10,
         merge="a_self",
         distribution="sparsemax",
