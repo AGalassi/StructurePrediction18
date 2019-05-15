@@ -717,18 +717,20 @@ def build_net_7(bow,
 
     prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
-    # TODO: fix this mess
     if pooling > 0:
-        if not text_pooling > 0:
-            text_pooling = pooling
         if pooling_type == 'max':
             pooling_class = MaxPool1D
         else:
             pooling_class = AveragePooling1D
-            prev_text_l = pooling_class(pool_size=text_pooling, name='text_pooling')(prev_text_l)
         prop_pooling = pooling_class(pool_size=pooling, name='prop_pooling')
         prev_source_l = prop_pooling(prev_source_l)
         prev_target_l = prop_pooling(prev_target_l)
+
+        if context:
+            # if text_pooling is negative, the same pooling of the propositions is used
+            if not text_pooling > 0:
+                text_pooling = pooling
+            prev_text_l = pooling_class(pool_size=text_pooling, name='text_pooling')(prev_text_l)
 
     if bn_embed:
         if temporalBN:
@@ -881,6 +883,8 @@ def build_net_7(bow,
                 link_contribute.append(rel_scores[value])
             link_class = Add(name='link_'+str(i))(link_contribute)
             link_scores.append(link_class)
+
+        link_ol = Concatenate(name='link')(link_scores)
 
     """
     Custom code for cdcp
@@ -1065,10 +1069,7 @@ def build_net_7_nc(bow,
     prev_target_l = TD_prop(prev_target_l)
 
 
-    # TODO: fix this mess
     if pooling > 0:
-        if not text_pooling > 0:
-            text_pooling = pooling
         if pooling_type == 'max':
             pooling_class = MaxPool1D
         else:
@@ -1194,6 +1195,8 @@ def build_net_7_nc(bow,
                 link_contribute.append(rel_scores[value])
             link_class = Add(name='link_' + str(i))(link_contribute)
             link_scores.append(link_class)
+
+        link_ol = Concatenate(name='link')(link_scores)
 
     """
     Custom code for cdcp

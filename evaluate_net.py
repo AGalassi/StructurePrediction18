@@ -550,7 +550,7 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             X_text_train = dataset[split]['texts']
             del dataset[split]['texts']
         else:
-            X_marks_train = np.zeros((numdata, 2))
+            X_marks_train = np.zeros((numdata, 2, 2))
             X_text_train = np.zeros((numdata, 2))
 
         Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
@@ -573,7 +573,7 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
         Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
 
         # if they are not used, creates a mock (necessary for compatibility with other stuff)
-        numdata = len(Y_links_train)
+        numdata = len(Y_links_test)
         if distance > 0:
             X_dist_test = dataset[split]['distance']
         else:
@@ -583,7 +583,7 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             X_text_test = dataset[split]['texts']
             del dataset[split]['texts']
         else:
-            X_marks_test = np.zeros((numdata, 2))
+            X_marks_test = np.zeros((numdata, 2, 2))
             X_text_test = np.zeros((numdata, 2))
 
         X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test, ]
@@ -606,7 +606,7 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
         Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
 
         # if they are not used, creates a mock (necessary for compatibility with other stuff)
-        numdata = len(Y_links_train)
+        numdata = len(Y_links_validation)
         if distance > 0:
             X_dist_validation = dataset[split]['distance']
         else:
@@ -616,7 +616,7 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             del dataset[split]['texts']
             X_marks_validation = dataset[split]['mark']
         else:
-            X_marks_validation = np.zeros((numdata, 2))
+            X_marks_validation = np.zeros((numdata, 2, 2))
             X_text_validation = np.zeros((numdata, 2))
 
         X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]

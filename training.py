@@ -157,12 +157,8 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         dataset[split]['s_id'].append(row['source_ID'])
         dataset[split]['t_id'].append(row['target_ID'])
 
-        if dataset_name == 'cdcp_ACL17':
-            i = 1
-        else:
-            i = 2
-        s_index = int(row['source_ID'].split('_')[i])
-        t_index = int(row['target_ID'].split('_')[i])
+        s_index = int(row['source_ID'].split('_')[-1])
+        t_index = int(row['target_ID'].split('_')[-1])
         difference = t_index - s_index
 
         if distance > 0:
@@ -178,7 +174,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             dataset[split]['distance'].append(difference_array)
 
 
-        if not context:
+        if context:
             # TODO: remove context loading, but avoiding unpleasant explosions everywhere
             # load the document as list of argumentative component
             embed_length = 0
@@ -350,8 +346,14 @@ def perform_training(name = 'prova999',
     final_size = int(DIM/final_scale)
 
     parameters = locals()
-    paramfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name + "_info.txt"),
-                     'w')
+
+    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version)
+
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+
+    paramfile = open(os.path.join(save_dir, name + "_info.txt"),'w')
+
     for parameter in sorted(parameters.keys()):
         value = parameters[parameter]
         paramfile.write(parameter + " = " + str(value) + "\n")
@@ -368,7 +370,7 @@ def perform_training(name = 'prova999',
     elif dataset_name == "RCT":
         outputs_units = (2, 5, 2, 2)
         min_text = 168
-        min_prop = 72
+        min_prop = 181
     elif dataset_name == "cdcp_ACL17":
         outputs_units = (2, 5, 5, 5)
         min_text = 552
@@ -422,7 +424,7 @@ def perform_training(name = 'prova999',
         X_text_train = dataset[split]['texts']
         del dataset[split]['texts']
     else:
-        X_marks_train = np.zeros((numdata, 2))
+        X_marks_train = np.zeros((numdata, 2, 2))
         X_text_train = np.zeros((numdata, 2))
 
     Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
@@ -444,7 +446,7 @@ def perform_training(name = 'prova999',
     Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
 
     # if they are not used, creates a mock (necessary for compatibility with other stuff)
-    numdata = len(Y_links_train)
+    numdata = len(Y_links_test)
     if distance > 0:
         X_dist_test = dataset[split]['distance']
     else:
@@ -454,7 +456,7 @@ def perform_training(name = 'prova999',
         X_text_test = dataset[split]['texts']
         del dataset[split]['texts']
     else:
-        X_marks_test = np.zeros((numdata, 2))
+        X_marks_test = np.zeros((numdata, 2, 2))
         X_text_test = np.zeros((numdata, 2))
 
 
@@ -475,7 +477,7 @@ def perform_training(name = 'prova999',
     Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
 
     # if they are not used, creates a mock (necessary for compatibility with other stuff)
-    numdata = len(Y_links_train)
+    numdata = len(Y_links_validation)
     if distance > 0:
         X_dist_validation = dataset[split]['distance']
     else:
@@ -485,7 +487,7 @@ def perform_training(name = 'prova999',
         del dataset[split]['texts']
         X_marks_validation = dataset[split]['mark']
     else:
-        X_marks_validation = np.zeros((numdata, 2))
+        X_marks_validation = np.zeros((numdata, 2, 2))
         X_text_validation = np.zeros((numdata, 2))
 
     X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]
@@ -498,6 +500,8 @@ def perform_training(name = 'prova999',
     if feature_type == 'bow':
         dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
         vocabulary_path = os.path.join(dataset_path, 'glove', dataset_version,'glove.embeddings.npz')
+        if not os.path.exists(vocabulary_path):
+            vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
         vocabulary_list = np.load(vocabulary_path)
         embed_list = vocabulary_list['embeds']
         word_list = vocabulary_list['vocab']
@@ -531,7 +535,7 @@ def perform_training(name = 'prova999',
         model = None
         if network == 7 or network == "7":
             model = build_net_7(bow=bow,
-                                link_as_sum=sum[[0, 2], [1, 3, 4]],
+                                link_as_sum=[[0, 2], [1, 3, 4]],
                                 text_length=max_text_len, propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
@@ -1110,10 +1114,65 @@ def perform_training(name = 'prova999',
 
 
 
+def RCT_routine():
+    dataset_name = 'RCT'
+    dataset_version = 'neo'
+    split = 'total'
+    name = 'RCT7net2018'
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=200,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=500,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+    )
 
 
 if __name__ == '__main__':
 
+    RCT_routine()
+
+
+    """
+    
     if DEBUG:
         print("DEBUG! DEBUG! DEBUG!!!!")
         print("DEBUG! DEBUG! DEBUG!!!!")
@@ -1126,52 +1185,6 @@ if __name__ == '__main__':
     dataset_name = 'cdcp_ACL17'
     dataset_version = 'new_3'
     split = 'total'
-
-
-
-    name = 'cdcp8t2'
-    # more weight on relations
-
-    perform_training(
-        name=name,
-        save_weights_only=True,
-        epochs=1000,
-        feature_type='bow',
-        patience=30,
-        loss_weights=[10, 10, 1, 1],
-        lr_alfa=0.005,
-        lr_kappa=0.01,
-        beta_1=0.9,
-        beta_2=0.9999,
-        res_scale=60,
-        resnet_layers=(1, 2),
-        embedding_scale=10,
-        embedder_layers=4,
-        final_scale=15,
-        space_scale=10,
-        batch_size=150,
-        regularizer_weight=0,
-        dropout_resnet=0,
-        dropout_embedder=0,
-        dropout_final=0,
-        bn_embed=True,
-        bn_res=True,
-        bn_final=True,
-        network=8,
-        monitor="links",
-        true_validation=True,
-        temporalBN=False,
-        same_layers=False,
-        context=False,
-        distance=5,
-        iterations=10,
-        merge="a_self",
-        distribution="sparsemax",
-        classification="softmax",
-        dataset_name=dataset_name,
-        dataset_version=dataset_version,
-        dataset_split=split
-    )
 
     name = 'cdcp8t3'
     # more weight on relations, less weight on link
@@ -1218,4 +1231,4 @@ if __name__ == '__main__':
     )
 
 
-    
+    """
