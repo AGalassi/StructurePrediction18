@@ -690,17 +690,16 @@ def perform_training(name = 'prova999',
 
 
         # PERSISTENCE CONFIGURATION
-        complete_network_name = name + '_completemodel.{epoch:03d}.h5'
-        model_name = name + '_model.json'
-        json_model = model.to_json()
-        with open(os.path.join(save_dir, model_name), 'w') as outfile:
-            json.dump(json_model, outfile)
-        weights_name = name + '_weights.{epoch:03d}.h5'
-
-        if not save_weights_only:
-            file_path = os.path.join(save_dir, complete_network_name)
-        else:
+        if save_weights_only:
+            model_name = realname + '_model.json'
+            json_model = model.to_json()
+            with open(os.path.join(save_dir, model_name), 'w') as outfile:
+                json.dump(json_model, outfile)
+            weights_name = name + '_weights.{epoch:03d}.h5'
             file_path = os.path.join(save_dir, weights_name)
+        else:
+            complete_network_name = name + '_completemodel.{epoch:03d}.h5'
+            file_path = os.path.join(save_dir, complete_network_name)
 
         # TRAINING CONFIGURATION
 

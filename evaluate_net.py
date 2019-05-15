@@ -501,19 +501,41 @@ def print_model(netname, dataset_name, dataset_version):
 
 
 
-def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow', context=False, distance=5):
+def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5):
+
+    # name of the network
+    netname = os.path.basename(netfolder)
+    print("Evaluating network: " + str(netname))
 
     name = netname
     print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
     print(str(time.ctime()) + "\tLOADING DATASET...")
 
+
+    if dataset_name == 'AAEC_v2':
+        outputs_units = (2, 5, 3, 3)
+        min_text = 168
+        min_prop = 72
+    elif dataset_name == "RCT":
+        outputs_units = (2, 5, 2, 2)
+        min_text = 168
+        min_prop = 181
+    elif dataset_name == "cdcp_ACL17":
+        outputs_units = (2, 5, 5, 5)
+        min_text = 552
+        min_prop = 153
+    else:
+        print("Unknown dataset name")
+        return -1
+
     dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
                                                                 dataset_version=dataset_version,
                                                                 dataset_split='total',
                                                                 feature_type=feature_type,
-                                                                min_text_len=2,
                                                                 distance=distance,
-                                                                context=context)
+                                                                context=context,
+                                                                min_text_len=min_text,
+                                                                min_prop_len=min_prop,)
 
     print(str(time.ctime()) + "\tDATASET LOADED...")
 
@@ -658,11 +680,11 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
                                 "F1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\n\n")
     elif dataset_name == "RCT":
         evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
-                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg" +
-                                "Pr P AVG\tPr P premise\tPr P claim\tPr P avg" +
-                                "Rec P AVG\tRec P premise\tRec P claim\tRec P avg" +
-                                "Fs P AVG\tFs P premise\tFs P claim\tFs P avg" +
-                                "Supp P AVG\tSupp P premise\tSupp P claim\tSupp P avg" +
+                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\t" +
+                                "Pr P AVG\tPr P premise\tPr P claim\tPr P avg\t" +
+                                "Rec P AVG\tRec P premise\tRec P claim\tRec P avg\t" +
+                                "Fs P AVG\tFs P premise\tFs P claim\tFs P avg\t" +
+                                "Supp P premise\tSupp P claim" +
                                 "\n\n")
 
     print(str(time.ctime()) + "\t\tCREATING MODEL...")
@@ -707,8 +729,11 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
         custom_objects[crop.__name__] = crop
 
 
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
-    model_path = os.path.join(save_dir, netname + '_model.json')
+    save_dir = os.path.join(netfolder)
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+
+    model_path = os.path.join(netfolder, netname + '_model.json')
 
     model = None
 
@@ -720,15 +745,13 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             string = json.load(f)
             model = model_from_json(string, custom_objects=custom_objects)
 
-
-
     iterations = MAXITERATIONS
-    file_names = os.listdir(save_dir)
+    file_names = os.listdir(netfolder)
     found = False
 
     # determine the number of iterations
     for iteration in range(iterations, 0, -1):
-        net_file_name = (netname + "_" + iteration + '_weights_')
+        net_file_name = (netname + "_" + str(iteration) + '_weights')
         for name in file_names:
             if net_file_name in name:
                 found = True
@@ -740,15 +763,19 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
     # train and test iterations
     for iteration in range(iterations+1):
 
+        print("Evaluating networks: " + str(iteration) + "/" + str(iterations))
+        sys.stdout.flush()
+
         # explore all the possible epochs to fine the last one (the first one found)
         last_epoch = MAXEPOCHS
         last_path = ""
 
         for epoch in range(last_epoch, 0, -1):
             if save_weights_only:
-                netpath = os.path.join(save_dir, netname + "_" + iteration + '_weights.%03d.h5' % epoch)
+                netpath = os.path.join(netfolder, netname + "_" + str(iteration) + '_weights.%03d.h5' % epoch)
             else:
-                netpath = os.path.join(save_dir, netname + "_" + iteration + '_completemodel.%03d.h5' % epoch)
+                netpath = os.path.join(netfolder, netname + "_" + str(iteration) + '_completemodel.%03d.h5' % epoch)
+
             if os.path.exists(netpath):
                 last_path = netpath
 
@@ -765,21 +792,25 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
 
         print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
-        testfile = open(os.path.join(save_dir, name + "_eval.txt"), 'w')
+        testfile = open(os.path.join(netfolder, netname + "_" + str(iteration) + "_eval.txt"), 'a')
+        testfile.write(dataset_version)
+        testfile.write("\n")
 
         print("\n-----------------------\n")
 
         testfile.write(evaluation_headline)
 
+        print(evaluation_headline)
 
         for split in ['test', 'validation', 'train']:
 
-            if len(X[split]) == 0:
+            if len(X[split][0]) <= 1:
                 continue
 
             # 2 dim
             # ax0 = samples
             # ax1 = classes
+
             Y_pred = model.predict(X[split])
 
             # begin of the evaluation of the single propositions scores
@@ -868,13 +899,11 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
             score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
             score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
-            score_supp_prop_AVGM = score_prfs_prop_AVGM[3]
 
             score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='micro')
             score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
             score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
             score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
-            score_supp_prop_AVGm = score_prfs_prop_AVGm[3]
 
             iteration_scores = []
             iteration_scores.append(score_f1_AVG_all_real[0])
@@ -904,10 +933,8 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
                 iteration_scores.append(score)
             iteration_scores.append(score_fscore_prop_AVGm)
 
-            iteration_scores.append(score_supp_prop_AVGM)
             for score in score_supp_prop:
                 iteration_scores.append(score)
-            iteration_scores.append(score_supp_prop_AVGm)
 
             final_scores[split].append(iteration_scores)
 
@@ -916,19 +943,30 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
             for value in iteration_scores:
                 string += "\t" + "{:10.4f}".format(value)
 
+            print(string)
             testfile.write(string + "\n")
 
             testfile.flush()
+            sys.stdout.flush()
 
+        print("------------------\n\n------------------\n\n")
+        testfile.write("------------------\n\n------------------\n\n")
         testfile.close()
 
         # END OF A ITERATION
 
     # FINAL EVALUATION
-    testfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version,
-                                 netname + "_eval.txt"), 'w')
+    file_folder = os.path.join(netfolder)
+    if not os.path.exists(file_folder):
+        os.mkdir(file_folder)
+    testfile = open(os.path.join(file_folder, netname + "_eval.txt"), 'a')
+
+    testfile.write(dataset_version)
+    testfile.write("\n")
 
     testfile.write(evaluation_headline)
+    print(evaluation_headline)
+
     for split in ['test', 'validation', 'train']:
         if len(final_scores[split]) > 0:
             split_scores = np.array(final_scores[split], ndmin=2)
@@ -939,10 +977,34 @@ def perform_evaluation(netname, dataset_name, dataset_version, feature_type='bow
                 string += "\t" + "{:10.4f}".format(value)
 
             testfile.write(string + "\n")
+            print(string)
 
+            sys.stdout.flush()
             testfile.flush()
+
+    testfile.write("------------------\n\n")
     testfile.close()
 
+
+def RCT_routine():
+
+    dataset_name = "RCT"
+    training_dataset_version = "neo"
+    netname = "RCT7net2018"
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
+
+    test_dataset_version = "neo"
+
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
+
+    test_dataset_version = "mixed"
+
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
+
+    test_dataset_version = "glaucoma"
+
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
 
 
 def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):
@@ -1232,6 +1294,9 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
 if __name__ == '__main__':
 
+    RCT_routine()
+
+    """
     netname = 'prova'
     if len(sys.argv) > 1:
         netname = sys.argv[1]
@@ -1261,3 +1326,5 @@ if __name__ == '__main__':
     name = 'cdcp7R13tvnc'
     perform_evaluation(name, dataset_name, dataset_version, context=False)
     generate_confusion_matrix(name, dataset_name, dataset_version, context=False)
+    """
+
