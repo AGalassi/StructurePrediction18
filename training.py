@@ -14,6 +14,7 @@ import evaluate_net
 import json
 import tensorflow as tf
 
+from dataset_config import dataset_info
 from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
                       create_count_nonpadding_fn, create_elementwise_division_fn)
 from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
@@ -38,7 +39,8 @@ config.gpu_options.allow_growth = True
 K.set_session(tf.Session(config=config))
 
 def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2',
-                 feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5, context=False):
+                 feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5, context=False,
+                 distance_train_limit=-1):
 
     if distance < 0:
         distance = 0
@@ -68,45 +70,8 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
     df = pandas.read_pickle(dataframe_path)
 
-    if dataset_name == 'cdcp_ACL17':
-        categorical_prop = {'policy': [1, 0, 0, 0, 0],
-                            'fact': [0, 1, 0, 0, 0],
-                            'testimony': [0, 0, 1, 0, 0],
-                            'value': [0, 0, 0, 1, 0],
-                            'reference': [0, 0, 0, 0, 1],
-                            }
-
-        categorical_link = {'reasons': [1, 0, 0, 0, 0],
-                            'inv_reasons': [0, 1, 0, 0, 0],
-                            'evidences': [0, 0, 1, 0, 0],
-                            'inv_evidences': [0, 0, 0, 1, 0],
-                            None: [0, 0, 0, 0, 1],
-                            }
-                            
-    elif dataset_name == 'AAEC_v2':
-        categorical_prop = {'Premise': [1, 0, 0,],
-                            'Claim': [0, 1, 0,],
-                            'MajorClaim': [0, 0, 1],
-                            }
-
-        categorical_link = {'supports': [1, 0, 0, 0, 0],
-                            'inv_supports': [0, 1, 0, 0, 0],
-                            'attacks': [0, 0, 1, 0, 0],
-                            'inv_attacks': [0, 0, 0, 1, 0],
-                            None: [0, 0, 0, 0, 1],
-                            }
-
-    elif dataset_name == 'RCT':
-        categorical_prop = {'Premise': [1, 0,],
-                            'Claim': [0, 1,]
-                            }
-
-        categorical_link = {'support': [1, 0, 0, 0, 0],
-                            'inv_support': [0, 1, 0, 0, 0],
-                            'attack': [0, 0, 1, 0, 0],
-                            'inv_attack': [0, 0, 0, 1, 0],
-                            None: [0, 0, 0, 0, 1],
-                            }
+    categorical_prop = dataset_info[dataset_name]["categorical_prop"]
+    categorical_link = dataset_info[dataset_name]["categorical_link"]
 
     dataset = {}
 
@@ -130,6 +95,18 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         dataset[split]['t_id'] = []
 
     for index, row in df.iterrows():
+
+        s_index = int(row['source_ID'].split('_')[-1])
+        t_index = int(row['target_ID'].split('_')[-1])
+
+        difference = t_index - s_index
+
+        split = row['set']
+
+        # in case this is a train tuple, that the limitation on the distance is active and that the distance between
+        # the two components is greater than the distance allowed, skip this row
+        if split == "train" and distance_train_limit > 0 and abs(difference) > distance_train_limit:
+            continue
 
         text_ID = row['text_ID']
         source_ID = row['source_ID']
@@ -157,9 +134,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
         dataset[split]['s_id'].append(row['source_ID'])
         dataset[split]['t_id'].append(row['target_ID'])
 
-        s_index = int(row['source_ID'].split('_')[-1])
-        t_index = int(row['target_ID'].split('_')[-1])
-        difference = t_index - s_index
 
         if distance > 0:
             difference_array = [0] * distance * 2
@@ -299,6 +273,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 def perform_training(name = 'prova999',
                      save_weights_only=False,
                     epochs = 1000,
+                     distance_train_limit=-1,
                     feature_type = 'bow',
                     patience = 200,
                     loss_weights = [20, 20, 1, 1],
@@ -339,7 +314,8 @@ def perform_training(name = 'prova999',
                      iterations=1,
                      merge="a_self",
                      distribution="softmax",
-                     classification="softmax"):
+                     classification="softmax",
+                     clean_previous_networks=True):
 
     embedding_size = int(DIM/embedding_scale)
     res_size = int(DIM/res_scale)
@@ -362,22 +338,15 @@ def perform_training(name = 'prova999',
     if DEBUG:
         epochs = 20
 
-    outputs_units = ()
-    if dataset_name == 'AAEC_v2':
-        outputs_units = (2, 5, 3, 3)
-        min_text = 168
-        min_prop = 72
-    elif dataset_name == "RCT":
-        outputs_units = (2, 5, 2, 2)
-        min_text = 168
-        min_prop = 181
-    elif dataset_name == "cdcp_ACL17":
-        outputs_units = (2, 5, 5, 5)
-        min_text = 552
-        min_prop = 153
-    else:
-        print("Unknown dataset name")
-        return -1
+    output_units = ()
+    min_text = 0
+    min_prop = 0
+    link_as_sum = [[]]
+
+    output_units = dataset_info[dataset_name]["output_units"]
+    min_text = dataset_info[dataset_name]["min_text"]
+    min_prop = dataset_info[dataset_name]["min_prop"]
+    link_as_sum = dataset_info[dataset_name]["link_as_sum"]
 
     if not context:
         min_text = 2
@@ -397,7 +366,8 @@ def perform_training(name = 'prova999',
                                                        min_text_len=min_text,
                                                        min_prop_len=min_prop,
                                                        distance=distance_num,
-                                                       context=context)
+                                                       context=context,
+                                                       distance_train_limit=distance_train_limit)
     print(str(time.ctime()) + "\tDATASET LOADED...")
     sys.stdout.flush()
 
@@ -517,16 +487,7 @@ def perform_training(name = 'prova999',
     # multi-iteration evaluation setting
     final_scores = {'train': [], 'test': [], 'validation': []}
     evaluation_headline = ""
-    if dataset_name == "AAEC_v2":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
-                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P major claim\tF1 P avg\n\n")
-    elif dataset_name == "cdcp_ACL17":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R reason\tF1 R evidence\t" +
-                                "F1 P AVG\t" +
-                                "F1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\n\n")
-    elif dataset_name == "RCT":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
-                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\n\n")
+    evaluation_headline = dataset_info[dataset_name]["evaluation_headline_short"]
 
     # train and test iterations
     for i in range(iterations):
@@ -535,7 +496,7 @@ def perform_training(name = 'prova999',
         model = None
         if network == 7 or network == "7":
             model = build_net_7(bow=bow,
-                                link_as_sum=[[0, 2], [1, 3, 4]],
+                                link_as_sum=link_as_sum,
                                 text_length=max_text_len, propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
@@ -545,7 +506,7 @@ def perform_training(name = 'prova999',
                                 resnet_layers=resnet_layers,
                                 res_size=res_size,
                                 final_size=final_size,
-                                outputs=outputs_units,
+                                outputs=output_units,
                                 bn_embed=bn_embed,
                                 bn_res=bn_res,
                                 bn_final=bn_final,
@@ -569,7 +530,7 @@ def perform_training(name = 'prova999',
                                         resnet_layers=resnet_layers,
                                         res_size=res_size,
                                         final_size=final_size,
-                                        outputs=outputs_units,
+                                        outputs=output_units,
                                         bn_embed=bn_embed,
                                         bn_res=bn_res,
                                         bn_final=bn_final,
@@ -596,7 +557,7 @@ def perform_training(name = 'prova999',
                                 res_scale=res_scale,
                                 final_scale=final_scale,
                                 space_scale=space_scale,
-                                outputs=outputs_units,
+                                outputs=output_units,
                                 bn_embed=bn_embed,
                                 bn_res=bn_res,
                                 bn_final=bn_final,
@@ -690,16 +651,17 @@ def perform_training(name = 'prova999',
 
 
         # PERSISTENCE CONFIGURATION
-        if save_weights_only:
-            model_name = realname + '_model.json'
-            json_model = model.to_json()
-            with open(os.path.join(save_dir, model_name), 'w') as outfile:
-                json.dump(json_model, outfile)
-            weights_name = name + '_weights.{epoch:03d}.h5'
-            file_path = os.path.join(save_dir, weights_name)
-        else:
-            complete_network_name = name + '_completemodel.{epoch:03d}.h5'
+        complete_network_name = name + '_completemodel.{epoch:03d}.h5'
+        model_name = name + '_model.json'
+        json_model = model.to_json()
+        with open(os.path.join(save_dir, model_name), 'w') as outfile:
+            json.dump(json_model, outfile)
+        weights_name = name + '_weights.{epoch:03d}.h5'
+
+        if not save_weights_only:
             file_path = os.path.join(save_dir, complete_network_name)
+        else:
+            file_path = os.path.join(save_dir, weights_name)
 
         # TRAINING CONFIGURATION
 
@@ -919,17 +881,31 @@ def perform_training(name = 'prova999',
                 netpath = os.path.join(save_dir, name + '_weights.%03d.h5' % epoch)
                 if os.path.exists(netpath):
                     last_path = netpath
+                    last_epoch = epoch
                     break
             model.load_weights(last_path)
+
+            if clean_previous_networks:
+                for epoch in range(last_epoch-1, 0, -1):
+                    netpath = os.path.join(save_dir, name + '_weights.%03d.h5' % epoch)
+                    if os.path.exists(netpath):
+                        os.remove(netpath)
 
         else:
             for epoch in range(last_epoch, 0, -1):
                 netpath = os.path.join(save_dir, name + '_completemodel.%03d.h5' % epoch)
                 if os.path.exists(netpath):
                     last_path = netpath
+                    last_epoch = epoch
                     break
 
             model = load_model(last_path, custom_objects=custom_objects)
+
+            if clean_previous_networks:
+                for epoch in range(last_epoch-1, 0, -1):
+                    netpath = os.path.join(save_dir, name + '_completemodel.%03d.h5' % epoch)
+                    if os.path.exists(netpath):
+                        os.remove(netpath)
 
         print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
@@ -1034,9 +1010,11 @@ def perform_training(name = 'prova999',
             # predictions computed! Computing measures!
 
             # F1s
+            positive_link_labels = dataset_info[dataset_name]["link_as_sum"][0]
+            negative_link_labels = dataset_info[dataset_name]["link_as_sum"][1]
             score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=positive_link_labels)
+            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=positive_link_labels)
 
             score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
             score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
@@ -1165,9 +1143,120 @@ def RCT_routine():
     )
 
 
+
+def cdcp_argmining18_routine():
+    """
+    Configuration almost identical to the Argmining18 paper (here multiple iterations are performed)
+    """
+    dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
+    split = 'total'
+    name = 'cdcp7net2018'
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=200,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=500,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+    )
+
+
+def cdcp_routine():
+    dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
+    split = 'total'
+    name = 'cdcp7net2018batch100'
+
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=200,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=100,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+    )
+
+
 if __name__ == '__main__':
 
-    RCT_routine()
+    # RCT_routine()
+    
+    cdcp_routine()
 
 
     """

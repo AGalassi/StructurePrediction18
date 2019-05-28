@@ -1260,7 +1260,7 @@ def routine_RCT_corpus():
     splits = ['total', 'train', 'test', 'validation']
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    document_path = os.path.join(os.getcwd(), 'Datasets', dataset_name, "original_files")
+    document_path = os.path.join(os.getcwd(), 'Datasets', dataset_name, "original_data")
 
     print("-------------------------------------------------------------")
     print("DATASETS CREATION")

@@ -237,6 +237,23 @@ def regular_split(old_orphans, vocabulary, model, separator):
     return orphans, vocabulary
 
 
+def DrInventor_routine():
+    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+
+    dataset_name = 'DrInventor'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove')
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
+
+    vocabulary_creator(m1, glove_path, dataframe_path)
+
+
 
 def RCT_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
