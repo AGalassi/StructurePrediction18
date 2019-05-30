@@ -633,6 +633,9 @@ def perform_training(name = 'prova999',
         for weight in loss_weights:
             loss_variables.append(K.variable(weight))
 
+        # TODO: specify the dynamic loss (https://stackoverflow.com/questions/50124158/keras-loss-function-with-additional-dynamic-parameter)
+        # model.add_loss()
+
         model.compile(loss='categorical_crossentropy',
                       loss_weights=loss_weights,
                       optimizer=Adam(lr=lr_function(0),
@@ -652,7 +655,7 @@ def perform_training(name = 'prova999',
 
         # PERSISTENCE CONFIGURATION
         complete_network_name = name + '_completemodel.{epoch:03d}.h5'
-        model_name = name + '_model.json'
+        model_name = realname + '_model.json'
         json_model = model.to_json()
         with open(os.path.join(save_dir, model_name), 'w') as outfile:
             json.dump(json_model, outfile)
@@ -1198,6 +1201,56 @@ def cdcp_argmining18_routine():
         dataset_split=split,
     )
 
+def UKP_routine():
+    dataset_name = 'AAEC_v2'
+    dataset_version = 'new_2'
+    split = 'total'
+    name = 'UKP7net2018'
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=200,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=500,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+    )
 
 def cdcp_routine():
     dataset_name = 'cdcp_ACL17'
@@ -1256,8 +1309,10 @@ if __name__ == '__main__':
 
     # RCT_routine()
     
-    cdcp_routine()
+    # cdcp_routine()
 
+    UKP_routine()
+    evaluate_net.UKP_routine()
 
     """
     

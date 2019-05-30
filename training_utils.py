@@ -118,6 +118,7 @@ def create_lr_annealing_function(initial_lr=0.001, k=0.001, fixed_epoch=-1):
     return lr_annealing
 
 
+"""
 def wrong_lr_annealing_function(epoch, initial_lr=0.001, k=0.001, fixed_epoch=-1):
 
     if fixed_epoch <= 0:
@@ -127,7 +128,7 @@ def wrong_lr_annealing_function(epoch, initial_lr=0.001, k=0.001, fixed_epoch=-1
     print("\tNEW LR: " + str(lr))
 
     return lr
-
+"""
 
 def precision(y_true, y_pred):
     """

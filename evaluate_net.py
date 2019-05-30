@@ -22,6 +22,8 @@ from keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, fmeasure, get_avgF1
 from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support
 from glove_loader import DIM
+from scipy import stats
+from dataset_config import dataset_info
 
 import networks
 
@@ -501,32 +503,28 @@ def print_model(netname, dataset_name, dataset_version):
 
 
 
-def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5):
+def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5,
+                       ensemble=None):
 
     # name of the network
     netname = os.path.basename(netfolder)
     print("Evaluating network: " + str(netname))
 
     name = netname
-    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
-    print(str(time.ctime()) + "\tLOADING DATASET...")
+    print(str(time.ctime()) + "\tLAUNCHING EVALUATION: " + name)
+    print(str(time.ctime()) + "\tLOADING DATASET " + dataset_name)
 
 
-    if dataset_name == 'AAEC_v2':
-        outputs_units = (2, 5, 3, 3)
-        min_text = 168
-        min_prop = 72
-    elif dataset_name == "RCT":
-        outputs_units = (2, 5, 2, 2)
-        min_text = 168
-        min_prop = 181
-    elif dataset_name == "cdcp_ACL17":
-        outputs_units = (2, 5, 5, 5)
-        min_text = 552
-        min_prop = 153
-    else:
-        print("Unknown dataset name")
-        return -1
+    output_units = ()
+    min_text = 0
+    min_prop = 0
+    link_as_sum = [[]]
+
+    output_units = dataset_info[dataset_name]["output_units"]
+    min_text = dataset_info[dataset_name]["min_text"]
+    min_prop = dataset_info[dataset_name]["min_prop"]
+    link_as_sum = dataset_info[dataset_name]["link_as_sum"]
+
 
     dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
                                                                 dataset_version=dataset_version,
@@ -668,18 +666,55 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
          'validation': Y_validation}
 
 
-    # multi-iteration evaluation setting
+    # multi-iteration evaluation structures
     final_scores = {'train': [], 'test': [], 'validation': []}
+    # ensemble structures
+    if ensemble is not None and ensemble is not False:
+        ensemble_link_scores = {}
+        ensemble_prop_scores = {}
+        ensemble_rel_scores = {}
+        ensemble_link_votes = {}
+        ensemble_prop_votes = {}
+        ensemble_rel_votes = {}
+        ensemble_link_truth = {}
+        ensemble_prop_truth = {}
+        ensemble_rel_truth = {}
+        for split in ['train', 'test', 'validation']:
+            ensemble_link_scores[split] = []
+            ensemble_prop_scores[split] = []
+            ensemble_rel_scores[split] = []
+            ensemble_link_votes[split] = []
+            ensemble_prop_votes[split] = []
+            ensemble_rel_votes[split] = []
+            ensemble_link_truth[split] = []
+            ensemble_prop_truth[split] = []
+
     evaluation_headline = ""
     if dataset_name == "AAEC_v2":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
-                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P major claim\tF1 P avg\n\n")
+        evaluation_headline = ("set\t"
+                               "F1 AVG all\tF1 AVG LP\t"
+                               "F1 Link\tF1 R AVG dir\t"
+                               "F1 R support\tF1 R attack\t" +
+                               "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P majclaim\tF1 P avgi\t" +
+                               "Pr P AVG\tF1 Pr premise\tF1 Pr claim\tF1 Pr majclaim\tPr P avgi\t" +
+                               "Rec P AVG\tRec P premise\tRec P claim\tRec P majclaim\tRec P avgi\t" +
+                               "Supp P premise\tSupp P claim\tSupp P majclaim" +
+                               "\n\n")
     elif dataset_name == "cdcp_ACL17":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R reason\tF1 R evidence\t" +
-                                "F1 P AVG\t" +
-                                "F1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\n\n")
+        evaluation_headline = ("set\t" +
+                               "F1 AVG all\tF1 AVG LP\t" +
+                               "F1 Link\tF1 R AVG dir\t" +
+                               "F1 R reason\tF1 R evidence\t" +
+                               "F1 P AVG\tF1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\t"+
+                               "Pr P AVG\tPr P policy\tPr P fact\tPr P testimony\tPr P value\tPr P reference\tPr P avg\t"+
+                               "Rec P AVG\tRec P policy\tRec P fact\tRec P testimony\tRec P value\tRec P reference\tRec P avg\t"+
+                               "Supp P policy\tSupp P fact\tSupp P testimony\tSupp P value\tSupp P reference" +
+                               "\n\n")
     elif dataset_name == "RCT":
-        evaluation_headline = ("set\tF1 AVG all\tF1 AVG LP\tF1 Link\tF1 R AVG dir\tF1 R support\tF1 R attack\t" +
+        evaluation_headline = ("set\t" +
+                               "F1 AVG all\tF1 AVG LP\t"
+                               "F1 Link\tF1 R AVG dir\t"
+                               "F1 R support\tF1 R attack\t" +
                                 "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\t" +
                                 "Pr P AVG\tPr P premise\tPr P claim\tPr P avg\t" +
                                 "Rec P AVG\tRec P premise\tRec P claim\tRec P avg\t" +
@@ -790,13 +825,20 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         if training.DEBUG:
             plot_model(model, netname + ".png", show_shapes=True)
 
+        if last_path == "":
+            print("ERROR! NO NETWORK LOADED!\n\tExpected example of network name: " + str(netpath))
+            exit(1)
+
         print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
         testfile = open(os.path.join(netfolder, netname + "_" + str(iteration) + "_eval.txt"), 'a')
+
+        testfile.write("\n\n")
         testfile.write(dataset_version)
         testfile.write("\n")
 
         print("\n-----------------------\n")
+
 
         testfile.write(evaluation_headline)
 
@@ -862,10 +904,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
                 Y_test_prop_real.append(np.sum(Y_test_prop_real_list[index], axis=-2))
 
-            Y_pred_prop_real = np.array(Y_pred_prop_real)
-            Y_test_prop_real = np.array(Y_test_prop_real)
-            Y_pred_prop_real = np.argmax(Y_pred_prop_real, axis=-1)
-            Y_test_prop_real = np.argmax(Y_test_prop_real, axis=-1)
+            Y_pred_scores_prop_real = np.array(Y_pred_prop_real)
+            Y_test_scores_prop_real = np.array(Y_test_prop_real)
+            Y_pred_prop_real = np.argmax(Y_pred_scores_prop_real, axis=-1)
+            Y_test_prop_real = np.argmax(Y_test_scores_prop_real, axis=-1)
             # end of the evaluation of the single propositions scores
 
             Y_pred_links = np.argmax(Y_pred[0], axis=-1)
@@ -873,6 +915,20 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
             Y_test_rel = np.argmax(Y[split][1], axis=-1)
+
+            if ensemble is not None and ensemble is not False:
+                ensemble_prop_truth[split] = Y_test_prop_real
+                ensemble_link_truth[split] = Y_test_links
+                ensemble_rel_truth[split] = Y_test_rel
+
+                ensemble_prop_scores[split].append(Y_pred_scores_prop_real)
+                ensemble_prop_votes[split].append(Y_pred_prop_real)
+
+                ensemble_link_scores[split].append(Y_pred[0])
+                ensemble_link_votes[split].append(Y_pred_links)
+
+                ensemble_rel_scores[split].append(Y_pred[1])
+                ensemble_rel_votes[split].append(Y_pred_rel)
 
             # predictions computed! Computing measures!
 
@@ -955,12 +1011,15 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
         # END OF A ITERATION
 
+    print(str(time.ctime()) + "\tFINAL EVALUATIONS")
+
     # FINAL EVALUATION
     file_folder = os.path.join(netfolder)
     if not os.path.exists(file_folder):
         os.mkdir(file_folder)
-    testfile = open(os.path.join(file_folder, netname + "_eval.txt"), 'a')
+    testfile = open(os.path.join(file_folder, os.path.pardir, netname + "_eval.txt"), 'a')
 
+    testfile.write("\n\n")
     testfile.write(dataset_version)
     testfile.write("\n")
 
@@ -982,6 +1041,111 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             sys.stdout.flush()
             testfile.flush()
 
+    # ENSEMBLE SCORE
+    # TODO: implement ensemble score consideration
+    print(str(time.ctime()) + "\t\tENSEMBLE EVALUATION")
+    if ensemble is not None and ensemble is not False:
+        testfile.write("\n\n")
+        testfile.write(dataset_version)
+        testfile.write("\tENSEMBLE\n")
+
+        testfile.write(evaluation_headline)
+        print(evaluation_headline)
+
+        for split in ['test', 'validation', 'train']:
+            if len(final_scores[split]) > 0:
+
+                prop_votes = np.array(ensemble_prop_votes[split])
+                # print(prop_votes)
+                Y_pred_prop_real = stats.mode(prop_votes)[0][0]
+                # print(Y_pred_prop_real)
+                Y_test_prop_real = ensemble_prop_truth[split]
+                # print(Y_test_prop_real)
+
+                link_votes = np.array(ensemble_link_votes[split])
+                Y_pred_links = stats.mode(link_votes)[0][0]
+                Y_test_links = ensemble_link_truth[split]
+
+                rel_votes = np.array(ensemble_rel_votes[split])
+                Y_pred_rel = stats.mode(rel_votes)[0][0]
+                Y_test_rel = ensemble_rel_truth[split]
+
+                # F1s
+                score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
+                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+
+                score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
+                score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
+                score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
+
+                score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
+                score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
+
+                # Precision-recall-fscore-support
+                score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
+                score_prec_prop = score_prfs_prop[0]
+                score_rec_prop = score_prfs_prop[1]
+                score_fscore_prop = score_prfs_prop[2]
+                score_supp_prop = score_prfs_prop[3]
+
+                score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                                       average='macro')
+                score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
+                score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
+                score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
+
+                score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                                       average='micro')
+                score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
+                score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
+                score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
+
+                iteration_scores = []
+                iteration_scores.append(score_f1_AVG_all_real[0])
+                iteration_scores.append(score_f1_AVG_LP_real[0])
+                iteration_scores.append(score_f1_link[0])
+                iteration_scores.append(score_f1_rel_AVGM)
+                for score in score_f1_rel:
+                    iteration_scores.append(score)
+                iteration_scores.append(score_f1_prop_AVGM_real)
+                for score in score_f1_prop_real:
+                    iteration_scores.append(score)
+                iteration_scores.append(score_f1_prop_AVGm_real)
+
+                iteration_scores.append(score_prec_prop_AVGM)
+                for score in score_prec_prop:
+                    iteration_scores.append(score)
+                iteration_scores.append(score_prec_prop_AVGm)
+
+                iteration_scores.append(score_rec_prop_AVGM)
+                for score in score_rec_prop:
+                    iteration_scores.append(score)
+                iteration_scores.append(score_rec_prop_AVGm)
+
+                iteration_scores.append(score_fscore_prop_AVGM)
+                for score in score_fscore_prop:
+                    iteration_scores.append(score)
+                iteration_scores.append(score_fscore_prop_AVGm)
+
+                for score in score_supp_prop:
+                    iteration_scores.append(score)
+
+                final_scores[split].append(iteration_scores)
+
+                # writing single iteration scores
+                string = split
+                for value in iteration_scores:
+                    string += "\t" + "{:10.4f}".format(value)
+
+                print(string)
+                testfile.write(string + "\n")
+
+                testfile.flush()
+                sys.stdout.flush()
+
+        print("------------------\n\n------------------\n\n")
+
     testfile.write("------------------\n\n")
     testfile.close()
 
@@ -996,22 +1160,46 @@ def RCT_routine():
 
     test_dataset_version = "neo"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
 
     test_dataset_version = "mixed"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
 
     test_dataset_version = "glaucoma"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+
+
+def cdcp_routine():
+
+    dataset_name = 'cdcp_ACL17'
+    training_dataset_version = 'new_3'
+    test_dataset_version = "new_3"
+    netname = 'cdcp7net2018'
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
+
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+
+
+def UKP_routine():
+
+    dataset_name = 'AAEC_v2'
+    training_dataset_version = 'new_2'
+    test_dataset_version = "new_2"
+    netname = 'UKP7net2018'
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
+
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
 
 
 def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):
 
     name = netname
-    print(str(time.ctime()) + "\tLAUNCHING TRAINING: " + name)
-    print(str(time.ctime()) + "\tLOADING DATASET...")
+    print(str(time.ctime()) + "\tLAUNCHING EVALUATION " + name)
+    print(str(time.ctime()) + "\tLOADING DATASET " + dataset_name)
     dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
                                                        dataset_version=dataset_version,
                                                        dataset_split='total',
@@ -1293,7 +1481,6 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
 
 if __name__ == '__main__':
-
     RCT_routine()
 
     """

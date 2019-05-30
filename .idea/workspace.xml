@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/training_utils.py" line="274" mnemonic="9" />
-    <bookmark url="file://$PROJECT_DIR$/training.py" line="1049" />
-    <bookmark url="file://$PROJECT_DIR$/training.py" line="1086" />
+    <bookmark url="file://$PROJECT_DIR$/training_utils.py" line="275" mnemonic="9" />
+    <bookmark url="file://$PROJECT_DIR$/training.py" line="1052" />
     <bookmark url="file://$PROJECT_DIR$/training.py" line="1089" />
-    <bookmark url="file://$PROJECT_DIR$/dataframe_creator.py" line="863" />
+    <bookmark url="file://$PROJECT_DIR$/training.py" line="1092" />
+    <bookmark url="file://$PROJECT_DIR$/dataframe_creator.py" line="886" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6623a1ce-ed64-4675-b2ec-461ba77a4155" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/dataset_config.py" />
+    <list default="true" id="6623a1ce-ed64-4675-b2ec-461ba77a4155" name="Default" comment="working on Dr. Inventor">
+      <change beforePath="" afterPath="$PROJECT_DIR$/argmining5_data.xlsx" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/dataframe_creator.py" afterPath="$PROJECT_DIR$/dataframe_creator.py" />
-      <change beforePath="$PROJECT_DIR$/embedder.py" afterPath="$PROJECT_DIR$/embedder.py" />
-      <change beforePath="$PROJECT_DIR$/glove_loader.py" afterPath="$PROJECT_DIR$/glove_loader.py" />
+      <change beforePath="$PROJECT_DIR$/dataset_config.py" afterPath="$PROJECT_DIR$/dataset_config.py" />
+      <change beforePath="$PROJECT_DIR$/evaluate_net.py" afterPath="$PROJECT_DIR$/evaluate_net.py" />
       <change beforePath="$PROJECT_DIR$/training.py" afterPath="$PROJECT_DIR$/training.py" />
+      <change beforePath="$PROJECT_DIR$/training_utils.py" afterPath="$PROJECT_DIR$/training_utils.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -25,7 +26,7 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/StructurePrediction18$maketotal.coverage" NAME="maketotal Coverage Results" MODIFIED="1521905067841" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/StructurePrediction18$dataframe_creator.coverage" NAME="dataframe_creator Coverage Results" MODIFIED="1529975362527" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/StructurePrediction18$dataframe_creator.coverage" NAME="dataframe_creator Coverage Results" MODIFIED="1559121398223" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/StructurePrediction18$networks.coverage" NAME="networks Coverage Results" MODIFIED="1526563761340" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/StructurePrediction18$data_process.coverage" NAME="data_process Coverage Results" MODIFIED="1521905417624" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/StructurePrediction18$evaluate_net.coverage" NAME="evaluate_net Coverage Results" MODIFIED="1526214680254" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -39,8 +40,8 @@
       <file leaf-file-name="dataset_config.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dataset_config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="476">
-              <caret line="37" column="83" lean-forward="false" selection-start-line="37" selection-start-column="83" selection-end-line="37" selection-end-column="83" />
+            <state relative-caret-position="306">
+              <caret line="18" column="63" lean-forward="false" selection-start-line="18" selection-start-column="63" selection-end-line="18" selection-end-column="63" />
               <folding />
             </state>
           </provider>
@@ -49,7 +50,7 @@
       <file leaf-file-name="glove_loader.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/glove_loader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-196">
+            <state relative-caret-position="3655">
               <caret line="224" column="4" lean-forward="false" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="4" />
               <folding>
                 <element signature="e#165#178#0" expanded="true" />
@@ -59,15 +60,63 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="training.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="training.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/training.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="213">
-              <caret line="898" column="30" lean-forward="false" selection-start-line="898" selection-start-column="20" selection-end-line="898" selection-end-column="30" />
+            <state relative-caret-position="443">
+              <caret line="1314" column="20" lean-forward="false" selection-start-line="1314" selection-start-column="20" selection-end-line="1314" selection-end-column="20" />
               <folding>
                 <element signature="e#164#173#0" expanded="true" />
                 <element signature="e#20074#21576#0" expanded="false" />
-                <element signature="e#32991#34713#0" expanded="false" />
+                <element signature="e#33165#34887#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="training_utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/training_utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1564">
+              <caret line="100" column="32" lean-forward="false" selection-start-line="100" selection-start-column="4" selection-end-line="100" selection-end-column="32" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="evaluate_net.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/evaluate_net.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="239">
+              <caret line="1044" column="6" lean-forward="false" selection-start-line="1044" selection-start-column="6" selection-end-line="1044" selection-end-column="6" />
+              <folding>
+                <element signature="e#164#173#0" expanded="true" />
+                <element signature="e#1051#6472#0" expanded="false" />
+                <element signature="e#6684#16413#0" expanded="false" />
+                <element signature="e#16478#19064#0" expanded="false" />
+                <element signature="e#47090#57601#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="dataframe_creator.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/dataframe_creator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="400">
+              <caret line="1373" column="6" lean-forward="false" selection-start-line="1373" selection-start-column="6" selection-end-line="1373" selection-end-column="6" />
+              <folding>
+                <element signature="e#230#239#0" expanded="true" />
+                <element signature="e#520#4049#1" expanded="false" />
+                <element signature="e#4188#10255#0" expanded="false" />
+                <element signature="e#10275#12221#0" expanded="false" />
+                <element signature="e#12238#12715#0" expanded="false" />
+                <element signature="e#36032#46773#0" expanded="false" />
+                <element signature="e#46826#47458#0" expanded="false" />
+                <element signature="e#47507#48124#0" expanded="false" />
+                <element signature="e#48192#48980#0" expanded="false" />
+                <element signature="e#49031#50483#0" expanded="false" />
+                <element signature="e#50517#53970#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -84,24 +133,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>prop</find>
-      <find>prop_ends</find>
-      <find>start_of</find>
-      <find>sparse</find>
-      <find>inv</find>
-      <find>contex</find>
-      <find>source_to_target</find>
-      <find>relation1to2</find>
-      <find>pick</find>
-      <find>AAEC</find>
-      <find>keras.backend</find>
-      <find>'text</find>
-      <find>head</find>
-      <find>two</find>
-      <find>link_c</find>
-      <find>total</find>
-      <find>lower</find>
-      <find>headl</find>
       <find>two_r</find>
       <find>perfo</find>
       <find>headlin</find>
@@ -114,6 +145,24 @@
       <find>os.r</find>
       <find>distance_tra</find>
       <find>batc</find>
+      <find>ensem</find>
+      <find>ensemble</find>
+      <find>ensemb</find>
+      <find>ens</find>
+      <find>c</find>
+      <find>ense</find>
+      <find>ensemble is not None</find>
+      <find>training</find>
+      <find>launchin</find>
+      <find>model</find>
+      <find>model_name</find>
+      <find>rel_</find>
+      <find>outpu</find>
+      <find>os.jo</find>
+      <find>i</find>
+      <find>paragr</find>
+      <find>create_lr_annealing_function</find>
+      <find>add_</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -130,18 +179,18 @@
         <option value="$PROJECT_DIR$/data_process.py" />
         <option value="$PROJECT_DIR$/Datasets/training.py" />
         <option value="$PROJECT_DIR$/IBMCE_dataframe_creator.py" />
-        <option value="$PROJECT_DIR$/training_utils.py" />
         <option value="$PROJECT_DIR$/orphans_manager.py" />
         <option value="$PROJECT_DIR$/networks.py" />
-        <option value="$PROJECT_DIR$/evaluate_net.py" />
-        <option value="$PROJECT_DIR$/dataframe_creator.py" />
         <option value="$PROJECT_DIR$/embedder.py" />
         <option value="$PROJECT_DIR$/glove_loader.py" />
         <option value="$PROJECT_DIR$/publications/datset_info.py" />
         <option value="$PROJECT_DIR$/datset_info.py" />
         <option value="$PROJECT_DIR$/dataset_info.py" />
+        <option value="$PROJECT_DIR$/dataframe_creator.py" />
+        <option value="$PROJECT_DIR$/training_utils.py" />
         <option value="$PROJECT_DIR$/dataset_config.py" />
         <option value="$PROJECT_DIR$/training.py" />
+        <option value="$PROJECT_DIR$/evaluate_net.py" />
       </list>
     </option>
   </component>
@@ -195,6 +244,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -211,7 +261,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -253,7 +302,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.glove_loader">
+  <component name="RunManager" selected="Python.dataframe_creator">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -377,10 +426,10 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.glove_loader" />
-        <item index="1" class="java.lang.String" itemvalue="Python.networks" />
-        <item index="2" class="java.lang.String" itemvalue="Python.training" />
-        <item index="3" class="java.lang.String" itemvalue="Python.dataframe_creator" />
+        <item index="0" class="java.lang.String" itemvalue="Python.dataframe_creator" />
+        <item index="1" class="java.lang.String" itemvalue="Python.glove_loader" />
+        <item index="2" class="java.lang.String" itemvalue="Python.networks" />
+        <item index="3" class="java.lang.String" itemvalue="Python.training" />
         <item index="4" class="java.lang.String" itemvalue="Python.evaluate_net" />
       </list>
     </recent_temporary>
@@ -623,10 +672,17 @@
       <option name="project" value="LOCAL" />
       <updated>1557946088236</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="separate dataset configuration, network cleaning">
+      <created>1559004481739</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1559004481739</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
-  <component name="TodoView">
+  <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
       <is-autoscroll-to-source value="true" />
     </todo-panel>
@@ -638,27 +694,27 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16632996" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40978262" sideWeight="0.50852877" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13113007" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="675" height="1562" />
+      <window_info id="TODO" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16630435" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36491936" sideWeight="0.51047903" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.09381663" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="675" height="1562" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32717392" sideWeight="0.49375" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297491" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40978262" sideWeight="0.4914712" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20564516" sideWeight="0.48952097" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297491" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16471216" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17110874" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32616487" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="SciView" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.26486486" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27783784" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32019114" sideWeight="0.49479166" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5252016" sideWeight="0.49479166" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="SVN Repositories" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32977387" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32616487" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Concurrent Activities Diagram" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32735962" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
     </layout>
@@ -680,8 +736,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Training module written (part2)" />
-    <MESSAGE value="Training improved" />
     <MESSAGE value="UKP dataset configuration" />
     <MESSAGE value="Rework of everything!&#10;F1 distances fixed.&#10;New networks.&#10;New features in input." />
     <MESSAGE value="New model evaluation" />
@@ -705,14 +759,16 @@
     <MESSAGE value="RCT pre-processing completely supported. Training and evaluation updated" />
     <MESSAGE value="fixed code for training, networks. Evaluation still to test." />
     <MESSAGE value="fixed code for evaluation" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed code for evaluation" />
+    <MESSAGE value="separate dataset configuration, network cleaning" />
+    <MESSAGE value="working on Dr. Inventor" />
+    <option name="LAST_COMMIT_MESSAGE" value="working on Dr. Inventor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dataframe_creator.py</url>
-          <line>1461</line>
+          <line>1485</line>
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -748,7 +804,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="321" />
+      <option name="time" value="335" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -800,13 +856,6 @@
       </provider>
     </entry>
     <entry file="file://C:/ProgramData/Anaconda3/envs/tensorflow_env/Lib/site-packages/tensorflow/python/framework/op_def_library.py" />
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="1071" column="0" lean-forward="false" selection-start-line="1071" selection-start-column="0" selection-end-line="1071" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/ProgramData/Anaconda3/envs/tensorflow_env/Lib/site-packages/keras/preprocessing/sequence.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-225">
@@ -960,16 +1009,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/network_models/paper/argmining5/argmining5_training.log" />
-    <entry file="file://$PROJECT_DIR$/training_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="73" lean-forward="false" selection-start-line="7" selection-start-column="73" selection-end-line="7" selection-end-column="73" />
-          <folding>
-            <element signature="e#248#257#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/ProgramData/Anaconda3/envs/tensorflow_env/Lib/site-packages/numpy/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -996,13 +1035,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/evaluate_net.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9146">
-          <caret line="996" column="4" lean-forward="false" selection-start-line="996" selection-start-column="4" selection-end-line="996" selection-end-column="4" />
         </state>
       </provider>
     </entry>
@@ -1037,23 +1069,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dataframe_creator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="50">
-          <caret line="1426" column="31" lean-forward="true" selection-start-line="1426" selection-start-column="31" selection-end-line="1426" selection-end-column="31" />
-          <folding>
-            <element signature="e#230#239#0" expanded="true" />
-            <element signature="e#379#518#0" expanded="false" />
-            <element signature="e#520#4049#1" expanded="false" />
-            <element signature="e#4188#10256#0" expanded="false" />
-            <element signature="e#10276#12222#0" expanded="false" />
-            <element signature="e#12239#12716#0" expanded="false" />
-            <element signature="e#12844#22964#0" expanded="false" />
-            <element signature="e#23083#34192#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharm2017.3/system/python_stubs/-1896036335/builtins.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="322">
@@ -1061,17 +1076,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dataset_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="37" column="83" lean-forward="false" selection-start-line="37" selection-start-column="83" selection-end-line="37" selection-end-column="83" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/glove_loader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-196">
+        <state relative-caret-position="3655">
           <caret line="224" column="4" lean-forward="false" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="4" />
           <folding>
             <element signature="e#165#178#0" expanded="true" />
@@ -1080,14 +1087,72 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="838">
+          <caret line="1667" column="0" lean-forward="false" selection-start-line="1667" selection-start-column="0" selection-end-line="1667" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="18" column="63" lean-forward="false" selection-start-line="18" selection-start-column="63" selection-end-line="18" selection-end-column="63" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/training.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="898" column="30" lean-forward="false" selection-start-line="898" selection-start-column="20" selection-end-line="898" selection-end-column="30" />
+        <state relative-caret-position="443">
+          <caret line="1314" column="20" lean-forward="false" selection-start-line="1314" selection-start-column="20" selection-end-line="1314" selection-end-column="20" />
           <folding>
             <element signature="e#164#173#0" expanded="true" />
             <element signature="e#20074#21576#0" expanded="false" />
-            <element signature="e#32991#34713#0" expanded="false" />
+            <element signature="e#33165#34887#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/training_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1564">
+          <caret line="100" column="32" lean-forward="false" selection-start-line="100" selection-start-column="4" selection-end-line="100" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataframe_creator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="400">
+          <caret line="1373" column="6" lean-forward="false" selection-start-line="1373" selection-start-column="6" selection-end-line="1373" selection-end-column="6" />
+          <folding>
+            <element signature="e#230#239#0" expanded="true" />
+            <element signature="e#520#4049#1" expanded="false" />
+            <element signature="e#4188#10255#0" expanded="false" />
+            <element signature="e#10275#12221#0" expanded="false" />
+            <element signature="e#12238#12715#0" expanded="false" />
+            <element signature="e#36032#46773#0" expanded="false" />
+            <element signature="e#46826#47458#0" expanded="false" />
+            <element signature="e#47507#48124#0" expanded="false" />
+            <element signature="e#48192#48980#0" expanded="false" />
+            <element signature="e#49031#50483#0" expanded="false" />
+            <element signature="e#50517#53970#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/evaluate_net.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="1044" column="6" lean-forward="false" selection-start-line="1044" selection-start-column="6" selection-end-line="1044" selection-end-column="6" />
+          <folding>
+            <element signature="e#164#173#0" expanded="true" />
+            <element signature="e#1051#6472#0" expanded="false" />
+            <element signature="e#6684#16413#0" expanded="false" />
+            <element signature="e#16478#19064#0" expanded="false" />
+            <element signature="e#47090#57601#0" expanded="false" />
           </folding>
         </state>
       </provider>

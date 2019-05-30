@@ -122,7 +122,7 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
     val_prop_counter = {}
     val_rel_counter = {}
 
-    for i in range (2000):
+    for i in range(2000):
         file_name = "%05d" % (i)
         text_file_path = os.path.join(data_path, file_name + ".txt")
         if os.path.exists(text_file_path):
@@ -572,286 +572,309 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
 
 
 
+# TODO: take into account only links in the same section
+def create_inv_pickle(dataset_path, dataset_version, documents_path,
+                      asymmetric_link_types, symmetric_link_types, test=0.3, validation=0.14, maxdistance=50,
+                      reflexive=False):
+    """
+    Creates a pickle for the DrInventor Corpus. Only links in the same section are taken into account.
+    :param dataset_path: the working directory for the RCT dataset
+    :param dataset_version: the name of the specific sub-dataset in exam
+    :param documents_path: the path of the .ann and .txt file repository (regardless of the version)
+    :param asymmetric_link_types: list of links that are asymmetric. For these, the "inv_..." non-links will be created
+    :param symmetric_link_types: list of links that are symmetric. For these, 2 links rows will be created
+    :param maxdistance: number of maximum argumentative distance to be taken into account for links. A negative value
+                        means no limits
+    :param reflexive: whether reflexive links should be added
+    :return: None
+    """
+    for key in sorted(locals().keys()):
+        print(str(key) + ":\t" + str(locals()[key]))
 
-def create_inv_pickle(dataset_path, dataset_version, link_types, test=0.3, validation=0.14, reflexive=False):
-    data_path = os.path.join(dataset_path, "original_data")
+    assert (validation >= 0 and validation <= 1)
+    assert (test >= 0 and test <= 1)
 
-    normal_list = []
-    validation_list = []
-    test_list = []
+    link_types = []
+    link_types.extend(asymmetric_link_types)
+    link_types.extend(symmetric_link_types)
 
-    idlist = range(41)
-
-    prop_counter = {}
-    rel_counter = {}
-    val_prop_counter = {}
-    val_rel_counter = {}
-    test_prop_counter = {}
-    test_rel_counter = {}
+    row_list = {"train":[], "test":[], "validation":[]}
+    rel_count = {"train":{}, "test":{}, "validation":{}}
+    prop_count = {"train":{}, "test":{}, "validation":{}}
+    link_count = {"train":0, "test":0, "validation":0}
 
 
-    for i in idlist:
-        file_name = "A" + "%02d" % (i)
-        print("Processing document " + file_name)
-        text_file_path = os.path.join(data_path, file_name + ".ann")
-        if os.path.exists(text_file_path):
+    documents_paths_list = []
+    documents_names_list = os.listdir(documents_path)
+    for document_name in documents_names_list:
+        documents_paths_list.append(os.path.join(documents_path, document_name))
+    del documents_names_list
+    print(str(len(documents_paths_list)) + " documents found for " + documents_path)
 
-            split = "train"
 
+    for document_path in documents_paths_list:
+
+        document_name = os.path.basename(document_path)
+        if ".ann" not in document_name:
+            continue
+        doc_ID = int(document_name.split(".")[0][1:])
+
+        raw_text_name = document_name.split(".")[0] + ".txt"
+        raw_text_document = os.path.join(documents_path, raw_text_name)
+
+        split = "train"
+        if validation > 0 or test > 0:
             p = random.random()
+            if p < validation:
+                split = 'validation'
+            elif validation < p < test + validation:
+                split = "test"
 
-            if validation > 0 and validation < 1 and p < validation:
-                    split = 'validation'
-            elif test > 0 and test < 1 and p < test+validation:
-                    split = 'test'
+        labels_file = open(document_path, 'r', encoding="utf-8")
+        text_file = open(raw_text_document, 'r', encoding="utf-8")
 
-            labels_file = open(os.path.join(data_path, file_name + ".ann"), 'r')
-            raw_file = open(os.path.join(data_path, file_name + ".txt"), 'r')
+        raw_text = text_file.read()
+        text_file.close()
 
-            labels_line = []
+        labels_line = []
 
-            raw_text = raw_file.read()
-            for splits in labels_file.read().split('\n'):
-                labels_line.append(splits)
+        for splits in labels_file.read().split('\n'):
+            labels_line.append(splits)
 
-            labels_file.close()
-            raw_file.close()
+        labels_file.close()
 
-            data = {'prop_labels': {},
-                    'prop_offsets': {},
-                    'start_offsets': {},
-                    'T_ids': [],
-                    'propositions': {}}
+        # elaborate the offsets of the paragraphs
+        paragraphs_offsets = []
+        start = raw_text.index("<H1>", 0)
+        while start < len(raw_text):
+            try:
+                end = raw_text.index("<H1>", start)
+            except ValueError:
+                end = len(raw_text)
+            if end != start:
+                paragraphs_offsets.append([start, end])
+            start = end + 1
 
-            for link_type in link_types:
-                data[link_type] = []
+        data = {'prop_labels': {},
+                'prop_offsets': {},
+                'T_ids': [],
+                'propositions': {},
+                'start_offsets': {}
+                }
 
-            for line in labels_line:
-                splits = line.split(maxsplit=4)
-                if len(splits) <= 0:
-                    continue
-                if splits[0][0] == 'T':
-                    T_id = int(splits[0][1:])-1
-                    data['T_ids'].append(T_id)
-                    data['prop_labels'][T_id] = splits[1]
-                    data['prop_offsets'][T_id] = [int(splits[2]), int(splits[3])]
-                    data['start_offsets'][int(splits[2])] = T_id
-                    data['propositions'][T_id] = splits[4].split('\n')
-                elif splits[0][0] == 'R':
-                    source = int(splits[2][6:]) - 1
-                    target = int(splits[3][6:]) - 1
-                    data[splits[1]].append([source, target])
+        for link_type in link_types:
+            data[link_type] = []
 
-            # merge the "parts_of_same"?
-            for link in data['parts_of_same']:
+        paragraphs = split_propositions(raw_text, paragraphs_offsets)
 
-                next_part_ID = link[0]
-                prev_part_ID = link[1]
-                # add proposition content to previous part
-                data['propositions'][prev_part_ID] = data['prop_propositions'][prev_part_ID] + " " +\
-                                                     data['prop_propositions'][next_part_ID]
+        for line in labels_line:
+            splits = line.split(maxsplit=4)
+            if len(splits) <= 0:
+                continue
+            # if it is a component label
+            if splits[0][0] == 'T':
+                T_id = int(splits[0][1:]) - 1
+                data['T_ids'].append(T_id)
+                data['prop_labels'][T_id] = splits[1]
+                data['prop_offsets'][T_id] = [int(splits[2]), int(splits[3])]
+                # each starting offset is linked to a proposition ID
+                data['start_offsets'][int(splits[2])] = T_id
+                data['propositions'][T_id] = splits[4].split('\n')[0]
+            # if it is a relation label
+            elif splits[0][0] == 'R':
+                source = int(splits[2][6:]) - 1
+                target = int(splits[3][6:]) - 1
 
+                relation = splits[1].lower()
+                if relation in data.keys():
+                    data[relation].append([source, target])
 
+        # in case annotations are not made following the temporal order
+        # new order given by the starting offsets
+        new_order = {}
+        new_id = 0
+        # find the match between the starting offsets and set the new id
+        # for each initial offset, from lowest to highest
+        for offset in sorted(data['start_offsets'].keys()):
+            # find the corresponding ID
+            old_id = data['start_offsets'][offset]
+            # give it the lowest ID
+            new_order[old_id] = new_id
+            # increase the lowest ID to assign
+            new_id += 1
 
+        # adjust data to the new order
+        new_data = {'prop_labels': [-1] * len(data['prop_labels']),
+                    'prop_offsets': [-1] * len(data['prop_labels']),
+                    'propositions': [-1] * len(data['prop_labels']), }
 
-            # new order given by the start offsets
-            new_order = {}
-            new_id = 0
-            # find the match between the starting offsets and set the new id
-            for new_off in sorted(data['start_offsets'].keys()):
-                for old_id in data['T_ids']:
-                    old_off = data['prop_offsets'][old_id][0]
-                    if new_off == old_off:
-                        new_order[old_id] = new_id
-                        new_id += 1
-                        break
+        for link_type in link_types:
+            new_data[link_type] = []
 
-            new_data = {'prop_labels': [-1]*len(data['prop_labels']),
-                        'prop_offsets': [-1]*len(data['prop_labels']),
-                        'propositions': [-1]*len(data['prop_labels']),}
+        for link_type in link_types:
+            for link in data[link_type]:
+                old_source = link[0]
+                old_target = link[1]
+                new_source = new_order[old_source]
+                new_target = new_order[old_target]
+                new_data[link_type].append([new_source, new_target])
 
-            for link_type in link_types:
-                new_data[link_type] = []
+        for old_id in data['T_ids']:
+            new_id = new_order[old_id]
+            new_data['prop_labels'][new_id] = data['prop_labels'][old_id]
+            new_data['prop_offsets'][new_id] = data['prop_offsets'][old_id]
+            new_data['propositions'][new_id] = data['propositions'][old_id]
 
-            for link_type in link_types:
-                for link in data[link_type]:
-                    old_source = link[0]
-                    old_target = link[1]
-                    new_source = new_order[old_source]
-                    new_target = new_order[old_target]
-                    new_data[link_type].append([new_source, new_target])
+        data = new_data
 
-            for old_id in data['T_ids']:
-                new_id = new_order[old_id]
-                new_data['prop_labels'][new_id] = data['prop_labels'][old_id]
-                new_data['prop_offsets'][new_id] = data['prop_offsets'][old_id]
-                new_data['propositions'][new_id] = data['propositions'][old_id]
+        # CREATE THE PROPER DATAFRAME
 
-            data = new_data
+        propositions = data['propositions']
 
-            propositions = data['propositions']
+        num_propositions = len(propositions)
 
-            num_propositions = len(propositions)
+        assert (num_propositions >= 1)
 
-            assert (num_propositions >= 1)
+        for sourceID in range(num_propositions):
 
-            for sourceID in range(num_propositions):
+            source_start = data['prop_offsets'][sourceID][0]
+            p_offsets = (-1, -1)
+            par = -1
+            # find the paragraph
+            for paragraph in range(len(paragraphs)):
+                p_start = paragraphs_offsets[paragraph][0]
+                p_end = paragraphs_offsets[paragraph][1]
+                if p_end >= source_start >= p_start:
+                    p_offsets = (p_start, p_end)
+                    par = paragraph
 
-                source_start = data['prop_offsets'][sourceID][0]
+            source_start = data['prop_offsets'][sourceID][0]
+            type1 = data['prop_labels'][sourceID]
 
-                type1 = data['prop_labels'][sourceID]
+            for targetID in range(num_propositions):
+                # proposition type
+                type2 = data['prop_labels'][targetID]
 
-                for targetID in range(num_propositions):
-                    # proposition type
-                    type2 = data['prop_labels'][targetID]
+                target_start = data['prop_offsets'][targetID][0]
 
-                    target_start = data['prop_offsets'][targetID][0]
-
-                    if sourceID == targetID and not reflexive:
-                        continue
-
-
-                    relation_type = None
-                    relation1to2 = False
-
-                    # relation type
+                # relations in different paragraphs are not allowed, but we want to log them
+                if target_start < p_offsets[0] or target_start > p_offsets[1]:
                     for link_type in link_types:
-                        links = data[link_type]
-
-                        for link in links:
-                            # DEBUG
-                            # if not link[0][0] == link[0][1]:
-                            # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
-
+                        for link in data[link_type]:
                             if link[0] == sourceID and link[1] == targetID:
-                                if relation_type is not None and not relation_type == link_type:
-                                    raise Exception('MORE RELATION FOR THE SAME PROPOSITIONS: document ' + file_name)
+
+                                # find the target paragraph
+                                par_t = -1
+                                # find the paragraph
+                                for paragraph in range(len(paragraphs)):
+                                    p_t_start = paragraphs_offsets[paragraph][0]
+                                    p_t_end = paragraphs_offsets[paragraph][1]
+                                    if p_t_end >= target_start >= p_t_start:
+                                        par_t = paragraph
+
+                                source_prop = propositions[sourceID]
+                                target_prop = propositions[targetID]
                                 relation_type = link_type
-                                if link_type == 'supports' or link_type == 'contradicts':
-                                    relation_type = link_type
-                                    relation1to2 = True
-                                # link non argomentativo
-                                elif link_type == 'semantically_same' or link_type == 'parts_of_same':
-                                    relation_type = 'inv_' + link_type
-                                    relation1to2 = False
+                                print("LINK OUTSIDE OF PARAGRAPHS!!!!")
+                                print("source_proposition: " + propositions[sourceID])
+                                print("source_ID: " + str(doc_ID) + "_" + str(par) + "_" + str(sourceID))
+                                print("target_proposition: " + propositions[targetID])
+                                print("target_ID: " + str(doc_ID) + "_" + str(par_t) + "_" + str(targetID))
+                                print("relation: " + str(relation_type))
 
-                            elif link[0] == targetID and link[1] == sourceID:
+                    continue
+
+                # skip reflexive relations if they are present
+                if sourceID == targetID and not reflexive:
+                    continue
+
+                # if the two propositions are too distance, they are dropped
+                if abs(sourceID-targetID) > maxdistance > 0:
+                    continue
+
+                relation_type = None
+                relation1to2 = False
+
+                # relation type
+                for link_type in link_types:
+                    links = data[link_type]
+
+                    for link in links:
+                        # DEBUG
+                        # if not link[0][0] == link[0][1]:
+                        # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
+
+                        if link[0] == sourceID and link[1] == targetID:
+                            if relation_type is not None and not relation_type == link_type:
+                                raise Exception('MORE DIFFERENT RELATIONS FOR THE SAME COUPLE OF PROPOSITIONS:'
+                                                + documents_path)
+                            relation_type = link_type
+                            relation1to2 = True
+
+                        # create the symmetric or the asymmetric (inverse) relation
+                        elif link[0] == targetID and link[1] == sourceID:
+                            if link_type in asymmetric_link_types:
                                 relation_type = "inv_" + link_type
+                            elif link_type in symmetric_link_types:
+                                relation_type = link_type
+                                relation1to2 = True
 
-                    dataframe_row = {'text_ID': str(i),
-                                     'rawtext': raw_text,
-                                     'source_proposition': propositions[sourceID],
-                                     'source_ID': str(i) + "_" + str(sourceID),
-                                     'target_proposition': propositions[targetID],
-                                     'target_ID': str(i) + "_" + str(targetID),
-                                     'source_type': type1,
-                                     'target_type': type2,
-                                     'relation_type': relation_type,
-                                     'source_to_target': relation1to2,
-                                     'set': split
-                                     }
+                dataframe_row = {'text_ID': str(doc_ID) + "_" + str(par),
+                                 'rawtext': "", #paragraphs[par],
+                                 'source_proposition': propositions[sourceID],
+                                 'source_ID': str(doc_ID) + "_" + str(par) + "_" + str(sourceID),
+                                 'target_proposition': propositions[targetID],
+                                 'target_ID': str(doc_ID) + "_" + str(par) + "_" + str(targetID),
+                                 'source_type': type1,
+                                 'target_type': type2,
+                                 'relation_type': relation_type,
+                                 'source_to_target': relation1to2,
+                                 'set': split
+                                 }
 
-                    if split == 'validation':
-                        validation_list.append(dataframe_row)
-                        if relation_type not in val_rel_counter.keys():
-                            val_rel_counter[relation_type] = 0
-                        val_rel_counter[relation_type] += 1
-                    elif split == "test":
-                        test_list.append(dataframe_row)
-                        if relation_type not in test_rel_counter.keys():
-                            test_rel_counter[relation_type] = 0
-                        test_rel_counter[relation_type] += 1
-                    else:
-                        normal_list.append(dataframe_row)
-                        if relation_type not in rel_counter.keys():
-                            rel_counter[relation_type] = 0
-                        rel_counter[relation_type] += 1
+                row_list[split].append(dataframe_row)
 
-                if split == 'validation':
-                    if type1 not in val_prop_counter.keys():
-                        val_prop_counter[type1] = 0
-                    val_prop_counter[type1] += 1
-                elif split == "test":
-                    if type1 not in test_prop_counter.keys():
-                        test_prop_counter[type1] = 0
-                    test_prop_counter[type1] += 1
-                else:
-                    if type1 not in prop_counter.keys():
-                        prop_counter[type1] = 0
-                    prop_counter[type1] += 1
+                if relation_type not in rel_count[split].keys():
+                    rel_count[split][relation_type] = 0
+                rel_count[split][relation_type] += 1
 
-    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
-    if not os.path.exists(pickles_path):
-        os.makedirs(pickles_path)
+                if relation1to2 == True:
+                    link_count[split] += 1
 
-    if len(normal_list) > 0:
-        dataframe = pandas.DataFrame(normal_list)
+            if type1 not in prop_count[split].keys():
+                prop_count[split][type1] = 0
+            prop_count[split][type1] += 1
 
-        dataframe = dataframe[['text_ID',
-                               'rawtext',
-                               'source_proposition',
-                               'source_ID',
-                               'target_proposition',
-                               'target_ID',
-                               'source_type',
-                               'target_type',
-                               'relation_type',
-                               'source_to_target',
-                               'set']]
+    for split in ["test", "train", "validation"]:
 
-        dataframe_path = os.path.join(pickles_path, 'train' + ".pkl")
+        pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+        if not os.path.exists(pickles_path):
+            os.makedirs(pickles_path)
 
-        dataframe.to_pickle(dataframe_path)
+        if len(row_list[split]) > 0:
+            dataframe = pandas.DataFrame(row_list[split])
 
-    if len(validation_list) > 0:
-        dataframe = pandas.DataFrame(validation_list)
+            dataframe = dataframe[['text_ID',
+                                   'source_proposition',
+                                   'source_ID',
+                                   'target_proposition',
+                                   'target_ID',
+                                   'source_type',
+                                   'target_type',
+                                   'relation_type',
+                                   'source_to_target',
+                                   'set']]
 
-        dataframe = dataframe[['text_ID',
-                               'rawtext',
-                               'source_proposition',
-                               'source_ID',
-                               'target_proposition',
-                               'target_ID',
-                               'source_type',
-                               'target_type',
-                               'relation_type',
-                               'source_to_target',
-                               'set']]
+            dataframe_path = os.path.join(pickles_path, split + ".pkl")
 
-        dataframe_path = os.path.join(pickles_path, 'validation' + ".pkl")
-        dataframe.to_pickle(dataframe_path)
+            dataframe.to_pickle(dataframe_path)
 
-    if len(test_list) > 0:
-        dataframe = pandas.DataFrame(test_list)
-
-        dataframe = dataframe[['text_ID',
-                               'rawtext',
-                               'source_proposition',
-                               'source_ID',
-                               'target_proposition',
-                               'target_ID',
-                               'source_type',
-                               'target_type',
-                               'relation_type',
-                               'source_to_target',
-                               'set']]
-
-        dataframe_path = os.path.join(pickles_path, 'test' + ".pkl")
-        dataframe.to_pickle(dataframe_path)
-
-    print("_______________")
-    print("TRAIN")
-    print(prop_counter)
-    print(rel_counter)
-    print("_______________")
-    print("VALIDATION")
-    print(val_prop_counter)
-    print(val_rel_counter)
-    print("_______________")
-    print("TEST")
-    print(test_prop_counter)
-    print(test_rel_counter)
-    print("_______________")
+            print("_______________")
+            print(split)
+            print(prop_count[split])
+            print(rel_count[split])
+            print("links: " + str(link_count[split]))
+            print("_______________")
 
 
 
@@ -1330,6 +1353,86 @@ def routine_RCT_corpus():
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
         print_distance_analysis(pickles_path)
 
+# TODO: test this
+def routine_DrInventor_corpus():
+    # DR INVENTOR CORPUS
+    a_link_types = ['supports', 'contradicts']
+    s_link_types = []
+    # s_link_types = ['semantically_same', 'parts_of_same']
+    dataset_name = 'DrInventor'
+    maxdistance = 40
+    dataset_version = 'arg' + str(maxdistance)
+    splits = ['total', 'train', 'test', 'validation']
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    document_path = os.path.join(os.getcwd(), 'Datasets', dataset_name, "original_data")
+
+    print("-------------------------------------------------------------")
+    print("DATASETS CREATION")
+    print("-------------------------------------------------------------")
+
+    # TODO: modify create_inv_pickle for asymmetric and symmetric links
+    create_inv_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types,
+                      maxdistance=maxdistance, reflexive=False)
+    print('____________________________________________________________________________________________')
+    pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+    sys.stdout.flush()
+
+    create_total_dataframe(pickles_path)
+    print('____________________________________________________________________________________________')
+
+
+    print("-------------------------------------------------------------")
+    print("DATASETS DETAILS")
+    print("-------------------------------------------------------------")
+
+    pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+    print("DATASET VERSION: " + "all")
+    print()
+
+    for split in splits:
+        print('_______________________')
+        print(split)
+        dataframe_path = os.path.join(pickles_path, split + '.pkl')
+        if os.path.exists(dataframe_path):
+            print_dataframe_details(dataframe_path)
+            print('_______________________')
+            sys.stdout.flush()
+
+
+    print('_______________________')
+    print('_______________________')
+    print('_____________________________________________________________________')
+
+    pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+    print("DATASET VERSION: " + dataset_version)
+    print()
+
+    for split in splits:
+        print('_______________________')
+        print(split)
+        dataframe_path = os.path.join(pickles_path, split + '.pkl')
+        if os.path.exists(dataframe_path):
+            print_dataframe_details(dataframe_path)
+            print('_______________________')
+            sys.stdout.flush()
+
+    print('_______________________')
+    print('_______________________')
+    print('_____________________________________________________________________')
+
+    print("-------------------------------------------------------------")
+    print("DISTANCE ANALYSIS")
+    print("-------------------------------------------------------------")
+
+    pickles_path = os.path.join(dataset_path, "pickles")
+    print_distance_analysis(pickles_path)
+
+    # distance analysis
+    pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
+    print_distance_analysis(pickles_path)
+    highest = 0
+    lowest = 0
 
 
 
@@ -1349,89 +1452,10 @@ if __name__ == '__main__':
     # i = 2
 
     # RCT CORPUS
-    routine_RCT_corpus()
+    # routine_RCT_corpus()
 
-
-
-
-    """
-    # DR INVENTOR CORPUS
-    link_types = ['supports', 'contradicts', 'semantically_same', 'parts_of_same']
-    dataset_name = 'DrInventor'
-    dataset_version = 'new_0'
-    i = 1
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-
-    create_inv_pickle(dataset_path, dataset_version, link_types, test=0.3, validation=0.14, reflexive=False)
-
-    pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
-
-    create_total_dataframe(pickles_path)
-
-
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-
-    for split in ['total', 'train', 'test', 'validation']:
-        print('_______________________')
-        print(split)
-        dataframe_path = os.path.join(pickles_path, split + '.pkl')
-        print_dataframe_details(dataframe_path)
-        print('_______________________')
-        sys.stdout.flush()
-
-    print('_______________________')
-    print('_______________________')
-    print('_______________________')
-
-    highest = 0
-    lowest = 0
-
-    # distance analysis
-    for split in ['total', 'train', 'test', 'validation']:
-        print(split)
-        dataframe_path = os.path.join(pickles_path, split + '.pkl')
-        df = pandas.read_pickle(dataframe_path)
-
-        diff_l = {}
-        diff_nl = {}
-
-        for index, row in df.iterrows():
-            s_index = int(row['source_ID'].split('_')[i])
-            t_index = int(row['target_ID'].split('_')[i])
-
-            difference = (s_index-t_index)
-
-            if highest<difference:
-                highest = difference
-            if lowest>difference:
-                lowest=difference
-
-            if row['source_to_target']:
-                voc = diff_l
-            else:
-                voc = diff_nl
-
-            if difference in voc.keys():
-                voc[difference] += 1
-            else:
-                voc[difference] = 1
-
-        print()
-        print()
-        print(split)
-        print("distance\tnot links\tlinks")
-        for key in range(lowest, highest+1):
-            if key not in diff_nl.keys():
-                diff_nl[key] = 0
-            if key not in diff_l.keys():
-                diff_l[key] = 0
-
-            print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
-
-
-        sys.stdout.flush()
-    """
-
+    # Dr.Inventor CORPUS
+    routine_DrInventor_corpus()
 
     """
 
