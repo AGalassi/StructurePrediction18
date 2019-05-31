@@ -574,7 +574,8 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
 
 # TODO: take into account only links in the same section
 def create_inv_pickle(dataset_path, dataset_version, documents_path,
-                      asymmetric_link_types, symmetric_link_types, test=0.3, validation=0.14, maxdistance=50,
+                      asymmetric_link_types, symmetric_link_types, s_non_link_types,
+                      test=0.3, validation=0.14, maxdistance=50,
                       reflexive=False):
     """
     Creates a pickle for the DrInventor Corpus. Only links in the same section are taken into account.
@@ -583,6 +584,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
     :param documents_path: the path of the .ann and .txt file repository (regardless of the version)
     :param asymmetric_link_types: list of links that are asymmetric. For these, the "inv_..." non-links will be created
     :param symmetric_link_types: list of links that are symmetric. For these, 2 links rows will be created
+    :param s_non_link_types: list of the symmetric relations that are not links. They will be treated as "non-links"
     :param maxdistance: number of maximum argumentative distance to be taken into account for links. A negative value
                         means no limits
     :param reflexive: whether reflexive links should be added
@@ -594,9 +596,10 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
     assert (validation >= 0 and validation <= 1)
     assert (test >= 0 and test <= 1)
 
-    link_types = []
-    link_types.extend(asymmetric_link_types)
-    link_types.extend(symmetric_link_types)
+    relation_types = []
+    relation_types.extend(asymmetric_link_types)
+    relation_types.extend(symmetric_link_types)
+    relation_types.extend(s_non_link_types)
 
     row_list = {"train":[], "test":[], "validation":[]}
     rel_count = {"train":{}, "test":{}, "validation":{}}
@@ -619,7 +622,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
             continue
         doc_ID = int(document_name.split(".")[0][1:])
 
-        raw_text_name = document_name.split(".")[0] + ".txt"
+        raw_text_name = str(document_name.split(".")[0]) + ".txt"
         raw_text_document = os.path.join(documents_path, raw_text_name)
 
         split = "train"
@@ -662,8 +665,8 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                 'start_offsets': {}
                 }
 
-        for link_type in link_types:
-            data[link_type] = []
+        for relation_type in relation_types:
+            data[relation_type] = []
 
         paragraphs = split_propositions(raw_text, paragraphs_offsets)
 
@@ -708,16 +711,16 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                     'prop_offsets': [-1] * len(data['prop_labels']),
                     'propositions': [-1] * len(data['prop_labels']), }
 
-        for link_type in link_types:
-            new_data[link_type] = []
+        for relation_type in relation_types:
+            new_data[relation_type] = []
 
-        for link_type in link_types:
-            for link in data[link_type]:
+        for relation_type in relation_types:
+            for link in data[relation_type]:
                 old_source = link[0]
                 old_target = link[1]
                 new_source = new_order[old_source]
                 new_target = new_order[old_target]
-                new_data[link_type].append([new_source, new_target])
+                new_data[relation_type].append([new_source, new_target])
 
         for old_id in data['T_ids']:
             new_id = new_order[old_id]
@@ -726,6 +729,87 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
             new_data['propositions'][new_id] = data['propositions'][old_id]
 
         data = new_data
+
+        # TRANSITIVITY DUE OF PARTS_OF_SAME
+        # create the chain of parts of same
+        # links stored from last ID to first ID
+        parts_of_same = {}
+        for [source, target] in data["parts_of_same"]:
+            min = target
+            max = source
+            if source < target:
+                min = source
+                max = target
+
+            while max in parts_of_same.keys():
+                # found a previous relationship
+                middle = parts_of_same[max]
+                # continue down the chain to find the place of min
+                if min < middle:
+                    max = middle
+                # min belongs between max and middle
+                else:
+                    parts_of_same[max] = min
+                    max = min
+                    min = middle
+            parts_of_same[max] = min
+            # print(str(source) + " <-> " + str(target))
+        # DEBUG
+        # print(parts_of_same)
+
+        # all the linked parts indicate the same id
+        new_parts_of_same = {}
+        for idmax in sorted(parts_of_same.keys()):
+            idmin = parts_of_same[idmax]
+            if idmin in parts_of_same.keys():
+                idmin = parts_of_same[idmin]
+                parts_of_same[idmax] = idmin
+            new_parts_of_same[idmin] = set()
+            new_parts_of_same[idmin].add(idmin)
+        # print(parts_of_same)
+        # print(new_parts_of_same)
+        # create the sets
+        for idmax in parts_of_same.keys():
+            idmin = parts_of_same[idmax]
+            new_parts_of_same[idmin].add(idmax)
+        # index the sets from each component
+        for idmin in new_parts_of_same.keys():
+            same_set = new_parts_of_same[idmin]
+            for element in same_set:
+                parts_of_same[element] = same_set
+
+        # print(parts_of_same)
+        sys.stdout.flush()
+        # create symmetric relationships
+        for relation_type in relation_types:
+            # print("!!!!!!!!!!!!!!!")
+            # print(parts_of_same)
+            #  print(relation_type)
+            # print(data[relation_type])
+            # print("-----------")
+            new_relations = []
+            for [source, target] in data[relation_type]:
+                if source in parts_of_same.keys() and target in parts_of_same.keys():
+                    for same_source in parts_of_same[source]:
+                        for same_target in parts_of_same[target]:
+                            if [same_source, same_target] not in data[relation_type] and same_source is not same_target:
+                                new_relations.append([same_source, same_target])
+                elif source in parts_of_same.keys():
+                    for same_source in parts_of_same[source]:
+                        if [same_source, target] not in data[relation_type] and same_source is not target:
+                            new_relations.append([same_source, target])
+                elif target in parts_of_same.keys():
+                    for same_target in parts_of_same[target]:
+                        if [source, same_target] not in data[relation_type] and source is not same_target:
+                            new_relations.append([source, same_target])
+            # print(new_relations)
+            data[relation_type].extend(new_relations)
+
+        # print("-------------------------------------------------------")
+        # sys.stdout.flush()
+        # exit(0)
+
+        # it is necessary to expand the
 
         # CREATE THE PROPER DATAFRAME
 
@@ -759,10 +843,9 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
 
                 # relations in different paragraphs are not allowed, but we want to log them
                 if target_start < p_offsets[0] or target_start > p_offsets[1]:
-                    for link_type in link_types:
-                        for link in data[link_type]:
+                    for relation_type in relation_types:
+                        for link in data[relation_type]:
                             if link[0] == sourceID and link[1] == targetID:
-
                                 # find the target paragraph
                                 par_t = -1
                                 # find the paragraph
@@ -774,14 +857,13 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
 
                                 source_prop = propositions[sourceID]
                                 target_prop = propositions[targetID]
-                                relation_type = link_type
+                                relation_type = relation_type
                                 print("LINK OUTSIDE OF PARAGRAPHS!!!!")
                                 print("source_proposition: " + propositions[sourceID])
                                 print("source_ID: " + str(doc_ID) + "_" + str(par) + "_" + str(sourceID))
                                 print("target_proposition: " + propositions[targetID])
                                 print("target_ID: " + str(doc_ID) + "_" + str(par_t) + "_" + str(targetID))
                                 print("relation: " + str(relation_type))
-
                     continue
 
                 # skip reflexive relations if they are present
@@ -796,8 +878,8 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                 relation1to2 = False
 
                 # relation type
-                for link_type in link_types:
-                    links = data[link_type]
+                for relation_type in relation_types:
+                    links = data[relation_type]
 
                     for link in links:
                         # DEBUG
@@ -805,18 +887,21 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                         # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
 
                         if link[0] == sourceID and link[1] == targetID:
-                            if relation_type is not None and not relation_type == link_type:
+                            if relation_type is not None and not relation_type == relation_type:
                                 raise Exception('MORE DIFFERENT RELATIONS FOR THE SAME COUPLE OF PROPOSITIONS:'
                                                 + documents_path)
-                            relation_type = link_type
-                            relation1to2 = True
+                            relation_type = relation_type
+                            if relation_type in symmetric_link_types or relation_type in asymmetric_link_types:
+                                relation1to2 = True
 
                         # create the symmetric or the asymmetric (inverse) relation
                         elif link[0] == targetID and link[1] == sourceID:
-                            if link_type in asymmetric_link_types:
-                                relation_type = "inv_" + link_type
-                            elif link_type in symmetric_link_types:
-                                relation_type = link_type
+                            if relation_type in asymmetric_link_types:
+                                relation_type = "inv_" + relation_type
+                            elif relation_type in s_non_link_types:
+                                relation_type = relation_type
+                            elif relation_type in symmetric_link_types:
+                                relation_type = relation_type
                                 relation1to2 = True
 
                 dataframe_row = {'text_ID': str(doc_ID) + "_" + str(par),
@@ -844,6 +929,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
             if type1 not in prop_count[split].keys():
                 prop_count[split][type1] = 0
             prop_count[split][type1] += 1
+
 
     for split in ["test", "train", "validation"]:
 
@@ -1358,7 +1444,7 @@ def routine_DrInventor_corpus():
     # DR INVENTOR CORPUS
     a_link_types = ['supports', 'contradicts']
     s_link_types = []
-    # s_link_types = ['semantically_same', 'parts_of_same']
+    s_non_link_types = ['semantically_same', 'parts_of_same']
     dataset_name = 'DrInventor'
     maxdistance = 40
     dataset_version = 'arg' + str(maxdistance)
@@ -1372,7 +1458,7 @@ def routine_DrInventor_corpus():
     print("-------------------------------------------------------------")
 
     # TODO: modify create_inv_pickle for asymmetric and symmetric links
-    create_inv_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types,
+    create_inv_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types, s_non_link_types,
                       maxdistance=maxdistance, reflexive=False)
     print('____________________________________________________________________________________________')
     pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
