@@ -11,7 +11,7 @@ import numpy as np
 import re
 
 DIM = 300
-SEPARATORS = ['(', ')', '[', ']', '...', '_', '--',
+SEPARATORS = ['(', ')', '[', ']', '{', '}', '...', '_', '--', '|',
               ';', ':',
               "±", "·", "≥", "≤", "≈", '=', "<", ">", "£", "$", "€",
               '!!!', '???', '?!?', '!?!', '?!', '!?', '??', '!!',
@@ -19,7 +19,18 @@ SEPARATORS = ['(', ')', '[', ']', '...', '_', '--',
               '/', '"', '%', '$', '*', '#', '+',
               ',', '.',
               "'s", "'ve", "'ll", "'re", "'d",
-              '-', "'"]
+              '-', "'",
+              "∂", "∆", "∇"]
+
+REPLACINGS = {"’": "'",
+              "‘": "'",
+              "“": '"',
+              "”": '"',
+              "''": '"',
+              "—": '-',
+              "−": '-',
+              "–": '-',
+              "⁄": '/'}
 
 STOPWORDS = ['.', ',', ':', ';']
 
@@ -58,12 +69,10 @@ def vocabulary_creator(model, vocabulary_destination_path, dataframe_path):
     print(len(propositions))
 
     documents = []
+    # replace different versions of the same character
     for proposition in propositions:
-        proposition = proposition.replace("’", "'")
-        proposition = proposition.replace("‘", "'")
-        proposition = proposition.replace("“", '"')
-        proposition = proposition.replace("”", '"')
-        proposition = proposition.replace("''", '"')
+        for old in REPLACINGS.keys():
+            proposition = proposition.replace(old, REPLACINGS[old])
         documents.append(proposition)
 
 
@@ -243,7 +252,7 @@ def DrInventor_routine():
     dataset_name = 'DrInventor'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg40'))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
@@ -275,8 +284,8 @@ def RCT_routine():
 
 if __name__ == '__main__':
 
-
-    RCT_routine()
+    DrInventor_routine()
+    # RCT_routine()
 
 
     """

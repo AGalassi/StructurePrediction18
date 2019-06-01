@@ -9,7 +9,7 @@ import pandas
 import os
 import numpy as np
 import pickle
-from glove_loader import DIM, SEPARATORS, STOPWORDS
+from glove_loader import DIM, SEPARATORS, STOPWORDS, REPLACINGS
 
 def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='texts', type='bow'):
     df = pandas.read_pickle(dataframe_path)
@@ -35,11 +35,8 @@ def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='text
 
     for index, (text_id, text) in df_text.iterrows():
 
-        text = text.replace("’", "'")
-        text = text.replace("‘", "'")
-        text = text.replace("“", '"')
-        text = text.replace("”", '"')
-        text = text.replace("''", '"')
+        for old in REPLACINGS.keys():
+            text = text.replace(old, REPLACINGS[old])
 
         splits = text.split()
         tokens = ['']*len(splits)
@@ -198,7 +195,7 @@ def DrInventor_routine():
     mode = "propositions"
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    for version in ["new_0"]:
+    for version in ["arg40"]:
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
@@ -213,5 +210,5 @@ def DrInventor_routine():
 
 if __name__ == '__main__':
 
-    RCT_routine()
+    DrInventor_routine()
 

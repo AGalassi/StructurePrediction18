@@ -77,19 +77,21 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                "F1 P avg\n\n")
                                 },
 
-                "DrInventor":   {"output_units": (2, 5, 3, 3),
+                "DrInventor":   {"output_units": (2, 7, 3, 3),
                                  "min_text": 2, # wrong, never measured
-                                 "min_prop": 181, # wrong, never measured
-                                 "link_as_sum": [[0, 2], [1, 3, 4]],
+                                 "min_prop": 106, # wrong, never measured
+                                 "link_as_sum": [[0, 2], [1, 3, 4, 5, 6]],
                                  "categorical_prop": {'own_claim': [1, 0, 0,],
                                                       'background_claim': [0, 1, 0],
                                                       'data': [0, 0, 1],
                                                      },
-                                 "categorical_link": {'supports': [1, 0, 0, 0, 0],
-                                                      'inv_supports': [0, 1, 0, 0, 0],
-                                                      'contradicts': [0, 0, 1, 0, 0],
-                                                      'inv_contradicts': [0, 0, 0, 1, 0],
-                                                      None: [0, 0, 0, 0, 1],
+                                 "categorical_link": {'supports': [1, 0, 0, 0, 0, 0, 0],
+                                                      'inv_supports': [0, 1, 0, 0, 0, 0, 0],
+                                                      'contradicts': [0, 0, 1, 0, 0, 0, 0],
+                                                      'inv_contradicts': [0, 0, 0, 1, 0, 0, 0],
+                                                      'semantically_same': [0, 0, 0, 0, 1, 0, 0],
+                                                      'parts_of_same': [0, 0, 0, 0, 0, 1, 0],
+                                                      None: [0, 0, 0, 0, 0, 0, 1],
                                                      },
                                  "evaluation_headline_short": ("set\t" +
                                                                "F1 AVG all\tF1 AVG LP\tF1 Link\t" +

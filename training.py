@@ -1305,14 +1305,67 @@ def cdcp_routine():
     )
 
 
+def drinv_routine():
+    dataset_name = 'DrInventor'
+    dataset_version = 'arg40'
+    split = 'total'
+    name = 'drinv7net2018'
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=200,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=500,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+    )
+
 if __name__ == '__main__':
 
     # RCT_routine()
     
     # cdcp_routine()
 
-    UKP_routine()
-    evaluate_net.UKP_routine()
+    # UKP_routine()
+    # evaluate_net.UKP_routine()
+
+    drinv_routine()
 
     """
     

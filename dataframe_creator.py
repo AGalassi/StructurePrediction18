@@ -572,20 +572,23 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
 
 
 
-# TODO: take into account only links in the same section
 def create_inv_pickle(dataset_path, dataset_version, documents_path,
                       asymmetric_link_types, symmetric_link_types, s_non_link_types,
                       test=0.3, validation=0.14, maxdistance=50,
                       reflexive=False):
     """
-    Creates a pickle for the DrInventor Corpus. Only links in the same section are taken into account.
+    Creates a pickle for the DrInventor Corpus. The sections are considered as documents, therefore no links are allowed
+    outside a document (but they are still logged). The "parts_of_same" links are exploited to create new links between
+    components and different part of the same component: if T1 and T2 are linked as parts_of_same (the direction doesn't
+    matter), and T1 is linked to T3, then also T2 is linked to T3 (same type of relation and same direction). A maximum
+    distance between the links can be enforced.
     :param dataset_path: the working directory for the RCT dataset
     :param dataset_version: the name of the specific sub-dataset in exam
     :param documents_path: the path of the .ann and .txt file repository (regardless of the version)
     :param asymmetric_link_types: list of links that are asymmetric. For these, the "inv_..." non-links will be created
     :param symmetric_link_types: list of links that are symmetric. For these, 2 links rows will be created
     :param s_non_link_types: list of the symmetric relations that are not links. They will be treated as "non-links"
-    :param maxdistance: number of maximum argumentative distance to be taken into account for links. A negative value
+    :param maxdistance: number of maximum argumentative distance to be taken into account for links. A value <=0
                         means no limits
     :param reflexive: whether reflexive links should be added
     :return: None
@@ -874,8 +877,9 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                 if abs(sourceID-targetID) > maxdistance > 0:
                     continue
 
-                relation_type = None
+                relation_label = None
                 relation1to2 = False
+
 
                 # relation type
                 for relation_type in relation_types:
@@ -887,21 +891,22 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                         # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
 
                         if link[0] == sourceID and link[1] == targetID:
+
                             if relation_type is not None and not relation_type == relation_type:
                                 raise Exception('MORE DIFFERENT RELATIONS FOR THE SAME COUPLE OF PROPOSITIONS:'
                                                 + documents_path)
-                            relation_type = relation_type
+                            relation_label = relation_type
                             if relation_type in symmetric_link_types or relation_type in asymmetric_link_types:
                                 relation1to2 = True
 
                         # create the symmetric or the asymmetric (inverse) relation
                         elif link[0] == targetID and link[1] == sourceID:
                             if relation_type in asymmetric_link_types:
-                                relation_type = "inv_" + relation_type
+                                relation_label = "inv_" + relation_type
                             elif relation_type in s_non_link_types:
-                                relation_type = relation_type
+                                relation_label = relation_type
                             elif relation_type in symmetric_link_types:
-                                relation_type = relation_type
+                                relation_label = relation_type
                                 relation1to2 = True
 
                 dataframe_row = {'text_ID': str(doc_ID) + "_" + str(par),
@@ -912,7 +917,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                                  'target_ID': str(doc_ID) + "_" + str(par) + "_" + str(targetID),
                                  'source_type': type1,
                                  'target_type': type2,
-                                 'relation_type': relation_type,
+                                 'relation_type': relation_label,
                                  'source_to_target': relation1to2,
                                  'set': split
                                  }
@@ -1446,7 +1451,7 @@ def routine_DrInventor_corpus():
     s_link_types = []
     s_non_link_types = ['semantically_same', 'parts_of_same']
     dataset_name = 'DrInventor'
-    maxdistance = 40
+    maxdistance = 0
     dataset_version = 'arg' + str(maxdistance)
     splits = ['total', 'train', 'test', 'validation']
 
@@ -1457,7 +1462,6 @@ def routine_DrInventor_corpus():
     print("DATASETS CREATION")
     print("-------------------------------------------------------------")
 
-    # TODO: modify create_inv_pickle for asymmetric and symmetric links
     create_inv_pickle(dataset_path, dataset_version, document_path, a_link_types, s_link_types, s_non_link_types,
                       maxdistance=maxdistance, reflexive=False)
     print('____________________________________________________________________________________________')
