@@ -20,7 +20,7 @@ from keras.utils.vis_utils import plot_model
 from keras.models import load_model, model_from_json
 from keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, fmeasure, get_avgF1
-from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support
+from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support, classification_report
 from glove_loader import DIM
 from scipy import stats
 from dataset_config import dataset_info
@@ -514,16 +514,17 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     print(str(time.ctime()) + "\tLAUNCHING EVALUATION: " + name)
     print(str(time.ctime()) + "\tLOADING DATASET " + dataset_name)
 
+    this_ds_info = dataset_info[dataset_name]
 
     output_units = ()
     min_text = 0
     min_prop = 0
     link_as_sum = [[]]
 
-    output_units = dataset_info[dataset_name]["output_units"]
-    min_text = dataset_info[dataset_name]["min_text"]
-    min_prop = dataset_info[dataset_name]["min_prop"]
-    link_as_sum = dataset_info[dataset_name]["link_as_sum"]
+    output_units = this_ds_info["output_units"]
+    min_text = this_ds_info["min_text"]
+    min_prop = this_ds_info["min_prop"]
+    link_as_sum = this_ds_info["link_as_sum"]
 
 
     dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
@@ -578,6 +579,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
         print(str(time.ctime()) + "\t\tTRAINING DATA PROCESSED...")
         print("Length: " + str(len(X3_train[0])))
+
+    sys.stdout.flush()
 
     split = 'test'
 
@@ -665,6 +668,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
          'train': Y_train,
          'validation': Y_validation}
 
+    sys.stdout.flush()
 
     # multi-iteration evaluation structures
     final_scores = {'train': [], 'test': [], 'validation': []}
@@ -721,6 +725,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                 "Fs P AVG\tFs P premise\tFs P claim\tFs P avg\t" +
                                 "Supp P premise\tSupp P claim" +
                                 "\n\n")
+    elif dataset_name == "DrInventor":
+        evaluation_headline = this_ds_info["evaluation_headline_short"]
 
     print(str(time.ctime()) + "\t\tCREATING MODEL...")
 
@@ -834,8 +840,9 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         testfile = open(os.path.join(netfolder, netname + "_" + str(iteration) + "_eval.txt"), 'a')
 
         testfile.write("\n\n")
+        testfile.write("DATASET VERSION:\n")
         testfile.write(dataset_version)
-        testfile.write("\n")
+        testfile.write("\n\n")
 
         print("\n-----------------------\n")
 
@@ -843,6 +850,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         testfile.write(evaluation_headline)
 
         print(evaluation_headline)
+
+        extensive_report = ""
 
         for split in ['test', 'validation', 'train']:
 
@@ -1005,6 +1014,43 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             testfile.flush()
             sys.stdout.flush()
 
+            extensive_report += "\n\n"
+            extensive_report += split
+
+            extensive_report += "\nLinks\n"
+            extensive_report += classification_report(Y_test_links, Y_pred_links, target_names=["YES", "NO"])
+            extensive_report += "\n"
+
+            extensive_report += "\nRelations\n"
+            extensive_report += classification_report(Y_test_rel, Y_pred_rel,
+                                                 target_names=this_ds_info["rel_types"])
+            extensive_report += "\n"
+
+            extensive_report += "\nComponents\n"
+            extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
+                                                 target_names=this_ds_info["prop_types"])
+            extensive_report += "\n"
+
+            # CONFUSION MATRIX
+            confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
+            confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
+            # confusion_prop = confusion_matrix(Y_test_prop, Y_pred_prop)
+            confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
+            extensive_report += "\n\nlink\n"
+            extensive_report += str(confusion_link)
+            extensive_report += "\n\nrel\n"
+            extensive_report += str(confusion_rel)
+            # testfile.write("\n\nprop\n")
+            # testfile.write(str(confusion_prop))
+            extensive_report += "\n\nprop real\n"
+            extensive_report += str(confusion_prop_real)
+            extensive_report += "\n\n"
+
+            testfile.flush()
+            sys.stdout.flush()
+
+        testfile.write(extensive_report)
+
         print("------------------\n\n------------------\n\n")
         testfile.write("------------------\n\n------------------\n\n")
         testfile.close()
@@ -1020,11 +1066,13 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     testfile = open(os.path.join(file_folder, os.path.pardir, netname + "_eval.txt"), 'a')
 
     testfile.write("\n\n")
+    testfile.write("DATASET VERSION:\n")
     testfile.write(dataset_version)
-    testfile.write("\n")
+    testfile.write("\n\n")
 
     testfile.write(evaluation_headline)
     print(evaluation_headline)
+    extensive_report = ""
 
     for split in ['test', 'validation', 'train']:
         if len(final_scores[split]) > 0:
@@ -1141,11 +1189,44 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 print(string)
                 testfile.write(string + "\n")
 
+                extensive_report += "\n\n"
+                extensive_report += split
+
+                extensive_report += "\nLinks\n"
+                extensive_report += classification_report(Y_test_links, Y_pred_links, target_names=["YES", "NO"])
+                extensive_report += "\n"
+
+                extensive_report += "\nRelations\n"
+                extensive_report += classification_report(Y_test_rel, Y_pred_rel,
+                                                          target_names=this_ds_info["rel_types"])
+                extensive_report += "\n"
+
+                extensive_report += "\nComponents\n"
+                extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
+                                                          target_names=this_ds_info["prop_types"])
+                extensive_report += "\n"
+
+                # CONFUSION MATRIX
+                confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
+                confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
+                # confusion_prop = confusion_matrix(Y_test_prop, Y_pred_prop)
+                confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
+                extensive_report += "\n\nlink\n"
+                extensive_report += str(confusion_link)
+                extensive_report += "\n\nrel\n"
+                extensive_report += str(confusion_rel)
+                # testfile.write("\n\nprop\n")
+                # testfile.write(str(confusion_prop))
+                extensive_report += "\n\nprop real\n"
+                extensive_report += str(confusion_prop_real)
+                extensive_report += "\n\n"
+
                 testfile.flush()
                 sys.stdout.flush()
 
         print("------------------\n\n------------------\n\n")
 
+    testfile.write(extensive_report)
     testfile.write("------------------\n\n")
     testfile.close()
 
@@ -1169,6 +1250,18 @@ def RCT_routine():
     test_dataset_version = "glaucoma"
 
     perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+
+
+def drinv_routine():
+
+    dataset_name = 'DrInventor'
+    dataset_version = 'arg40'
+    netname = 'drinv7net2018'
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
+
+    perform_evaluation(netpath, dataset_name, dataset_version, context=False, distance=5, ensemble=True)
+
 
 
 def cdcp_routine():
@@ -1481,7 +1574,10 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
 
 if __name__ == '__main__':
-    RCT_routine()
+
+    drinv_routine()
+
+    # RCT_routine()
 
     """
     netname = 'prova'

@@ -1444,7 +1444,6 @@ def routine_RCT_corpus():
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
         print_distance_analysis(pickles_path)
 
-# TODO: test this
 def routine_DrInventor_corpus():
     # DR INVENTOR CORPUS
     a_link_types = ['supports', 'contradicts']

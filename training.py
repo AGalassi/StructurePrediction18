@@ -1316,7 +1316,7 @@ def drinv_routine():
         save_weights_only=True,
         epochs=10000,
         feature_type='bow',
-        patience=200,
+        patience=50,
         loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.001,
@@ -1328,7 +1328,7 @@ def drinv_routine():
         embedder_layers=4,
         final_scale=15, # final_size=20
         space_scale=10,
-        batch_size=500,
+        batch_size=1000,
         regularizer_weight=0.0001,
         dropout_resnet=0.1,
         dropout_embedder=0.1,
