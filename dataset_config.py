@@ -53,8 +53,8 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                "F1 AVG all\tF1 AVG LP\tF1 Link\t" +
                                                                "F1 R AVG dir\tF1 R support\tF1 R attack\t" +
                                                                 "F1 P AVG\t" +
-                                                                "F1 P premise\tF1 P claim\tF1 P major claim\t" +
-                                                                "F1 P avg\n\n"), # NO
+                                                                "F1 P premise\tF1 P claim\t" +
+                                                                "F1 P avg\n\n"),
                                  "prop_types": ['Premise', 'Claim'],
                                  "rel_types": ['Support', 'inv_Support', 'Attack', 'inv_Attacks',
                                                'Citation', 'inv_Citation', 'Duplicate', "None"],

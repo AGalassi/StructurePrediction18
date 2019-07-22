@@ -1307,6 +1307,18 @@ def drinv_routine():
     perform_evaluation(netpath, dataset_name, dataset_version, context=False, distance=5, ensemble=True)
 
 
+def ECHR_routine():
+
+    dataset_name = 'ECHR2018'
+    dataset_version = 'arg0'
+    netname = 'echr7net2018'
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
+
+    perform_evaluation(netpath, dataset_name, dataset_version, context=False, distance=5, ensemble=True)
+
+
+
 
 def cdcp_routine():
 
