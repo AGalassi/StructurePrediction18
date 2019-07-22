@@ -207,8 +207,39 @@ def DrInventor_routine():
     print("MAX = " + str(MAX))
 
 
+def ECHR_routine():
+    global MAX
+    # MAX = 0
+    # save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
+    # print(MAX)
+
+    # MAX = 0
+    # save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
+    # print(MAX)
+
+    MAX = 0
+
+    dataset_name = 'ECHR2018'
+    type = "bow"
+    mode = "propositions"
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    for version in ["arg0"]:
+
+        dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
+
+        embeddings_path = os.path.join(dataset_path, type, version)
+        # load glove vocabulary and embeddings
+        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+
+        save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
+    print("MAX = " + str(MAX))
+
 
 if __name__ == '__main__':
 
-    DrInventor_routine()
+    # DrInventor_routine()
+    ECHR_routine()
+
+
 

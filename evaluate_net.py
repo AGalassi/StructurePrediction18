@@ -504,7 +504,7 @@ def print_model(netname, dataset_name, dataset_version):
 
 
 def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5,
-                       ensemble=None):
+                       ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link"):
 
     # name of the network
     netname = os.path.basename(netfolder)
@@ -674,6 +674,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     final_scores = {'train': [], 'test': [], 'validation': []}
     # ensemble structures
     if ensemble is not None and ensemble is not False:
+        criterion_scores = []
         ensemble_link_scores = {}
         ensemble_prop_scores = {}
         ensemble_rel_scores = {}
@@ -692,6 +693,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             ensemble_rel_votes[split] = []
             ensemble_link_truth[split] = []
             ensemble_prop_truth[split] = []
+            ensemble_rel_truth[split] = []
 
     evaluation_headline = ""
     if dataset_name == "AAEC_v2":
@@ -1003,6 +1005,15 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             final_scores[split].append(iteration_scores)
 
+            # take note of the main desired value, so to select only top network for ensamble
+            if ensemble is not None and ensemble is not False and split == "validation":
+                if ensemble_top_criterion == "link":
+                    criterion_scores.append(score_f1_link[0])
+
+                elif ensemble_top_criterion == "propositions-macro":
+                    criterion_scores.append(score_f1_prop_AVGM_real)
+
+
             # writing single iteration scores
             string = split
             for value in iteration_scores:
@@ -1093,9 +1104,41 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     # TODO: implement ensemble score consideration
     print(str(time.ctime()) + "\t\tENSEMBLE EVALUATION")
     if ensemble is not None and ensemble is not False:
+
         testfile.write("\n\n")
         testfile.write(dataset_version)
-        testfile.write("\tENSEMBLE\n")
+
+        # take only the top N networks (according to validation) into account
+        ensemble_top_n = int((iterations+1) * ensemble_top_n)
+        if ensemble_top_n < (iterations+1):
+            testfile.write("\tENSEMBLE\t" + "top " + str(ensemble_top_n) + "\t" + ensemble_top_criterion + "\n")
+            top_n_indexes = []
+
+            # find the indexes of the top N networks
+            print("The scores are: " + str(criterion_scores))
+            for i in range(0, ensemble_top_n):
+                index = np.argmax(criterion_scores)
+                top_n_indexes.append(index)
+                criterion_scores[index] = 0
+
+            print("The top networks are: " + str(top_n_indexes))
+
+            # create the arrays with only the top k networks votes
+            for split in ['test', 'validation', 'train']:
+                new_link_votes = []
+                new_prop_votes = []
+                new_rel_votes = []
+                for i in range(0, len(top_n_indexes)):
+                    top_index = top_n_indexes[i]
+                    new_link_votes.append(ensemble_link_votes[split][top_index])
+                    new_prop_votes.append(ensemble_prop_votes[split][top_index])
+                    new_rel_votes.append(ensemble_rel_votes[split][top_index])
+
+                ensemble_link_votes[split] = new_link_votes
+                ensemble_prop_votes[split] = new_prop_votes
+                ensemble_rel_votes[split] = new_rel_votes
+        else:
+            testfile.write("\tENSEMBLE\n")
 
         testfile.write(evaluation_headline)
         print(evaluation_headline)
@@ -1103,6 +1146,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         for split in ['test', 'validation', 'train']:
             if len(final_scores[split]) > 0:
 
+                # compute the answer of the ensemble as the mode of the predictions
                 prop_votes = np.array(ensemble_prop_votes[split])
                 # print(prop_votes)
                 Y_pred_prop_real = stats.mode(prop_votes)[0][0]
@@ -1274,6 +1318,8 @@ def cdcp_routine():
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
     perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    # perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
+    #                    ensemble=True, ensemble_top_criterion="link", ensemble_top_n=0.3)
 
 
 def UKP_routine():
@@ -1574,8 +1620,9 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
 
 if __name__ == '__main__':
+    cdcp_routine()
 
-    drinv_routine()
+    # drinv_routine()
 
     # RCT_routine()
 

@@ -33,6 +33,34 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
 
                                  },
 
+                "ECHR":         {"output_units": (2, 8, 2, 2),
+                                 "min_text": 168, # NO
+                                 "min_prop": 95,
+                                 "link_as_sum": [[0, 2], [1, 3, 4, 5, 6, 7]],
+                                 "categorical_prop": {'premise': [1, 0],
+                                                      'claim': [0, 1],
+                                                     },
+                                 "categorical_link": {'Support': [1, 0, 0, 0, 0, 0, 0, 0],
+                                                      'inv_Support': [0, 1, 0, 0, 0, 0, 0, 0],
+                                                      'Attack': [0, 0, 1, 0, 0, 0, 0, 0],
+                                                      'inv_Attacks': [0, 0, 0, 1, 0, 0, 0, 0],
+                                                      'Citation': [0, 0, 0, 0, 1, 0, 0, 0],
+                                                      'inv_Citation': [0, 0, 0, 0, 0, 1, 0, 0],
+                                                      'Duplicate': [0, 0, 0, 0, 0, 0, 1, 0],
+                                                      None: [0, 0, 0, 0, 0, 0, 0, 1],
+                                                     },
+                                 "evaluation_headline_short": ("set\t" +
+                                                               "F1 AVG all\tF1 AVG LP\tF1 Link\t" +
+                                                               "F1 R AVG dir\tF1 R support\tF1 R attack\t" +
+                                                                "F1 P AVG\t" +
+                                                                "F1 P premise\tF1 P claim\tF1 P major claim\t" +
+                                                                "F1 P avg\n\n"), # NO
+                                 "prop_types": ['Premise', 'Claim'],
+                                 "rel_types": ['Support', 'inv_Support', 'Attack', 'inv_Attacks',
+                                               'Citation', 'inv_Citation', 'Duplicate', "None"],
+
+                                 },
+
                 "cdcp_ACL17":   {"output_units": (2, 5, 5, 5),
                                  "min_text": 552,
                                  "min_prop": 153,

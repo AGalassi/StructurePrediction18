@@ -263,6 +263,23 @@ def DrInventor_routine():
     vocabulary_creator(m1, glove_path, dataframe_path)
 
 
+def ECHR_routine():
+    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+
+    dataset_name = 'ECHR2018'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg0'))
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove')
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
+
+    vocabulary_creator(m1, glove_path, dataframe_path)
+
+
 
 def RCT_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
@@ -284,9 +301,9 @@ def RCT_routine():
 
 if __name__ == '__main__':
 
-    DrInventor_routine()
+    # DrInventor_routine()
     # RCT_routine()
-
+    ECHR_routine()
 
     """
 
