@@ -505,6 +505,7 @@ def print_model(netname, dataset_name, dataset_version):
 
 def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5,
                        ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link"):
+    return_value = 0
 
     # name of the network
     netname = os.path.basename(netfolder)
@@ -1029,17 +1030,21 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             extensive_report += split
 
             extensive_report += "\nLinks\n"
-            extensive_report += classification_report(Y_test_links, Y_pred_links, target_names=["YES", "NO"])
+            extensive_report += classification_report(Y_test_links, Y_pred_links,
+                                                      labels=range(2),
+                                                      target_names=["YES", "NO"])
             extensive_report += "\n"
 
             extensive_report += "\nRelations\n"
             extensive_report += classification_report(Y_test_rel, Y_pred_rel,
-                                                 target_names=this_ds_info["rel_types"])
+                                                      labels=range(len(this_ds_info["rel_types"])),
+                                                      target_names=this_ds_info["rel_types"])
             extensive_report += "\n"
 
             extensive_report += "\nComponents\n"
             extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
-                                                 target_names=this_ds_info["prop_types"])
+                                                      labels=range(len(this_ds_info["prop_types"])),
+                                                      target_names=this_ds_info["prop_types"])
             extensive_report += "\n"
 
             # CONFUSION MATRIX
@@ -1197,6 +1202,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 iteration_scores.append(score_f1_AVG_all_real[0])
                 iteration_scores.append(score_f1_AVG_LP_real[0])
                 iteration_scores.append(score_f1_link[0])
+                return_value = score_f1_link[0]
                 iteration_scores.append(score_f1_rel_AVGM)
                 for score in score_f1_rel:
                     iteration_scores.append(score)
@@ -1236,17 +1242,22 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 extensive_report += "\n\n"
                 extensive_report += split
 
+
                 extensive_report += "\nLinks\n"
-                extensive_report += classification_report(Y_test_links, Y_pred_links, target_names=["YES", "NO"])
+                extensive_report += classification_report(Y_test_links, Y_pred_links,
+                                                          labels=range(2),
+                                                          target_names=["YES", "NO"])
                 extensive_report += "\n"
 
                 extensive_report += "\nRelations\n"
                 extensive_report += classification_report(Y_test_rel, Y_pred_rel,
+                                                          labels=range(len(this_ds_info["rel_types"])),
                                                           target_names=this_ds_info["rel_types"])
                 extensive_report += "\n"
 
                 extensive_report += "\nComponents\n"
                 extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
+                                                          labels=range(len(this_ds_info["prop_types"])),
                                                           target_names=this_ds_info["prop_types"])
                 extensive_report += "\n"
 
@@ -1273,6 +1284,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     testfile.write(extensive_report)
     testfile.write("------------------\n\n")
     testfile.close()
+
+    # return the F1
+    return return_value
+
 
 
 def RCT_routine():
