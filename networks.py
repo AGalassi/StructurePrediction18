@@ -9,7 +9,6 @@ __email__ = "a.galassi@unibo.it"
 Code for creating some neural network models. Don't judge them, please. They are just born this way.
 """
 
-from tensorflow.python.ops import math_ops
 import tensorflow as tf
 import tensorflow.keras as keras
 import numpy as np
@@ -17,12 +16,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.layers import (BatchNormalization, Dropout, Dense, Input, Activation, LSTM, Conv1D, Add, Lambda, MaxPool1D,
                           Bidirectional, Concatenate, Flatten, Embedding, TimeDistributed, AveragePooling1D, Multiply,
                           GlobalAveragePooling1D, GlobalMaxPooling1D, Reshape, Permute, RepeatVector, Masking)
-# from keras.utils.vis_utils import plot_model
-# from tensorflow.contrib.sparsemax import sparsemax
-import pydot
 from glove_loader import DIM
-import sys
-from attentionLayers import AdditiveAttention
 
 def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM/3)*3, dropout=0, bn=True):
     prev_layer = input_layer
@@ -1128,7 +1122,6 @@ def build_net_11(bow,
                 outputs,
                 link_as_sum,
                 distance,
-                text_length=200,
                 regularizer_weight=0.001,
                 dropout_embedder=0.1,
                 dropout_resnet=0.1,
@@ -1142,11 +1135,7 @@ def build_net_11(bow,
                 bn_res=True,
                 bn_final=True,
                 single_LSTM=False,
-                pooling=0,
-                text_pooling=0,
-                pooling_type='avg',
                 same_DE_layers=False,
-                context=True,
                 temporalBN=False, ):
     """
     Creates a neural network that takes as input two components (propositions) and ouputs the class of the two
@@ -1179,9 +1168,6 @@ def build_net_11(bow,
     :param bn_res: Whether the batch normalization should be used in the residual blocks
     :param bn_final: Whether the batch normalization should be used in the final layer
     :param single_LSTM: Whether the same LSTM should be used both for processing the target and the source
-    :param pooling:
-    :param text_pooling:
-    :param pooling_type: 'avg' or 'max' pooling
     :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
     :param context: If the context (the original text) should be used as input
     :param distance: The maximum distance that is taken into account
@@ -1190,16 +1176,9 @@ def build_net_11(bow,
     """
 
     if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
         sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
         targetprop_il = Input(shape=(propos_length,), name="target_input_L")
 
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
 
         prev_source_l = Embedding(bow.shape[0],
                                   bow.shape[1],
@@ -1215,20 +1194,18 @@ def build_net_11(bow,
                                   trainable=False,
                                   name="target_embed")(targetprop_il)
     else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
         sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
         targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
-        prev_text_l = text_il
         prev_source_l = sourceprop_il
         prev_target_l = targetprop_il
 
-    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
     if distance > 0:
         dist_il = Input(shape=(int(distance * 2),), name="dist_input_L")
     else:
         dist_il = Input(shape=(2,), name="dist_input_L")
 
-    shape = int(np.shape(prev_text_l)[2])
+    shape = int(np.shape(prev_target_l)[2])
+
     layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
                                   layers_size=embedding_size, temporalBN=temporalBN)
     if same_DE_layers:
@@ -1238,8 +1215,6 @@ def build_net_11(bow,
         layers = layers[0]
 
     if embedder_layers > 0:
-        prev_text_l = make_embedder(prev_text_l, 'text', dropout=dropout_embedder, layers=layers,
-                                    bn=bn_embed, temporalBN=temporalBN)
 
         prev_source_l = make_embedder(prev_source_l, 'source', dropout=dropout_embedder,
                                       layers=layers, bn=bn_embed, temporalBN=temporalBN)
@@ -1250,32 +1225,25 @@ def build_net_11(bow,
         if bn_embed:
             if temporalBN:
                 bn_layer = BatchNormalization(name="TBN_DENSE_prop", axis=-2)
-                bn_layer_t = BatchNormalization(name="TBN_DENSE_text", axis=-2)
             else:
                 bn_layer = BatchNormalization(name="BN_DENSE_generic")
-                bn_layer_t = bn_layer
-            prev_text_l = bn_layer_t(prev_text_l)
             prev_source_l = bn_layer(prev_source_l)
             prev_target_l = bn_layer(prev_target_l)
 
         drop_layer = Dropout(dropout_embedder)
 
-        prev_text_l = drop_layer(prev_text_l)
         prev_source_l = drop_layer(prev_source_l)
         prev_target_l = drop_layer(prev_target_l)
 
     else:
         if bn_embed:
             if temporalBN:
-                prev_text_l = BatchNormalization(axis=-2)(prev_text_l)
                 prev_source_l = BatchNormalization(axis=-2)(prev_source_l)
                 prev_target_l = BatchNormalization(axis=-2)(prev_target_l)
             else:
-                prev_text_l = BatchNormalization()(prev_text_l)
                 prev_source_l = BatchNormalization()(prev_source_l)
                 prev_target_l = BatchNormalization()(prev_target_l)
 
-        prev_text_l = Dropout(dropout_embedder)(prev_text_l)
         prev_source_l = Dropout(dropout_embedder)(prev_source_l)
         prev_target_l = Dropout(dropout_embedder)(prev_target_l)
 
@@ -1286,18 +1254,10 @@ def build_net_11(bow,
                           bias_regularizer=keras.regularizers.l2(regularizer_weight),
                           name='relu_embedder')
 
-    prev_text_l = TimeDistributed(relu_embedder, name='TD_text_embedder')(prev_text_l)
     TD_prop = TimeDistributed(relu_embedder, name='TD_prop_embedder')
     prev_source_l = TD_prop(prev_source_l)
     prev_target_l = TD_prop(prev_target_l)
 
-    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
-
-    if bn_embed:
-        if temporalBN:
-            prev_text_l = BatchNormalization(name="TBN_LSTM_text", axis=-2)(prev_text_l)
-        else:
-            prev_text_l = BatchNormalization(name="BN_LSTM_text")(prev_text_l)
 
     if single_LSTM:
         if bn_embed:
@@ -1328,18 +1288,7 @@ def build_net_11(bow,
         source_embed2 = embed2(prev_source_l)
         target_embed2 = embed2(prev_target_l)
 
-        text_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                         dropout=dropout_embedder,
-                                         recurrent_dropout=dropout_embedder,
-                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         return_sequences=True,
-                                         unroll=False,  # not possible to unroll if the time shape is not specified
-                                         name='text_LSTM'),
-                                    merge_mode='mul',
-                                    name='text_biLSTM'
-                                    )(prev_text_l)
+
     else:
         if bn_embed:
             if temporalBN:
@@ -1349,18 +1298,6 @@ def build_net_11(bow,
                 prev_source_l = BatchNormalization(name="BN_LSTM_source")(prev_source_l)
                 prev_target_l = BatchNormalization(name="BN_LSTM_target")(prev_target_l)
 
-        text_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                         dropout=dropout_embedder,
-                                         recurrent_dropout=dropout_embedder,
-                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         return_sequences=True,
-                                         unroll=False,  # not possible to unroll if the time shape is not specified
-                                         name='text_LSTM'),
-                                    merge_mode='mul',
-                                    name='text_biLSTM'
-                                    )(prev_text_l)
 
         source_embed2 = Bidirectional(LSTM(units=embedding_size,
                                            dropout=dropout_embedder,
@@ -1485,17 +1422,8 @@ def build_net_11(bow,
     print(target_embed2.shape)
 
 
-
-
-
-
-
-    if context and distance > 0:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
-    elif distance > 0:
+    if distance > 0:
         prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
-    elif context:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
     else:
         prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
 
@@ -1549,18 +1477,6 @@ def build_net_11(bow,
 
         link_ol = Concatenate(name='link')(link_scores)
 
-    """
-    Custom code for cdcp
-    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
-    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
-    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
-    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
-    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
-
-    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
-    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
-    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
-    """
 
     source_ol = Dense(units=outputs[2],
                       name='source',
@@ -1572,7 +1488,7 @@ def build_net_11(bow,
                       activation='softmax',
                       )(prev_l)
 
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
+    full_model = keras.Model(inputs=(sourceprop_il, targetprop_il, dist_il),
                              outputs=(link_ol, rel_ol, source_ol, target_ol),
                              )
 
@@ -1584,7 +1500,6 @@ def build_net_7(bow,
                 outputs,
                 link_as_sum,
                 distance,
-                text_length=200,
                 regularizer_weight=0.001,
                 dropout_embedder=0.1,
                 dropout_resnet=0.1,
@@ -1602,7 +1517,6 @@ def build_net_7(bow,
                 text_pooling=0,
                 pooling_type='avg',
                 same_DE_layers=False,
-                context=True,
                 temporalBN=False,):
     """
     Creates a neural network that takes as input two components (propositions) and ouputs the class of the two
@@ -1613,7 +1527,6 @@ def build_net_7(bow,
     :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
                 layer of keras, the input is supposed in BoW form.
                 If it is None, the input is supposed to already contain pre-trained embeddings.
-    :param text_length: The temporal length of the text input
     :param propos_length: The temporal length of the proposition input
     :param regularizer_weight: Regularization weight
     :param dropout_embedder: Dropout used in the embedder
@@ -1646,16 +1559,8 @@ def build_net_7(bow,
     """
 
     if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
         sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
         targetprop_il = Input(shape=(propos_length,), name="target_input_L")
-
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
 
         prev_source_l = Embedding(bow.shape[0],
                                   bow.shape[1],
@@ -1671,20 +1576,17 @@ def build_net_7(bow,
                                   trainable=False,
                                   name="target_embed")(targetprop_il)
     else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
         sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
         targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
-        prev_text_l = text_il
         prev_source_l = sourceprop_il
         prev_target_l = targetprop_il
 
-    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
     if distance > 0:
         dist_il = Input(shape=(int(distance*2),), name="dist_input_L")
     else:
         dist_il = Input(shape=(2,), name="dist_input_L")
 
-    shape = int(np.shape(prev_text_l)[2])
+    shape = int(np.shape(prev_source_l)[2])
     layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
                                                    layers_size=embedding_size, temporalBN=temporalBN)
     if same_DE_layers:
@@ -1694,8 +1596,6 @@ def build_net_7(bow,
         layers = layers[0]
 
     if embedder_layers > 0:
-        prev_text_l = make_embedder(prev_text_l, 'text', dropout=dropout_embedder, layers=layers,
-                                                 bn=bn_embed, temporalBN=temporalBN)
 
         prev_source_l = make_embedder(prev_source_l, 'source', dropout=dropout_embedder,
                                                   layers=layers, bn=bn_embed, temporalBN=temporalBN)
@@ -1710,28 +1610,23 @@ def build_net_7(bow,
             else:
                 bn_layer = BatchNormalization(name="BN_DENSE_generic")
                 bn_layer_t = bn_layer
-            prev_text_l = bn_layer_t(prev_text_l)
             prev_source_l = bn_layer(prev_source_l)
             prev_target_l = bn_layer(prev_target_l)
 
         drop_layer = Dropout(dropout_embedder)
 
-        prev_text_l = drop_layer(prev_text_l)
         prev_source_l = drop_layer(prev_source_l)
         prev_target_l = drop_layer(prev_target_l)
 
     else:
         if bn_embed:
             if temporalBN:
-                prev_text_l = BatchNormalization(axis=-2)(prev_text_l)
                 prev_source_l = BatchNormalization(axis=-2)(prev_source_l)
                 prev_target_l = BatchNormalization(axis=-2)(prev_target_l)
             else:
-                prev_text_l = BatchNormalization()(prev_text_l)
                 prev_source_l = BatchNormalization()(prev_source_l)
                 prev_target_l = BatchNormalization()(prev_target_l)
 
-        prev_text_l = Dropout(dropout_embedder)(prev_text_l)
         prev_source_l = Dropout(dropout_embedder)(prev_source_l)
         prev_target_l = Dropout(dropout_embedder)(prev_target_l)
 
@@ -1742,12 +1637,10 @@ def build_net_7(bow,
                               bias_regularizer=keras.regularizers.l2(regularizer_weight),
                               name='relu_embedder')
 
-    prev_text_l = TimeDistributed(relu_embedder, name='TD_text_embedder')(prev_text_l)
     TD_prop = TimeDistributed(relu_embedder, name='TD_prop_embedder')
     prev_source_l = TD_prop(prev_source_l)
     prev_target_l = TD_prop(prev_target_l)
 
-    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
 
     if pooling > 0:
         if pooling_type == 'max':
@@ -1757,18 +1650,6 @@ def build_net_7(bow,
         prop_pooling = pooling_class(pool_size=pooling, name='prop_pooling')
         prev_source_l = prop_pooling(prev_source_l)
         prev_target_l = prop_pooling(prev_target_l)
-
-        if context:
-            # if text_pooling is negative, the same pooling of the propositions is used
-            if not text_pooling > 0:
-                text_pooling = pooling
-            prev_text_l = pooling_class(pool_size=text_pooling, name='text_pooling')(prev_text_l)
-
-    if bn_embed:
-        if temporalBN:
-            prev_text_l = BatchNormalization(name="TBN_LSTM_text", axis=-2)(prev_text_l)
-        else:
-            prev_text_l = BatchNormalization(name="BN_LSTM_text")(prev_text_l)
 
     if single_LSTM:
         if bn_embed:
@@ -1799,18 +1680,6 @@ def build_net_7(bow,
         source_embed2 = embed2(prev_source_l)
         target_embed2 = embed2(prev_target_l)
 
-        text_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                         dropout=dropout_embedder,
-                                         recurrent_dropout=dropout_embedder,
-                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         return_sequences=False,
-                                         unroll=False,  # not possible to unroll if the time shape is not specified
-                                         name='text_LSTM'),
-                                    merge_mode='mul',
-                                    name='text_biLSTM'
-                                    )(prev_text_l)
     else:
         if bn_embed:
             if temporalBN:
@@ -1820,18 +1689,6 @@ def build_net_7(bow,
                 prev_source_l = BatchNormalization(name="BN_LSTM_source")(prev_source_l)
                 prev_target_l = BatchNormalization(name="BN_LSTM_target")(prev_target_l)
 
-        text_embed2 = Bidirectional(LSTM(units=embedding_size,
-                                       dropout=dropout_embedder,
-                                       recurrent_dropout=dropout_embedder,
-                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       return_sequences=False,
-                                       unroll=False, # not possible to unroll if the time shape is not specified
-                                       name='text_LSTM'),
-                                  merge_mode='mul',
-                                  name='text_biLSTM'
-                                  )(prev_text_l)
 
         source_embed2 = Bidirectional(LSTM(units=embedding_size,
                                        dropout=dropout_embedder,
@@ -1859,12 +1716,8 @@ def build_net_7(bow,
                                   name='target_biLSTM'
                                     )(prev_target_l)
 
-    if context and distance > 0:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
-    elif distance > 0:
+    if distance > 0:
         prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
-    elif context:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
     else:
         prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
 
@@ -1941,7 +1794,7 @@ def build_net_7(bow,
                       activation='softmax',
                       )(prev_l)
 
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
+    full_model = keras.Model(inputs=(sourceprop_il, targetprop_il, dist_il),
                              outputs=(link_ol, rel_ol, source_ol, target_ol),
                              )
 
@@ -2563,769 +2416,6 @@ def build_not_res_net_7(bow=None,
 
     return full_model
 
-
-
-
-def build_net_6(bow=None,
-                text_length=200, propos_length=75,
-                regularizer_weight=0.001,
-                dropout_embedder=0.1,
-                dropout_resnet=0.1,
-                dropout_final=0,
-                embedding_size=int(25),
-                embedder_layers=2,
-                resnet_layers=(2, 2),
-                res_size=50,
-                final_size=int(20),
-                outputs=(2, 5, 5, 5),
-                bn_embed=True,
-                bn_res=True,
-                bn_final=True,
-                pooling_type='avg'):
-
-    if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
-        targetprop_il = Input(shape=(propos_length,), name="target_input_L")
-
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
-
-        prev_source_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="source_embed")(sourceprop_il)
-
-        prev_target_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="target_embed")(targetprop_il)
-    else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
-        targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
-        prev_text_l = text_il
-        prev_source_l = sourceprop_il
-        prev_target_l = targetprop_il
-
-    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
-    dist_il = Input(shape=(10,), name="dist_input_L")
-
-    shape = int(np.shape(prev_text_l)[2])
-    dense_layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
-                                        layers_size=embedding_size)
-
-    if embedder_layers > 0:
-        prev_text_l = make_embedder_with_layers(prev_text_l, 'text',
-                                             dropout=dropout_embedder, layers=dense_layers, bn=bn_embed)
-        prev_source_l = make_embedder_with_layers(prev_source_l, 'source',
-                                                   dropout=dropout_embedder, layers=dense_layers, bn=bn_embed)
-        prev_target_l = make_embedder_with_layers(prev_target_l, 'target',
-                                                   dropout=dropout_embedder, layers=dense_layers, bn=bn_embed)
-
-    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
-
-    if bn_embed:
-        prev_text_l = BatchNormalization()(prev_text_l)
-        prev_source_l = BatchNormalization()(prev_source_l)
-        prev_target_l = BatchNormalization()(prev_target_l)
-
-    prev_text_l = Dropout(dropout_embedder)(prev_text_l)
-    prev_source_l = Dropout(dropout_embedder)(prev_source_l)
-    prev_target_l = Dropout(dropout_embedder)(prev_target_l)
-
-    prev_text_l = TimeDistributed(Dense(units=embedding_size,
-                                          activation='relu',
-                                          kernel_initializer='he_normal',
-                                          kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          name='relu_text_embedder'),
-                                  name='TD_text_embedder')(prev_text_l)
-
-    prev_source_l = TimeDistributed(Dense(units=embedding_size,
-                                          activation='relu',
-                                          kernel_initializer='he_normal',
-                                          kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          name='relu_source_embedder'),
-                                        name='TD_source_embedder')(prev_source_l)
-
-    prev_target_l = TimeDistributed(Dense(units=embedding_size,
-                                          activation='relu',
-                                          kernel_initializer='he_normal',
-                                          kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                          name='relu_target_embedder'),
-                                        name='TD_target_embedder')(prev_target_l)
-
-    if pooling_type == 'max':
-        pooling_class = GlobalMaxPooling1D
-    else:
-        pooling_class = GlobalAveragePooling1D
-    prop_pooling = pooling_class(name='pooling')
-    prev_source_l = prop_pooling(prev_source_l)
-    prev_target_l = prop_pooling(prev_target_l)
-    prev_text_l = prop_pooling(prev_text_l)
-
-    prev_l = Concatenate(name='embed_merge')([prev_text_l, prev_source_l, prev_target_l, dist_il])
-
-    if bn_res:
-        prev_l = BatchNormalization(name='merge_BN')(prev_l)
-
-    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
-
-    prev_l = Dense(units=final_size,
-                   activation='relu',
-                   kernel_initializer='he_normal',
-                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                   name='merge_dense'
-                   )(prev_l)
-
-    prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
-                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
-
-    if bn_final:
-        prev_l = BatchNormalization(name='final_BN')(prev_l)
-
-    prev_l = Dropout(dropout_final, name='final_dropout')(prev_l)
-
-    rel_ol = Dense(units=outputs[1],
-                   name='relation',
-                   activation='softmax',
-                   )(prev_l)
-
-    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
-    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
-    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
-    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
-    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
-
-    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
-    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
-    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
-
-    source_ol = Dense(units=outputs[2],
-                      name='source',
-                      activation='softmax',
-                      )(prev_l)
-
-    target_ol = Dense(units=outputs[3],
-                      name='target',
-                      activation='softmax',
-                      )(prev_l)
-
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
-                             outputs=(link_ol, rel_ol, source_ol, target_ol),
-                             )
-
-    return full_model
-
-
-
-
-def build_net_8(bow=None,
-                text_length=200,
-                propos_length=75,
-                regularizer_weight=0.001,
-                dropout_embedder=0.1,
-                dropout_resnet=0.1,
-                dropout_final=0.1,
-                embedding_scale=int(10),
-                embedder_layers=2,
-                resnet_layers=(2, 2),
-                res_scale=int(15),
-                final_scale=int(10),
-                outputs=(2, 5, 5, 5),
-                link_as_sum=None,
-                bn_embed=True,
-                bn_res=True,
-                bn_final=True,
-                context=True,
-                distance=5,
-                temporalBN=False,
-                merge="a_self",
-                distribution="softmax",
-                classification="softmax",
-                space_scale=2,
-                use_lstm=True):
-    """
-    Creates a network that (1) has a residual block to refine embeddings, (2) uses attention on the sequences,
-    (3) uses a residual network to elaborate the vectors, (4) performs the classifications
-    :param bow: a matrix used to convert the BoW model into embeddings, None if the input are already embeddings
-    :param text_length: the maximum length of a complete document
-    :param propos_length: the maximum length of an argumentative component
-    :param regularizer_weight: regularization term to use in the architecture
-    :param dropout_embedder: dropout used in (1)
-    :param dropout_resnet: dropout used in (3)
-    :param dropout_final: dropout used the last layer
-    :param embedding_scale: how many times the embeddings size is reduced in the residual blocks of the embedder (1)
-    :param embedder_layers: how many layers are inside (1)
-    :param resnet_layers: couple of values: the first one indicates the number of residual blocks, the other the number
-                          of layers inside each block
-    :param res_scale: how many times the embeddings size is reduced in the residual blocks
-    :param final_scale: how many times the embeddings size is reduced in the last block of the network
-    :param outputs: the number of classes for link prediction, relation classification, source classification,
-                    target classification
-    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
-                    of the relation classifier will be summed together according to the values in the arrays.
-                    Example: if the link classification is binary, and its contributions from relation
-                    classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
-                    [[0, 2], [1, 3, 4]]
-    :param bn_embed: if batch normalization is applied in (1)
-    :param bn_res: if batch normalization is applied in (3)
-    :param bn_final: if batch normalization is applied in the end
-    :param context: make use of the full text or not
-    :param distance: if it's greater than 0 indicates the maximum number of distance (both for positive and negative),
-                     if it's lower or equal to 0 it's not used. Using 1, the feature will represent the cocept of
-                     previous and following
-    :param temporalBN: if the batch normalization is computed along the temporal axis
-    :param merge: "a_self" to use self-attention, "a_self_shared" to use self-attention with a shared model for all
-                  the 3 inputs, "a_coars" to use parallel coarse co-attention (problem to solve: the average is
-                  computed also with the padding"
-    :param distribution: distribution function for the attention model, "softmax" or "sparsemax"
-    :param classification: "softmax" or "sparsemax"
-    :param space_scale: if each temporal data has to be mapped in a smaller space through a dense layer,
-                        the scale of the reduction; -1 to avoid this feature
-    :param lstm: whether a biLSTM has to be applied before attention; the two LSTMs output feature of the same dimension
-                 of the input /2 and *2
-    :return:
-    """
-
-
-    if distribution == "sparsemax":
-        distribution = sparsemax
-    if classification == "sparsemax":
-        classification = sparsemax
-
-    # input: BOW model, this piece of code loads the pre-trained embeddings
-    if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
-        targetprop_il = Input(shape=(propos_length,), name="target_input_L")
-
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
-
-        prev_source_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="source_embed")(sourceprop_il)
-
-        prev_target_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="target_embed")(targetprop_il)
-    else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
-        targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
-        prev_text_l = text_il
-        prev_source_l = sourceprop_il
-        prev_target_l = targetprop_il
-
-
-    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
-
-    # distance feature
-    if distance > 0:
-        dist_il = Input(shape=(int(distance*2),), name="dist_input_L")
-    # no feature
-    else:
-        dist_il = Input(shape=(0,), name="dist_input_L")
-
-    source_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="source_nonpad_L")(prev_source_l)
-    target_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="target_nonpad_L")(prev_target_l)
-    text_padding = Lambda(create_count_nonpadding_fn(axis=-2, pad_dims=(DIM,)), name="text_nonpad_L")(prev_text_l)
-
-    original_space_shape = int(np.shape(prev_source_l)[2])
-
-    # TODO: find an alternative to masking since it can't be applied
-    # mask = Masking(mask_value=0, name="masking_l")
-    # prev_text_l = mask(prev_text_l)
-    # prev_source_l = mask(prev_source_l)
-    # prev_target_l = mask(prev_target_l)
-
-    # DEEP EMBEDDER
-    if embedder_layers > 0:
-        embedding_size = int(original_space_shape/embedding_scale)
-        layers = make_embedder_layers(regularizer_weight, shape=original_space_shape, layers=embedder_layers,
-                                      layers_size=embedding_size, temporalBN=temporalBN, dropout=dropout_embedder)
-
-        make_embedder = make_embedder_with_all_layers
-
-        prev_text_l = make_embedder(prev_text_l, 'text', layers=layers,
-                                                 bn=bn_embed, temporalBN=temporalBN)
-
-        prev_source_l = make_embedder(prev_source_l, 'source',
-                                                  layers=layers, bn=bn_embed, temporalBN=temporalBN)
-
-        prev_target_l = make_embedder(prev_target_l, 'target',
-                                                  layers=layers, bn=bn_embed, temporalBN=temporalBN)
-
-    if bn_embed:
-        if temporalBN:
-            bn_layer = BatchNormalization(name="TBN_DENSE_prop", axis=-2)
-            bn_layer_t = BatchNormalization(name="TBN_DENSE_text", axis=-2)
-        else:
-            bn_layer = BatchNormalization(name="BN_DENSE_generic")
-            bn_layer_t = bn_layer
-        prev_text_l = bn_layer_t(prev_text_l)
-        prev_source_l = bn_layer(prev_source_l)
-        prev_target_l = bn_layer(prev_target_l)
-
-    drop_layer = Dropout(dropout_embedder)
-
-    prev_text_l = drop_layer(prev_text_l)
-    prev_source_l = drop_layer(prev_source_l)
-    prev_target_l = drop_layer(prev_target_l)
-
-    # prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
-
-    # DIMENSIONALITY REDUCTION
-    space_shape = int(original_space_shape / space_scale)
-    if space_scale > 0:
-        relu_embedder = Dense(units=int(space_shape),
-                              activation='relu',
-                              kernel_initializer='he_normal',
-                              kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                              bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                              name='relu_reduction')
-
-        prev_text_l = TimeDistributed(relu_embedder, name='TD_text_reduction')(prev_text_l)
-        TD_prop = TimeDistributed(relu_embedder, name='TD_prop_reduction')
-        prev_source_l = TD_prop(prev_source_l)
-        prev_target_l = TD_prop(prev_target_l)
-
-    # biLSTM
-    if use_lstm:
-        shape_lstm = int(int(np.shape(prev_source_l)[2])/2)
-        prev_text_l = Bidirectional(LSTM(units=shape_lstm,
-                                       dropout=dropout_embedder,
-                                       recurrent_dropout=dropout_embedder,
-                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       return_sequences=True,
-                                       unroll=False, # not possible to unroll if the time shape is not specified
-                                       name='text_LSTM'),
-                                  merge_mode='concat',
-                                  name='text_biLSTM'
-                                  )(prev_text_l)
-
-        prev_source_l = Bidirectional(LSTM(units=shape_lstm,
-                                       dropout=dropout_embedder,
-                                       recurrent_dropout=dropout_embedder,
-                                       kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                       return_sequences=True,
-                                       unroll=False,  # not possible to unroll if the time shape is not specified
-                                       name='source_LSTM'),
-                                      merge_mode='concat',
-                                      name='source_biLSTM'
-                                      )(prev_source_l)
-
-        prev_target_l = Bidirectional(LSTM(units=shape_lstm,
-                                         dropout=dropout_embedder,
-                                         recurrent_dropout=dropout_embedder,
-                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                                         return_sequences=True,
-                                         unroll=False,  # not possible to unroll if the time shape is not specified
-                                         name='target_LSTM'),
-                                    merge_mode='concat',
-                                  name='target_biLSTM'
-                                    )(prev_target_l)
-
-    # ATTENTION
-    # simple self attention
-    if "a_self" in merge:
-        v_prev_text_l = prev_text_l
-        v_prev_source_l = prev_source_l
-        v_prev_target_l = prev_target_l
-
-        # the importance model is shared by all the 3 inputs
-        if merge == "a_self_shared":
-
-            relu_attention = Dense(units=space_shape,
-                                    activation='relu',
-                                    kernel_initializer='he_normal',
-                                    name='attention_mlp')
-
-            importance_attention = Dense(units=1,
-                                    activation=None,
-                                    name='attention_importance')
-
-            text_relu_attention = relu_attention
-            source_relu_attention = relu_attention
-            target_relu_attention = relu_attention
-            text_importance_attention = importance_attention
-            source_importance_attention = importance_attention
-            target_importance_attention = importance_attention
-
-        # each input develops a different importance model
-        else:
-
-            text_relu_attention = Dense(units=space_shape,
-                                   activation='relu',
-                                   kernel_initializer='he_normal',
-                                   name='text_attention_mlp')
-
-            text_importance_attention = Dense(units=1,
-                                         activation=None,
-                                         name='text_attention_importance')
-
-            source_relu_attention = Dense(units=space_shape,
-                                   activation='relu',
-                                   kernel_initializer='he_normal',
-                                   name='source_attention_mlp')
-
-            source_importance_attention = Dense(units=1,
-                                         activation=None,
-                                         name='source_attention_importance')
-
-            target_relu_attention = Dense(units=space_shape,
-                                   activation='relu',
-                                   kernel_initializer='he_normal',
-                                   name='target_attention_mlp')
-
-            target_importance_attention = Dense(units=1,
-                                         activation=None,
-                                         name='target_attention_importance')
-
-        prev_text_l = TimeDistributed(text_relu_attention, name='TD_text_amlp')(prev_text_l)
-        prev_text_l = TimeDistributed(text_importance_attention, name='TD_text_aimportance')(prev_text_l)
-        TD_source = TimeDistributed(source_relu_attention, name='TD_source_amlp')
-        TD_target = TimeDistributed(target_relu_attention, name='TD_target_amlp')
-        prev_source_l = TD_source(prev_source_l)
-        prev_target_l = TD_target(prev_target_l)
-        TD_source = TimeDistributed(source_importance_attention, name='TD_source_aimportance')
-        TD_target = TimeDistributed(target_importance_attention, name='TD_target_aimportance')
-        prev_source_l = TD_source(prev_source_l)
-        prev_target_l = TD_target(prev_target_l)
-
-        prev_text_l = Flatten()(prev_text_l)
-        prev_source_l = Flatten()(prev_source_l)
-        prev_target_l = Flatten()(prev_target_l)
-
-        text_a = Activation(activation=distribution,
-                            name='text_attention')(prev_text_l)
-
-        source_a = Activation(activation=distribution,
-                            name='source_attention')(prev_source_l)
-
-        target_a = Activation(activation=distribution,
-                            name='target_attention')(prev_target_l)
-
-        prev_text_l = RepeatVector(space_shape, name='text_repetition')(text_a)
-        prev_text_l = Permute(dims=(2, 1), name='text_swap')(prev_text_l)
-        prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
-        prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-        prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
-        prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
-
-        prev_text_l = Multiply(name='text_amul')([v_prev_text_l, prev_text_l])
-        prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
-        prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
-
-        text_embed2 = Lambda(create_sum_fn(1), name='text_asum')(prev_text_l)
-        source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
-        target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
-    # parallel coarse grained co-attention
-    # TODO: FIND A WAY TO DEAL WITH THIS DAMN PADDING!!!
-    # CAN'T USE "non-padding finder" cause of the dimensionality reduction!
-    elif merge == "a_coarse":
-        v_prev_text_l = prev_text_l
-        v_prev_source_l = prev_source_l
-        v_prev_target_l = prev_target_l
-
-        text_sum = Lambda(create_sum_fn(1), name="text_aavg_sum")(prev_text_l)
-        text_avg = Lambda(create_elementwise_division_fn(), name='text_aavg_div')([text_sum, text_padding])
-        source_sum = Lambda(create_sum_fn(1), name="source_aavg_sum")(prev_source_l)
-        source_avg = Lambda(create_elementwise_division_fn(), name='source_aavg_div')([source_sum, source_padding])
-        target_sum = Lambda(create_sum_fn(1), name="target_aavg_sum")(prev_target_l)
-        target_avg = Lambda(create_elementwise_division_fn(), name='target_aavg_div')([target_sum, target_padding])
-
-        text_query_p = RepeatVector(propos_length, name='text_aquery_p')(text_avg)
-        source_query_p = RepeatVector(propos_length, name='source_aquery_p')(source_avg)
-        target_query_p = RepeatVector(propos_length, name='target_aquery_p')(target_avg)
-        source_query_t = RepeatVector(text_length, name='source_aquery_t')(source_avg)
-        target_query_t = RepeatVector(text_length, name='target_aquery_t')(target_avg)
-
-        if context:
-            prev_source_l = Concatenate(name='source_aconcat')([prev_source_l, text_query_p, target_query_p])
-            prev_target_l = Concatenate(name='target_aconcat')([prev_target_l, text_query_p, source_query_p])
-            prev_text_l = Concatenate(name='text_aconcat')([prev_text_l, target_query_t, source_query_t])
-        else:
-            prev_source_l = Concatenate(name='source_aconcat')([prev_source_l, target_query_p])
-            prev_target_l = Concatenate(name='target_aconcat')([prev_target_l, source_query_p])
-
-        text_relu_attention = Dense(units=space_shape,
-                               activation='relu',
-                               kernel_initializer='he_normal',
-                               name='text_attention_mlp')
-
-        text_importance_attention = Dense(units=1,
-                                     activation=None,
-                                     name='text_attention_importance')
-
-        source_relu_attention = Dense(units=space_shape,
-                               activation='relu',
-                               kernel_initializer='he_normal',
-                               name='source_attention_mlp')
-
-        source_importance_attention = Dense(units=1,
-                                     activation=None,
-                                     name='source_attention_importance')
-
-        target_relu_attention = Dense(units=space_shape,
-                               activation='relu',
-                               kernel_initializer='he_normal',
-                               name='target_attention_mlp')
-
-        target_importance_attention = Dense(units=1,
-                                     activation=None,
-                                     name='target_attention_importance')
-
-        prev_text_l = TimeDistributed(text_relu_attention, name='TD_text_amlp')(prev_text_l)
-        prev_text_l = TimeDistributed(text_importance_attention, name='TD_text_aimportance')(prev_text_l)
-        TD_source = TimeDistributed(source_relu_attention, name='TD_source_amlp')
-        TD_target = TimeDistributed(target_relu_attention, name='TD_target_amlp')
-        prev_source_l = TD_source(prev_source_l)
-        prev_target_l = TD_target(prev_target_l)
-        TD_source = TimeDistributed(source_importance_attention, name='TD_source_aimportance')
-        TD_target = TimeDistributed(target_importance_attention, name='TD_target_aimportance')
-        prev_source_l = TD_source(prev_source_l)
-        prev_target_l = TD_target(prev_target_l)
-
-        prev_text_l = Flatten()(prev_text_l)
-        prev_source_l = Flatten()(prev_source_l)
-        prev_target_l = Flatten()(prev_target_l)
-
-        text_a = Activation(activation=distribution,
-                            name='text_attention')(prev_text_l)
-
-        source_a = Activation(activation=distribution,
-                            name='source_attention')(prev_source_l)
-
-        target_a = Activation(activation=distribution,
-                            name='target_attention')(prev_target_l)
-
-        prev_text_l = RepeatVector(space_shape, name='text_repetition')(text_a)
-        prev_text_l = Permute(dims=(2, 1), name='text_swap')(prev_text_l)
-        prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
-        prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-        prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
-        prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
-
-        prev_text_l = Multiply(name='text_amul')([v_prev_text_l, prev_text_l])
-        prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
-        prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
-
-        text_embed2 = Lambda(create_sum_fn(1), name='text_asum')(prev_text_l)
-        source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
-        target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
-    # TODO: Don't know which parts of this code are working and which are not. Need to check properly everything!!!
-    elif merge == "a_flat":
-        v_prev_text_l = prev_text_l
-        v_prev_source_l = prev_source_l
-        v_prev_target_l = prev_target_l
-
-        if context:
-            raise NotImplemented("Fine-grained attention has not been implemented for use with context")
-        else:
-            concat_l = Concatenate(name='total_aconcat', axis=-2)([prev_source_l, prev_target_l])
-
-            flatten_l = Flatten(name='aflatten')(concat_l)
-
-            prev_source_l = Dense(name='source_attention_mlp',
-                                            units=propos_length,
-                                            activation='relu',
-                                            kernel_initializer='he_normal',)(flatten_l)
-
-            prev_target_l = Dense(name='target_attention_mlp',
-                                            units=propos_length,
-                                            activation='relu',
-                                            kernel_initializer='he_normal',)(flatten_l)
-
-            source_a = Activation(activation=distribution,
-                                  name='source_attention')(prev_source_l)
-
-            target_a = Activation(activation=distribution,
-                                  name='target_attention')(prev_target_l)
-
-            prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
-            prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-            prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
-            prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
-
-            prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
-            prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
-
-            source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
-            target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
-
-    # TODO: FINISH TO IMPLEMENT THIS
-    # DECOMPOSABLE FINE GRAINED CO ATTENTION
-    elif merge == "a_fine":
-        v_prev_text_l = prev_text_l
-        v_prev_source_l = prev_source_l
-        v_prev_target_l = prev_target_l
-
-        if context:
-            raise NotImplemented("Fine-grained attention has not been implemented for use with context")
-        else:
-            prev_source_l = TimeDistributed(Dense(name='source_attention_mlp',
-                                  units=space_shape,
-                                  activation='relu',
-                                  kernel_initializer='he_normal', ), name='source_attention_mlp_TD')(prev_source_l)
-            prev_source_l = TimeDistributed(Dense(name='source_attention_iv',
-                                                  units=1,), name='source_attention_iv_TD')(prev_source_l)
-
-            prev_target_l = TimeDistributed(Dense(name='target_attention_mlp',
-                                  units=space_shape,
-                                  activation='relu',
-                                  kernel_initializer='he_normal', ), name='target_attention_mlp_TD')(prev_target_l)
-            prev_target_l = TimeDistributed(Dense(name='target_attention_iv',
-                                                  units=1,), name='target_attention_iv_TD')(prev_target_l)
-
-            prev_source_l = Flatten(name='source_flatten_attention')(prev_source_l)
-            prev_target_l = Flatten(name='target_flatten_attention')(prev_target_l)
-
-            prev_source_l = RepeatVector(propos_length, "source_fine_repetition")(prev_source_l)
-
-
-            prev_target_l = Dense(name='target_attention_mlp',
-                                  units=propos_length,
-                                  activation='relu',
-                                  kernel_initializer='he_normal', )(flatten_l)
-
-            source_a = Activation(activation=distribution,
-                                  name='source_attention')(prev_source_l)
-
-            target_a = Activation(activation=distribution,
-                                  name='target_attention')(prev_target_l)
-
-            prev_source_l = RepeatVector(space_shape, name='source_repetition')(source_a)
-            prev_source_l = Permute(dims=(2, 1), name='source_swap')(prev_source_l)
-            prev_target_l = RepeatVector(space_shape, name='target_repetition')(target_a)
-            prev_target_l = Permute(dims=(2, 1), name='target_swap')(prev_target_l)
-
-            prev_source_l = Multiply(name='source_amul')([v_prev_source_l, prev_source_l])
-            prev_target_l = Multiply(name='target_amul')([v_prev_target_l, prev_target_l])
-
-            source_embed2 = Lambda(create_sum_fn(1), name='source_asum')(prev_source_l)
-            target_embed2 = Lambda(create_sum_fn(1), name='target_asum')(prev_target_l)
-
-
-    if context and distance >= 0:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
-    elif distance >= 0:
-        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
-    elif context:
-        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
-    else:
-        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
-
-    if bn_res:
-        prev_l = BatchNormalization(name='merge_BN')(prev_l)
-
-    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
-
-    final_size = int(original_space_shape/final_scale)
-    res_size = int(original_space_shape/res_scale)
-
-    prev_l = Dense(units=final_size,
-                   activation='relu',
-                   kernel_initializer='he_normal',
-                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
-                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
-                   name='merge_dense'
-                   )(prev_l)
-
-    prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
-                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
-
-    if bn_final:
-        prev_l = BatchNormalization(name='final_BN')(prev_l)
-
-    prev_l = Dropout(dropout_final, name='final_dropout')(prev_l)
-
-    rel_ol = Dense(units=outputs[1],
-                   name='relation',
-                   activation=classification,
-                   )(prev_l)
-
-    if link_as_sum is None:
-        link_ol = Dense(units=outputs[0],
-                        name='link',
-                        activation='softmax',
-                        )(prev_l)
-    else:
-        link_scores = []
-        rel_scores = []
-        # creates a layer that extracts the score of a single relation classification class
-        for i in range(outputs[1]):
-            rel_scores.append(Lambda(create_crop_fn(1, i, i + 1), name='rel' + str(i))(rel_ol))
-
-        # for each link class, sums the relation score contributions
-        for i in range(len(link_as_sum)):
-            # terms to be summed together for one of the link classes
-            link_contribute = []
-            for j in range(len(link_as_sum[i])):
-                value = link_as_sum[i][j]
-                link_contribute.append(rel_scores[value])
-            link_class = Add(name='link_' + str(i))(link_contribute)
-            link_scores.append(link_class)
-
-    """
-    Custom code for cdcp
-    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
-    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
-    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
-    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
-    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
-
-    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
-    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
-    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
-    """
-
-    source_ol = Dense(units=outputs[2],
-                      name='source',
-                      activation=classification,
-                      )(prev_l)
-
-    target_ol = Dense(units=outputs[3],
-                      name='target',
-                      activation=classification,
-                      )(prev_l)
-
-    # TODO: implement the use of attention visualization
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
-                             # outputs=(link_ol, rel_ol, source_ol, target_ol, source_a, target_a, text_a),
-                             outputs=(link_ol, rel_ol, source_ol, target_ol),
-                             )
-
-    return full_model
 
 
 def create_crop_fn(dimension, start, end):

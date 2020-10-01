@@ -17,21 +17,17 @@ import tensorflow as tf
 
 from hyperopt.mongoexp import MongoTrials
 from dataset_config import dataset_info
-from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
+from networks import (build_net_7, build_not_res_net_7, create_crop_fn, create_sum_fn, create_average_fn,
                       create_count_nonpadding_fn, create_elementwise_division_fn, build_net_9, create_padding_mask_fn,
                       create_mutiply_negative_elements_fn, build_net_10, build_net_11,)
 from tensorflow.keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import RMSprop, Adam
 from tensorflow.keras.models import load_model, model_from_json
-from tensorflow.keras.preprocessing.sequence import  pad_sequences
-from training_utils import TimingCallback, create_lr_annealing_function, fmeasure, get_avgF1, RealValidationCallback
+from training_utils import TimingCallback, create_lr_annealing_function, get_avgF1,
 from glove_loader import DIM
-from sklearn.metrics import f1_score, precision_recall_fscore_support
+from sklearn.metrics import f1_score
 from tensorflow.keras import backend as K
 # from keras.utils.vis_utils import plot_model
-from tensorflow.contrib.sparsemax import sparsemax
 
 DEBUG = False
 
@@ -44,18 +40,11 @@ config.gpu_options.allow_growth = True
 K.set_session(tf.Session(config=config))
 
 def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2',
-                 feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5, context=False,
+                 feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5,
                  distance_train_limit=-1):
 
     if distance < 0:
         distance = 0
-
-    # maximum amount of components in a document
-    if context:
-        max_prop_in_text = 500
-    else:
-        # mockery
-        max_prop_in_text = 2
 
     if feature_type == 'bow':
         pad = 0
@@ -91,10 +80,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         if distance > 0:
             dataset[split]['distance'] = []
-
-        if context:
-            dataset[split]['texts'] = []
-            dataset[split]['mark'] = []
 
         dataset[split]['s_id'] = []
         dataset[split]['t_id'] = []
@@ -152,52 +137,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
                 difference_array[distance + difference: distance] = [1] * -difference
             dataset[split]['distance'].append(difference_array)
 
-
-        if context:
-            # TODO: remove context loading, but avoiding unpleasant explosions everywhere
-            # load the document as list of argumentative component
-            embed_length = 0
-            text_embeddings = []
-            text_mark = []
-            for prop_id in range(0, max_prop_in_text):
-                complete_prop_id = str(text_ID) + "_" + str(prop_id)
-                file_path = os.path.join(embed_path, complete_prop_id + '.npz')
-
-                if os.path.exists(file_path):
-                    embeddings = np.load(file_path)['arr_0']
-                    text_embeddings.extend(embeddings)
-                    prop_length = len(embeddings)
-
-                    # create the marks
-                    if complete_prop_id == source_ID:
-                        prop_mark = [[1, 0]] * prop_length
-                    elif complete_prop_id == target_ID:
-                        prop_mark = [[0, 1]] * prop_length
-                    else:
-                        prop_mark = [[0, 0]] * prop_length
-                    text_mark.append(prop_mark)
-
-
-            text_mark = np.concatenate(text_mark)
-            dataset[split]['mark'].append(text_mark)
-            # embeddings = np.concatenate([text_embeddings])
-            dataset[split]['texts'].append(text_embeddings)
-            embed_length = len(text_embeddings)
-            if embed_length > max_text_len:
-                max_text_len = embed_length
-
-        """
-        if dataset_name=='cdcp_ACL17':
-            file_path = os.path.join(embed_path, "%05d" % (text_ID) + '.npz')
-        else:
-            file_path = os.path.join(embed_path, str(text_ID) + '.npz')
-        embeddings = np.load(file_path)['arr_0']
-        embed_length = len(embeddings)
-        if embed_length > max_text_len:
-            max_text_len = embed_length
-        dataset[split]['texts'].append(embeddings)
-        """
-
         file_path = os.path.join(embed_path, source_ID + '.npz')
         embeddings = np.load(file_path)['arr_0']
         embed_length = len(embeddings)
@@ -227,27 +166,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         print(str(time.ctime()) + '\t\t\tPADDING ' + split)
 
-        if context:
-            texts = dataset[split]['texts']
-            marks = dataset[split]['mark']
-            for j in range(len(texts)):
-                text = texts[j]
-                mark = marks[j]
-                embeddings = []
-                new_marks = []
-                diff = max_text_len - len(text)
-                for i in range(diff):
-                    embeddings.append(pad)
-                    new_marks.append([0, 0] * 1)
-                for embedding in text:
-                    embeddings.append(embedding)
-                for old_mark in mark:
-                    new_marks.append(old_mark)
-                texts[j] = embeddings
-                marks[j] = new_marks
-
-            dataset[split]['texts'] = np.array(texts, ndmin=ndim, dtype=dtype)
-            dataset[split]['mark'] = np.array(marks, dtype=np.int8, ndmin=3)
 
         texts = dataset[split]['source_props']
         for j in range(len(texts)):
@@ -315,12 +233,10 @@ def perform_training(name = 'prova999',
                     network=2,
                      true_validation=False,
                      same_layers=False,
-                     context=True,
                      distance=5,
                      temporalBN=False,
                      iterations=1,
                      merge="a_self",
-                     distribution="softmax",
                      classification="softmax",
                      clean_previous_networks=True,):
 
@@ -355,8 +271,6 @@ def perform_training(name = 'prova999',
     min_prop = dataset_info[dataset_name]["min_prop"]
     link_as_sum = dataset_info[dataset_name]["link_as_sum"]
 
-    if not context:
-        min_text = 2
 
     distance_num = distance
     if distance < 0:
@@ -373,7 +287,6 @@ def perform_training(name = 'prova999',
                                                        min_text_len=min_text,
                                                        min_prop_len=min_prop,
                                                        distance=distance_num,
-                                                       context=context,
                                                        distance_train_limit=distance_train_limit)
     print(str(time.ctime()) + "\tDATASET LOADED...")
     sys.stdout.flush()
@@ -396,16 +309,9 @@ def perform_training(name = 'prova999',
         X_dist_train = dataset[split]['distance']
     else:
         X_dist_train = np.zeros((numdata, 2))
-    if context:
-        X_marks_train = dataset[split]['mark']
-        X_text_train = dataset[split]['texts']
-        del dataset[split]['texts']
-    else:
-        X_marks_train = np.zeros((numdata, 2, 2))
-        X_text_train = np.zeros((numdata, 2))
 
     Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
-    X3_train = [X_text_train, X_source_train, X_target_train, X_dist_train, X_marks_train,]
+    X3_train = [X_source_train, X_target_train, X_dist_train,]
 
     print(str(time.ctime()) + "\t\tTRAINING DATA PROCESSED...")
     print("Length: " + str(len(X3_train[0])))
@@ -428,16 +334,9 @@ def perform_training(name = 'prova999',
         X_dist_test = dataset[split]['distance']
     else:
         X_dist_test= np.zeros((numdata, 2))
-    if context:
-        X_marks_test = dataset[split]['mark']
-        X_text_test = dataset[split]['texts']
-        del dataset[split]['texts']
-    else:
-        X_marks_test = np.zeros((numdata, 2, 2))
-        X_text_test = np.zeros((numdata, 2))
 
 
-    X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test,]
+    X3_test = [X_source_test, X_target_test, X_dist_test]
 
     print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
     print("Length: " + str(len(X3_test[0])))
@@ -459,15 +358,8 @@ def perform_training(name = 'prova999',
         X_dist_validation = dataset[split]['distance']
     else:
         X_dist_validation= np.zeros((numdata, 2))
-    if context:
-        X_text_validation = dataset[split]['texts']
-        del dataset[split]['texts']
-        X_marks_validation = dataset[split]['mark']
-    else:
-        X_marks_validation = np.zeros((numdata, 2, 2))
-        X_text_validation = np.zeros((numdata, 2))
 
-    X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]
+    X3_validation = [X_source_validation, X_target_validation, X_dist_validation,]
 
     print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
     print("Length: " + str(len(X3_validation[0])))
@@ -516,7 +408,7 @@ def perform_training(name = 'prova999',
         if network == 7 or network == "7":
             model = build_net_7(bow=bow,
                                 link_as_sum=link_as_sum,
-                                text_length=max_text_len, propos_length=max_prop_len,
+                                propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
                                 dropout_resnet=dropout_resnet,
@@ -535,12 +427,11 @@ def perform_training(name = 'prova999',
                                 pooling_type=pooling_type,
                                 dropout_final=dropout_final,
                                 same_DE_layers=same_layers,
-                                context=context,
                                 distance=distance_num,
                                 temporalBN=temporalBN,)
         elif network == "7N" or network == "7n":
             model = build_not_res_net_7(bow=bow,
-                                        text_length=max_text_len, propos_length=max_prop_len,
+                                        propos_length=max_prop_len,
                                         regularizer_weight=regularizer_weight,
                                         dropout_embedder=dropout_embedder,
                                         dropout_resnet=dropout_resnet,
@@ -559,37 +450,12 @@ def perform_training(name = 'prova999',
                                         pooling_type=pooling_type,
                                         dropout_final=dropout_final,
                                         same_DE_layers=same_layers,
-                                        context=context,
                                         distance=distance_num,
                                         temporalBN=temporalBN,)
-        elif network == "8" or network == 8:
-            model = build_net_8(bow=bow,
-                                text_length=max_text_len,
-                                propos_length=max_prop_len,
-                                regularizer_weight=regularizer_weight,
-                                dropout_embedder=dropout_embedder,
-                                dropout_resnet=dropout_resnet,
-                                dropout_final=dropout_final,
-                                embedding_scale=embedding_scale,
-                                embedder_layers=embedder_layers,
-                                resnet_layers=resnet_layers,
-                                res_scale=res_scale,
-                                final_scale=final_scale,
-                                space_scale=space_scale,
-                                outputs=output_units,
-                                bn_embed=bn_embed,
-                                bn_res=bn_res,
-                                bn_final=bn_final,
-                                context=context,
-                                distance=distance_num,
-                                temporalBN=temporalBN,
-                                merge=merge,
-                                distribution=distribution,
-                                classification=classification)
         elif network == "9" or network == 9:
             model = build_net_9(bow=bow,
                                 link_as_sum=link_as_sum,
-                                text_length=max_text_len, propos_length=max_prop_len,
+                                propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
                                 dropout_resnet=dropout_resnet,
@@ -608,13 +474,12 @@ def perform_training(name = 'prova999',
                                 pooling_type=pooling_type,
                                 dropout_final=dropout_final,
                                 same_DE_layers=same_layers,
-                                context=context,
                                 distance=distance_num,
                                 temporalBN=temporalBN,)
         elif network == "10" or network == 10:
             model = build_net_10(bow=bow,
                                 link_as_sum=link_as_sum,
-                                text_length=max_text_len, propos_length=max_prop_len,
+                                propos_length=max_prop_len,
                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
                                 dropout_resnet=dropout_resnet,
@@ -633,14 +498,13 @@ def perform_training(name = 'prova999',
                                 pooling_type=pooling_type,
                                 dropout_final=dropout_final,
                                 same_DE_layers=same_layers,
-                                context=context,
                                 distance=distance_num,
                                 temporalBN=temporalBN,)
         elif network == "11" or network == 11:
             model = build_net_11(bow=bow,
                                 link_as_sum=link_as_sum,
-                                text_length=max_text_len, propos_length=max_prop_len,
-                                regularizer_weight=regularizer_weight,
+                                 propos_length=max_prop_len,
+                                 regularizer_weight=regularizer_weight,
                                 dropout_embedder=dropout_embedder,
                                 dropout_resnet=dropout_resnet,
                                 embedding_size=embedding_size,
@@ -653,12 +517,8 @@ def perform_training(name = 'prova999',
                                 bn_res=bn_res,
                                 bn_final=bn_final,
                                 single_LSTM=single_LSTM,
-                                pooling=pooling,
-                                text_pooling=text_pooling,
-                                pooling_type=pooling_type,
                                 dropout_final=dropout_final,
                                 same_DE_layers=same_layers,
-                                context=context,
                                 distance=distance_num,
                                 temporalBN=temporalBN,)
 
@@ -719,7 +579,6 @@ def perform_training(name = 'prova999',
         custom_objects[pad_fn.__name__] = pad_fn
         custom_objects[padd_fn.__name__] = padd_fn
         custom_objects[neg_fn.__name__] = neg_fn
-        custom_objects[sparsemax.__name__] = sparsemax
 
         lr_function = create_lr_annealing_function(initial_lr=lr_alfa, k=lr_kappa)
 
@@ -1015,18 +874,10 @@ def perform_training(name = 'prova999',
         print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
 
-        if not context and not distance and len(model.input_shape) < 5:
-            X = {'test': X3_test[1:-2],
-                 'train': X3_train[1:-2],
-                 'validation': X3_validation[1:-2]}
-        elif not distance and len(model.input_shape) < 5:
-            X = {'test': X3_test[:-2] + X3_test[-1:],
-                 'train': X3_train[:-2] + X3_train[-1:],
-                 'validation': X3_validation[:-2] + X3_validation[-1:]}
-        elif not context  and len(model.input_shape) < 5:
-            X = {'test': X3_test[1:-1],
-                 'train': X3_train[1:-1],
-                 'validation': X3_validation[1:-1]}
+        if not distance and len(model.input_shape) < 3:
+            X = {'test': X3_test[:-2],
+                 'train': X3_train[:-2],
+                 'validation': X3_validation[:-2]}
         else:
             X = {'test': X3_test,
                  'train': X3_train,
@@ -1235,7 +1086,6 @@ def RCT_routine():
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1243,8 +1093,6 @@ def RCT_routine():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
-        classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
         dataset_split=split,
@@ -1426,7 +1274,7 @@ def cdcp_routine():
 
                         netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
 
-                        evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+                        evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
 
 
 
@@ -1493,7 +1341,7 @@ def cdcp_routine2():
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
 
-    evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
 
 
 
@@ -1673,8 +1521,8 @@ def min_func(param):
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
 
-    loss = - evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
-                                    ensemble=True)
+    loss = - evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5,
+                                             ensemble=True)
 
     print("==================================================================================")
     for key in param.keys():

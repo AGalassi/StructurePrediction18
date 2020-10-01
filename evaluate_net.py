@@ -12,21 +12,16 @@ import time
 import json
 import training
 
-from tensorflow.keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import RMSprop, Adam
 from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import load_model, model_from_json
-from tensorflow.keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, fmeasure, get_avgF1
 from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support, classification_report
 from glove_loader import DIM
 from scipy import stats
 from dataset_config import dataset_info
-from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
-                      create_count_nonpadding_fn, create_elementwise_division_fn, build_net_9, create_padding_mask_fn,
-                      create_mutiply_negative_elements_fn, build_net_10,)
+from networks import (create_sum_fn, create_average_fn,
+                      create_count_nonpadding_fn, create_elementwise_division_fn, create_padding_mask_fn,
+                      create_mutiply_negative_elements_fn)
 
 import networks
 
@@ -113,7 +108,7 @@ def print_model(netname, dataset_name, dataset_version):
             break
 
 
-def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5,
+def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', retrocompatibility=False, distance=5,
                        ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link", token_wise=False):
     return_value = 0
 
@@ -143,7 +138,6 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                                                 dataset_split='total',
                                                                 feature_type=feature_type,
                                                                 distance=distance,
-                                                                context=context,
                                                                 min_text_len=min_text,
                                                                 min_prop_len=min_prop,)
 
@@ -187,16 +181,16 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             X_dist_train = dataset[split]['distance']
         else:
             X_dist_train = np.zeros((numdata, 2))
-        if context:
-            X_marks_train = dataset[split]['mark']
-            X_text_train = dataset[split]['texts']
-            del dataset[split]['texts']
-        else:
-            X_marks_train = np.zeros((numdata, 2, 2))
-            X_text_train = np.zeros((numdata, 2))
+
 
         Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
-        X3_train = [X_text_train, X_source_train, X_target_train, X_dist_train, X_marks_train, ]
+        if retrocompatibility:
+            X_marks_train = np.zeros((numdata, 2, 2))
+            X_text_train = np.zeros((numdata, 2))
+            X3_train = [X_text_train, X_source_train, X_target_train, X_dist_train, X_marks_train, ]
+        else:
+
+            X3_train = [X_source_train, X_target_train, X_dist_train ]
 
         print(str(time.ctime()) + "\t\tTRAINING DATA PROCESSED...")
         print("Length: " + str(len(X3_train[0])))
@@ -222,15 +216,17 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             X_dist_test = dataset[split]['distance']
         else:
             X_dist_test = np.zeros((numdata, 2))
-        if context:
-            X_marks_test = dataset[split]['mark']
-            X_text_test = dataset[split]['texts']
-            del dataset[split]['texts']
-        else:
+        if retrocompatibility:
             X_marks_test = np.zeros((numdata, 2, 2))
             X_text_test = np.zeros((numdata, 2))
 
-        X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test, ]
+        if retrocompatibility:
+            X_marks_test = np.zeros((numdata, 2, 2))
+            X_text_test = np.zeros((numdata, 2))
+            X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test, ]
+        else:
+            X3_test = [ X_source_test, X_target_test, X_dist_test]
+
 
         print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
         print("Length: " + str(len(X3_test[0])))
@@ -255,15 +251,14 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             X_dist_validation = dataset[split]['distance']
         else:
             X_dist_validation = np.zeros((numdata, 2))
-        if context:
-            X_text_validation = dataset[split]['texts']
-            del dataset[split]['texts']
-            X_marks_validation = dataset[split]['mark']
-        else:
+        if retrocompatibility:
             X_marks_validation = np.zeros((numdata, 2, 2))
             X_text_validation = np.zeros((numdata, 2))
 
-        X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]
+            X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation, X_marks_validation]
+        else:
+            X3_validation = [X_source_validation, X_target_validation, X_dist_validation, ]
+
 
         print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
         print("Length: " + str(len(X3_validation[0])))
@@ -454,18 +449,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
 
         if X == None:
-            if not context and not distance and len(model.input_shape) < 5:
-                X = {'test': X3_test[1:-2],
-                     'train': X3_train[1:-2],
-                     'validation': X3_validation[1:-2]}
-            elif not distance and len(model.input_shape) < 5:
-                X = {'test': X3_test[:-2] + X3_test[-1:],
-                     'train': X3_train[:-2] + X3_train[-1:],
-                     'validation': X3_validation[:-2] + X3_validation[-1:]}
-            elif not context and len(model.input_shape) < 5:
-                X = {'test': X3_test[1:-1],
-                     'train': X3_train[1:-1],
-                     'validation': X3_validation[1:-1]}
+            if not distance:
+                X = {'test': X3_test[0:-2],
+                     'train': X3_train[0:-2],
+                     'validation': X3_validation[0:-2]}
             else:
                 X = {'test': X3_test,
                      'train': X3_train,
@@ -1010,15 +997,15 @@ def RCT_routine(netname="RCT7net2018"):
 
     test_dataset_version = "neo"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
 
     test_dataset_version = "mixed"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
 
     test_dataset_version = "glaucoma"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
 
 
 def drinv_routine():
@@ -1029,7 +1016,7 @@ def drinv_routine():
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
 
 
 def ECHR_routine():
@@ -1040,7 +1027,7 @@ def ECHR_routine():
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
 
 
 
@@ -1054,7 +1041,7 @@ def cdcp_routine():
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
     # perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
     #                    ensemble=True, ensemble_top_criterion="link", ensemble_top_n=0.3)
 
@@ -1068,7 +1055,7 @@ def UKP_routine():
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
 
 
 def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):
