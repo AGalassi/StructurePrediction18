@@ -17,99 +17,12 @@ import ast
 import numpy as np
 
 
+
 def split_propositions(text, propositions_offsets):
     propositions = []
     for offsets in propositions_offsets:
         propositions.append(text[offsets[0]:offsets[1]])
     return propositions
-
-"""
-def create_original_dataset_pickle(dataset_path, link_types, dataset_type='train'):
-    data_path = os.path.join(dataset_path, 'original_data', dataset_type)
-
-    data_list = []
-
-    for i in range (2000):
-        file_name = "%05d" % (i)
-        text_file_path = os.path.join(data_path, file_name + ".txt")
-        if os.path.exists(text_file_path):
-
-            text_file = open(text_file_path, 'r')
-            labels_file = open(os.path.join(data_path, file_name + ".ann.json"), 'r')
-            data = json.load(labels_file)
-            raw_text = text_file.read()
-            text_file.close()
-            labels_file.close()
-
-            propositions = split_propositions(raw_text, data['prop_offsets'])
-
-            if len(data['url'])>0:
-                print('URL! ' + str(i))
-
-            num_propositions = len(propositions)
-
-            for sen1 in range(num_propositions):
-                for sen2 in range (num_propositions):
-                    relation_type = None
-                    relation1to2 = False
-
-                    # relation type
-                    for link_type in link_types:
-                        links = data[link_type]
-
-                        for link in links:
-                            # DEBUG
-                            # if not link[0][0] == link[0][1]:
-                                # raise Exception('MORE PROPOSITIONS IN THE SAME RELATION: document ' + file_name)
-
-                            source_range = range(link[0][0], link[0][1]+1)
-
-                            if  sen1 in source_range and link[1] == sen2:
-                                if relation_type is not None and not relation_type == link_type:
-                                    raise Exception('MORE RELATION FOR THE SAME PROPOSITIONS: document ' + file_name)
-                                relation_type = link_type
-                                relation1to2 = True
-
-                            elif sen2 in source_range and link[1] == sen1:
-                                relation_type = "inv_" + link_type
-
-                    # proposition type
-                    type1 = data['prop_labels'][sen1]
-                    type2 = data['prop_labels'][sen2]
-
-                    dataframe_row = {'textID' : i,
-                                     'rawtext': raw_text,
-                                     'source_proposition':propositions[sen1],
-                                     'target_proposition':propositions[sen2],
-                                     'source_type':type1,
-                                     'target_type':type2,
-                                     'relation_type':relation_type,
-                                     'source_to_target':relation1to2,
-                                     'set':dataset_type
-                    }
-
-                    data_list.append(dataframe_row)
-
-
-    dataframe = pandas.DataFrame(data_list)
-
-    dataframe = dataframe[['textID',
-                           'rawtext',
-                           'source_proposition',
-                           'target_proposition',
-                           'source_type',
-                           'target_type',
-                           'relation_type',
-                           'source_to_target',
-                           'set']]
-
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
-    dataframe_path = os.path.join(pickles_path, dataset_type + ".pkl")
-
-    if not os.path.exists(pickles_path):
-        os.makedirs(pickles_path)
-    dataframe.to_pickle(dataframe_path)
-"""
 
 def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=False):
     data_path = os.path.join(dataset_path, dataset_version, dataset_type)
@@ -1325,7 +1238,7 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                 continue
             i = int(document_name.split(".")[0])
 
-            labels_file = open(document_path, 'r')
+            labels_file = open(document_path, 'r', encoding='utf-8')
 
             labels_line = []
 
@@ -1343,6 +1256,9 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
 
             for link_type in link_types:
                 data[link_type] = []
+
+            if i == 7680374:
+                print()
 
             for line in labels_line:
                 splits = line.split(maxsplit=4)
@@ -1375,6 +1291,9 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                         relation = "attack"
 
                     data[relation].append([source, target])
+
+            if i == 7680374:
+                print()
 
             # in case annotations are not made following the temporal order
             # new order given by the starting offsets
@@ -1421,6 +1340,10 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
             num_propositions = len(propositions)
 
             assert (num_propositions >= 1)
+
+            if i == 7680374:
+                print()
+
 
             for sourceID in range(num_propositions):
 
@@ -1497,7 +1420,6 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                 if type1 not in prop_count.keys():
                     prop_count[type1] = 0
                 prop_count[type1] += 1
-            i += 1
 
         pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
         if not os.path.exists(pickles_path):
@@ -1915,13 +1837,13 @@ if __name__ == '__main__':
     # i = 2
 
     # RCT CORPUS
-    # routine_RCT_corpus()
+    routine_RCT_corpus()
 
     # Dr.Inventor CORPUS
     # routine_DrInventor_corpus()
 
     # ECHR CORPUS
-    routine_ECHR_corpus()
+    # routine_ECHR_corpus()
 
     """
 

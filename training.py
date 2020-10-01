@@ -12,26 +12,31 @@ import time
 import random
 import evaluate_net
 import json
+import hyperopt as hopt
 import tensorflow as tf
 
+from hyperopt.mongoexp import MongoTrials
 from dataset_config import dataset_info
 from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
-                      create_count_nonpadding_fn, create_elementwise_division_fn)
-from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
-from keras.datasets import mnist
-from keras.layers import Dense, Dropout
-from keras.optimizers import RMSprop, Adam
-from keras.utils.vis_utils import plot_model
-from keras.models import load_model, model_from_json
-from keras.preprocessing.sequence import  pad_sequences
+                      create_count_nonpadding_fn, create_elementwise_division_fn, build_net_9, create_padding_mask_fn,
+                      create_mutiply_negative_elements_fn, build_net_10, build_net_11,)
+from tensorflow.keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import RMSprop, Adam
+from tensorflow.keras.models import load_model, model_from_json
+from tensorflow.keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, create_lr_annealing_function, fmeasure, get_avgF1, RealValidationCallback
 from glove_loader import DIM
 from sklearn.metrics import f1_score, precision_recall_fscore_support
-from keras import backend as K
+from tensorflow.keras import backend as K
+# from keras.utils.vis_utils import plot_model
 from tensorflow.contrib.sparsemax import sparsemax
 
 DEBUG = False
 
+train_info = {}
+global_counter = 0
 
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.8
@@ -126,7 +131,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
                     continue
             dataset[split]['links'].append([0, 1])
         """
-        
+
         dataset[split]['sources_type'].append(categorical_prop[row['source_type']])
         dataset[split]['targets_type'].append(categorical_prop[row['target_type']])
         dataset[split]['relations_type'].append(categorical_link[row['relation_type']])
@@ -207,7 +212,9 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             max_prop_len = embed_length
         dataset[split]['target_props'].append(embeddings)
 
-        if DEBUG and len(dataset['validation']['target_props'])>10:
+
+        if DEBUG and (len(dataset['validation']['target_props'])>10 and len(dataset['test']['target_props'])>5 and
+            len(dataset['train']['target_props'])>10) :
             break
 
     print(str(time.ctime()) + '\t\tPADDING...')
@@ -315,7 +322,7 @@ def perform_training(name = 'prova999',
                      merge="a_self",
                      distribution="softmax",
                      classification="softmax",
-                     clean_previous_networks=True):
+                     clean_previous_networks=True,):
 
     embedding_size = int(DIM/embedding_scale)
     res_size = int(DIM/res_scale)
@@ -336,7 +343,7 @@ def perform_training(name = 'prova999',
     paramfile.close()
 
     if DEBUG:
-        epochs = 20
+        epochs = 3
 
     output_units = ()
     min_text = 0
@@ -489,6 +496,18 @@ def perform_training(name = 'prova999',
     evaluation_headline = ""
     evaluation_headline = dataset_info[dataset_name]["evaluation_headline_short"]
 
+
+
+    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, realname)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+
+    # CLEAR FOLDER
+    filelist = [f for f in os.listdir(save_dir) if f.endswith(".h5")]
+    for f in filelist:
+        os.remove(os.path.join(save_dir, f))
+
+
     # train and test iterations
     for i in range(iterations):
 
@@ -567,9 +586,85 @@ def perform_training(name = 'prova999',
                                 merge=merge,
                                 distribution=distribution,
                                 classification=classification)
+        elif network == "9" or network == 9:
+            model = build_net_9(bow=bow,
+                                link_as_sum=link_as_sum,
+                                text_length=max_text_len, propos_length=max_prop_len,
+                                regularizer_weight=regularizer_weight,
+                                dropout_embedder=dropout_embedder,
+                                dropout_resnet=dropout_resnet,
+                                embedding_size=embedding_size,
+                                embedder_layers=embedder_layers,
+                                resnet_layers=resnet_layers,
+                                res_size=res_size,
+                                final_size=final_size,
+                                outputs=output_units,
+                                bn_embed=bn_embed,
+                                bn_res=bn_res,
+                                bn_final=bn_final,
+                                single_LSTM=single_LSTM,
+                                pooling=pooling,
+                                text_pooling=text_pooling,
+                                pooling_type=pooling_type,
+                                dropout_final=dropout_final,
+                                same_DE_layers=same_layers,
+                                context=context,
+                                distance=distance_num,
+                                temporalBN=temporalBN,)
+        elif network == "10" or network == 10:
+            model = build_net_10(bow=bow,
+                                link_as_sum=link_as_sum,
+                                text_length=max_text_len, propos_length=max_prop_len,
+                                regularizer_weight=regularizer_weight,
+                                dropout_embedder=dropout_embedder,
+                                dropout_resnet=dropout_resnet,
+                                embedding_size=embedding_size,
+                                embedder_layers=embedder_layers,
+                                resnet_layers=resnet_layers,
+                                res_size=res_size,
+                                final_size=final_size,
+                                outputs=output_units,
+                                bn_embed=bn_embed,
+                                bn_res=bn_res,
+                                bn_final=bn_final,
+                                single_LSTM=single_LSTM,
+                                pooling=pooling,
+                                text_pooling=text_pooling,
+                                pooling_type=pooling_type,
+                                dropout_final=dropout_final,
+                                same_DE_layers=same_layers,
+                                context=context,
+                                distance=distance_num,
+                                temporalBN=temporalBN,)
+        elif network == "11" or network == 11:
+            model = build_net_11(bow=bow,
+                                link_as_sum=link_as_sum,
+                                text_length=max_text_len, propos_length=max_prop_len,
+                                regularizer_weight=regularizer_weight,
+                                dropout_embedder=dropout_embedder,
+                                dropout_resnet=dropout_resnet,
+                                embedding_size=embedding_size,
+                                embedder_layers=embedder_layers,
+                                resnet_layers=resnet_layers,
+                                res_size=res_size,
+                                final_size=final_size,
+                                outputs=output_units,
+                                bn_embed=bn_embed,
+                                bn_res=bn_res,
+                                bn_final=bn_final,
+                                single_LSTM=single_LSTM,
+                                pooling=pooling,
+                                text_pooling=text_pooling,
+                                pooling_type=pooling_type,
+                                dropout_final=dropout_final,
+                                same_DE_layers=same_layers,
+                                context=context,
+                                distance=distance_num,
+                                temporalBN=temporalBN,)
 
         if DEBUG:
-            plot_model(model, to_file=name + '.png', show_shapes=True)
+            # plot_model(model, to_file=name + '.png', show_shapes=True)
+            print()
 
 
         # it is necessary to save all the custom functions
@@ -616,15 +711,15 @@ def perform_training(name = 'prova999',
         sum_fn = create_sum_fn(1)
         division_fn = create_elementwise_division_fn()
         pad_fn = create_count_nonpadding_fn(1, (DIM,))
+        padd_fn = create_padding_mask_fn()
+        neg_fn = create_mutiply_negative_elements_fn()
         custom_objects[mean_fn.__name__] = mean_fn
         custom_objects[sum_fn.__name__] = sum_fn
         custom_objects[division_fn.__name__] = division_fn
         custom_objects[pad_fn.__name__] = pad_fn
+        custom_objects[padd_fn.__name__] = padd_fn
+        custom_objects[neg_fn.__name__] = neg_fn
         custom_objects[sparsemax.__name__] = sparsemax
-
-        save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, realname)
-        if not os.path.isdir(save_dir):
-            os.makedirs(save_dir)
 
         lr_function = create_lr_annealing_function(initial_lr=lr_alfa, k=lr_kappa)
 
@@ -649,6 +744,9 @@ def perform_training(name = 'prova999',
                       )
 
         model.summary()
+
+        print("Expected input")
+        print(model.input_shape)
 
         print(str(time.ctime()) + "\t\tMODEL COMPILED...")
 
@@ -888,6 +986,7 @@ def perform_training(name = 'prova999',
                     break
             model.load_weights(last_path)
 
+            print("\n\n\tCLEANING NETS BEFORE EPOCH: " + str(last_epoch) + "\n")
             if clean_previous_networks:
                 for epoch in range(last_epoch-1, 0, -1):
                     netpath = os.path.join(save_dir, name + '_weights.%03d.h5' % epoch)
@@ -904,6 +1003,9 @@ def perform_training(name = 'prova999',
 
             model = load_model(last_path, custom_objects=custom_objects)
 
+
+            print("\n\n\tCLEANING NETS BEFORE EPOCH: " + str(last_epoch) + "\n")
+
             if clean_previous_networks:
                 for epoch in range(last_epoch-1, 0, -1):
                     netpath = os.path.join(save_dir, name + '_completemodel.%03d.h5' % epoch)
@@ -913,22 +1015,22 @@ def perform_training(name = 'prova999',
         print("\n\n\tLOADED NETWORK: " + last_path + "\n")
 
 
-        if context and distance:
-            X = {'test': X3_test,
-                 'train': X3_train,
-                 'validation': X3_validation}
-        elif distance:
-            X = {'test': X3_test[1:-1],
-                 'train': X3_train[1:-1],
-                 'validation': X3_validation[1:-1]}
-        elif context:
-            X = {'test': X3_test[:-2] + X3_test[-1:],
-                 'train': X3_train[:-2] + X3_train[-1:],
-                 'validation': X3_validation[:-2] + X3_validation[-1:]}
-        else:
+        if not context and not distance and len(model.input_shape) < 5:
             X = {'test': X3_test[1:-2],
                  'train': X3_train[1:-2],
                  'validation': X3_validation[1:-2]}
+        elif not distance and len(model.input_shape) < 5:
+            X = {'test': X3_test[:-2] + X3_test[-1:],
+                 'train': X3_train[:-2] + X3_train[-1:],
+                 'validation': X3_validation[:-2] + X3_validation[-1:]}
+        elif not context  and len(model.input_shape) < 5:
+            X = {'test': X3_test[1:-1],
+                 'train': X3_train[1:-1],
+                 'validation': X3_validation[1:-1]}
+        else:
+            X = {'test': X3_test,
+                 'train': X3_train,
+                 'validation': X3_validation}
 
 
         Y = {'test': Y_test,
@@ -1094,28 +1196,31 @@ def perform_training(name = 'prova999',
 
 
 
+
+
 def RCT_routine():
     dataset_name = 'RCT'
     dataset_version = 'neo'
     split = 'total'
-    name = 'RCT7net2018'
+    # name = 'RCT7net2018'
+    name = 'RCT11'
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=10000,
         feature_type='bow',
-        patience=200,
+        patience=100,
         loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.001,
         beta_1=0.9,
         beta_2=0.9999,
-        res_scale=60, # res_siz =5
+        res_scale=60,  # res_siz =5
         resnet_layers=(1, 2),
-        embedding_scale=6, # embedding_size=50
+        embedding_scale=6,  # embedding_size=50
         embedder_layers=4,
-        final_scale=15, # final_size=20
+        final_scale=15,  # final_size=20
         space_scale=10,
         batch_size=500,
         regularizer_weight=0.0001,
@@ -1125,7 +1230,7 @@ def RCT_routine():
         bn_embed=True,
         bn_res=True,
         bn_final=True,
-        network=7,
+        network=11,
         monitor="links",
         true_validation=True,
         temporalBN=False,
@@ -1143,8 +1248,10 @@ def RCT_routine():
         dataset_name=dataset_name,
         dataset_version=dataset_version,
         dataset_split=split,
+        clean_previous_networks=True,
     )
 
+    evaluate_net.RCT_routine(netname='RCT11')
 
 
 def cdcp_argmining18_routine():
@@ -1253,18 +1360,93 @@ def UKP_routine():
     )
 
 def cdcp_routine():
+
     dataset_name = 'cdcp_ACL17'
     dataset_version = 'new_3'
     split = 'total'
-    name = 'cdcp7net2018batch100'
+    i = 0
 
+    for weight in [0.0001, 0.001, 0.01, 0.00001]:
+        for pooling in [10, 20, 5]:
+            for res_scale in [60, 30, 15]:
+                for resnet_layers in [(2,2), (1,3), (2,3), (1,2)]:
+                    for dropout in [0.5, 0.3, 0.1]:
+
+                        i += 1
+                        name = 'cdcp7net2018'+ str(i)
+
+                        perform_training(
+                            name=name,
+                            save_weights_only=True,
+                            epochs=10000,
+                            feature_type='bow',
+                            patience=100,
+                            loss_weights=[0, 10, 1, 1],
+                            lr_alfa=0.005,
+                            lr_kappa=0.001,
+                            beta_1=0.9,
+                            beta_2=0.9999,
+                            res_scale=res_scale, # res_siz =5
+                            resnet_layers=resnet_layers,
+                            embedding_scale=6, # embedding_size=50
+                            embedder_layers=4,
+                            final_scale=15, # final_size=20
+                            space_scale=10,
+                            batch_size=500,
+                            regularizer_weight=weight,
+                            dropout_resnet=dropout,
+                            dropout_embedder=dropout,
+                            dropout_final=dropout,
+                            bn_embed=True,
+                            bn_res=True,
+                            bn_final=True,
+                            network=7,
+                            monitor="links",
+                            true_validation=True,
+                            temporalBN=False,
+                            same_layers=False,
+                            context=False,
+                            distance=5,
+                            iterations=10,
+                            merge=None,
+                            single_LSTM=True,
+                            pooling=pooling,
+                            text_pooling=50,
+                            pooling_type='avg',
+                            distribution="sparsemax",
+                            classification="softmax",
+                            dataset_name=dataset_name,
+                            dataset_version=dataset_version,
+                            dataset_split=split,
+                        )
+
+                        dataset_name = 'cdcp_ACL17'
+                        training_dataset_version = 'new_3'
+                        test_dataset_version = "new_3"
+
+                        netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
+
+                        evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+
+
+
+# cdcp new routine
+def cdcp_routine2():
+
+    dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
+    split = 'total'
+    i = 0
+
+    i += 1
+    name = 'cdcp11'+ str(i)
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=10000,
         feature_type='bow',
-        patience=200,
+        patience=100,
         loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.001,
@@ -1276,7 +1458,7 @@ def cdcp_routine():
         embedder_layers=4,
         final_scale=15, # final_size=20
         space_scale=10,
-        batch_size=100,
+        batch_size=500,
         regularizer_weight=0.0001,
         dropout_resnet=0.1,
         dropout_embedder=0.1,
@@ -1284,7 +1466,7 @@ def cdcp_routine():
         bn_embed=True,
         bn_res=True,
         bn_final=True,
-        network=7,
+        network=11,
         monitor="links",
         true_validation=True,
         temporalBN=False,
@@ -1302,7 +1484,21 @@ def cdcp_routine():
         dataset_name=dataset_name,
         dataset_version=dataset_version,
         dataset_split=split,
+        clean_previous_networks=True,
     )
+
+    dataset_name = 'cdcp_ACL17'
+    training_dataset_version = 'new_3'
+    test_dataset_version = "new_3"
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
+
+    evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+
+
+
+
+
 
 
 def drinv_routine():
@@ -1356,61 +1552,102 @@ def drinv_routine():
         dataset_split=split,
     )
 
-if __name__ == '__main__':
 
-    # RCT_routine()
-    
-    # cdcp_routine()
+# TODO: this is not working. Why? Don't know.
+def cdcp_opt_search():
+# hyperopt optimization for hyperparameters
+    global train_info
 
-    # UKP_routine()
-    # evaluate_net.UKP_routine()
+    print("STARTING HYPERPARAMETERS OPTIMIZATION")
 
-    drinv_routine()
+    train_info = {
+                "dataset_name": 'cdcp_ACL17',
+                "dataset_version": 'new_3',
+                "split": 'total',
+                "name": 'cdcp7net2018hyperopt',
+                }
 
-    """
-    
-    if DEBUG:
-        print("DEBUG! DEBUG! DEBUG!!!!")
-        print("DEBUG! DEBUG! DEBUG!!!!")
-        print("DEBUG! DEBUG! DEBUG!!!!")
-        print("DEBUG! DEBUG! DEBUG!!!!")
-    name = 'prova999'
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
+    space = {
+                'res_layers_0': hopt.hp.choice('res_layers_0', [1, 2]),
+                'res_layers_1': hopt.hp.choice('res_layers_1', [2, 3]),
+                'weight': hopt.hp.loguniform("weight", -5, -1),
+                'pooling': hopt.hp.quniform("pooling", 5, 50, 5),
+                'dropout': hopt.hp.uniform("dropout", 0.1, 0.5),
+                'res_scale': hopt.hp.quniform("res_scale", 5, 100, 5),
+                "train_info": train_info
+            }
 
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_3'
-    split = 'total'
+    print("Connecting to DB")
 
-    name = 'cdcp8t3'
-    # more weight on relations, less weight on link
+    # trials = MongoTrials('mongo://localhost:1235/{}/jobs'.format(train_info["name"]), exp_key='exp1')
+    trials = hopt.Trials()
+
+    print("\tConnected!")
+    print("CONFIGURING")
+
+    sys.stdout.flush()
+
+    best = hopt.fmin(min_func,
+                     space=space,
+                     algo=hopt.tpe.suggest,
+                     max_evals=30,
+                     trials=trials,)
+
+    print("EVALUATING")
+
+    best_params = hopt.space_eval(space, best)
+
+    print("_____________________________________")
+    print('Hyper-parameters calibration ended..')
+    print('Best combination: {}'.format(best_params))
+
+
+# TODO: this is not working. Why? Don't know.
+# used for hyperparam optimization.
+def min_func(param):
+    # global global_counter
+    # global_counter += 1
+    train_info = {
+                "dataset_name": 'cdcp_ACL17',
+                "dataset_version": 'new_3',
+                "split": 'total',
+                "name": 'cdcp7net2018hyperopt',
+                }
+    name = train_info["name"]
+    split = train_info["split"]
+    dataset_name = train_info["dataset_name"]
+    dataset_version = train_info["dataset_version"]
+
+    # name = name + "_" + str(global_counter)
+
+    resnet_layers = (param["res_layers_0"], param["res_layers_1"])
 
     perform_training(
         name=name,
         save_weights_only=True,
-        epochs=1000,
+        epochs=10000,
         feature_type='bow',
-        patience=30,
-        loss_weights=[5, 10, 1, 1],
+        patience=10,
+        loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
-        lr_kappa=0.01,
+        lr_kappa=0.001,
         beta_1=0.9,
         beta_2=0.9999,
-        res_scale=60,
-        resnet_layers=(1, 2),
-        embedding_scale=10,
+        res_scale=int(param["res_scale"]),  # res_siz =5
+        resnet_layers=resnet_layers,
+        embedding_scale=6,  # embedding_size=50
         embedder_layers=4,
-        final_scale=15,
+        final_scale=15,  # final_size=20
         space_scale=10,
-        batch_size=150,
-        regularizer_weight=0,
-        dropout_resnet=0,
-        dropout_embedder=0,
-        dropout_final=0,
+        batch_size=500,
+        regularizer_weight=param["weight"],
+        dropout_resnet=param["dropout"],
+        dropout_embedder=param["dropout"],
+        dropout_final=param["dropout"],
         bn_embed=True,
         bn_res=True,
         bn_final=True,
-        network=8,
+        network=7,
         monitor="links",
         true_validation=True,
         temporalBN=False,
@@ -1418,13 +1655,104 @@ if __name__ == '__main__':
         context=False,
         distance=5,
         iterations=10,
-        merge="a_self",
+        merge=None,
+        single_LSTM=True,
+        pooling=int(param["pooling"]),
+        text_pooling=50,
+        pooling_type='avg',
         distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
-        dataset_split=split
+        dataset_split=split,
+    )
+
+    dataset_name = dataset_name
+    training_dataset_version = dataset_version
+    test_dataset_version = dataset_version
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
+
+    loss = - evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
+                                    ensemble=True)
+
+    print("==================================================================================")
+    for key in param.keys():
+        print(key)
+        print(param[key])
+        print("-")
+    print(loss)
+    print("==================================================================================")
+
+    return loss
+
+
+
+def ECHR_routine():
+    dataset_name = 'ECHR2018'
+    dataset_version = 'arg0'
+    split = 'total'
+    name = 'echr7net2018'
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=50,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=1000,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=7,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        context=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        distribution="sparsemax",
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
     )
 
 
-    """
+if __name__ == '__main__':
+
+    RCT_routine()
+    
+    # cdcp_routine2()
+
+    # UKP_routine()
+    # evaluate_net.UKP_routine()
+
+    # drinv_routine()
+
+    #ECHR_routine()
+    # evaluate_net.ECHR_routine()
+
+    # cdcp_opt_search()
+

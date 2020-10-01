@@ -33,7 +33,7 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
 
                                  },
 
-                "ECHR":         {"output_units": (2, 8, 2, 2),
+                "ECHR2018":     {"output_units": (2, 8, 2, 2),
                                  "min_text": 168, # NO
                                  "min_prop": 95,
                                  "link_as_sum": [[0, 2], [1, 3, 4, 5, 6, 7]],
@@ -43,7 +43,7 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                  "categorical_link": {'Support': [1, 0, 0, 0, 0, 0, 0, 0],
                                                       'inv_Support': [0, 1, 0, 0, 0, 0, 0, 0],
                                                       'Attack': [0, 0, 1, 0, 0, 0, 0, 0],
-                                                      'inv_Attacks': [0, 0, 0, 1, 0, 0, 0, 0],
+                                                      'inv_Attack': [0, 0, 0, 1, 0, 0, 0, 0],
                                                       'Citation': [0, 0, 0, 0, 1, 0, 0, 0],
                                                       'inv_Citation': [0, 0, 0, 0, 0, 1, 0, 0],
                                                       'Duplicate': [0, 0, 0, 0, 0, 0, 1, 0],
@@ -56,9 +56,8 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                 "F1 P premise\tF1 P claim\t" +
                                                                 "F1 P avg\n\n"),
                                  "prop_types": ['Premise', 'Claim'],
-                                 "rel_types": ['Support', 'inv_Support', 'Attack', 'inv_Attacks',
-                                               'Citation', 'inv_Citation', 'Duplicate', "None"],
-
+                                 "rel_types": ['Support', 'inv_Support', 'Attack', 'inv_Attack',
+                                               'Citation', 'inv_Citation', 'Duplicate', 'None'],
                                  },
 
                 "cdcp_ACL17":   {"output_units": (2, 5, 5, 5),

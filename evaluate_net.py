@@ -12,416 +12,27 @@ import time
 import json
 import training
 
-from keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
-from keras.datasets import mnist
-from keras.layers import Dense, Dropout
-from keras.optimizers import RMSprop, Adam
+from tensorflow.keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import RMSprop, Adam
 from keras.utils.vis_utils import plot_model
-from keras.models import load_model, model_from_json
-from keras.preprocessing.sequence import  pad_sequences
+from tensorflow.keras.models import load_model, model_from_json
+from tensorflow.keras.preprocessing.sequence import  pad_sequences
 from training_utils import TimingCallback, fmeasure, get_avgF1
 from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support, classification_report
 from glove_loader import DIM
 from scipy import stats
 from dataset_config import dataset_info
+from networks import (build_net_7, build_not_res_net_7, create_crop_fn, build_net_8, create_sum_fn, create_average_fn,
+                      create_count_nonpadding_fn, create_elementwise_division_fn, build_net_9, create_padding_mask_fn,
+                      create_mutiply_negative_elements_fn, build_net_10,)
 
 import networks
 
 
 MAXEPOCHS = 1000
 MAXITERATIONS = 20
-
-
-def evaluate_single_epoch(netname, dataset_name, dataset_version, split='test', epoch=None, feature_type='bow'):
-
-    epochs = MAXEPOCHS
-
-    # determine which network to load
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
-    last_path = ""
-    if epoch is None:
-        for epoch in range(epochs, 0, -1):
-            netpath = os.path.join(save_dir, netname + '_completemodel.%03d.h5' % epoch)
-            if os.path.exists(netpath):
-                last_path = netpath
-                break
-    else:
-        last_path = os.path.join(save_dir, netname + '_completemodel.%03d.h5' % epoch)
-
-    print(str(time.ctime()) + "\tTESTING NET: " + netname)
-    print(str(time.ctime()) + "\tLOADING DATASET...")
-    dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
-                                                       dataset_version=dataset_version,
-                                                       dataset_split=split,
-                                                       feature_type=feature_type,
-                                                       min_prop_len=153,
-                                                       min_text_len=552)
-    print(str(time.ctime()) + "\tDATASET LOADED...")
-
-    sys.stdout.flush()
-
-    print(str(time.ctime()) + "\tPROCESSING DATA AND MODEL...")
-    X_text_test = dataset[split]['texts']
-    dataset[split]['texts'] = 0
-    X_source_test = dataset[split]['source_props']
-    dataset[split]['source_props'] = 0
-    X_target_test = dataset[split]['target_props']
-    dataset[split]['target_props'] = 0
-    Y_links_test = np.array(dataset[split]['links'])
-    Y_rtype_test = np.array(dataset[split]['relations_type'])
-    Y_stype_test = np.array(dataset[split]['sources_type'])
-    Y_ttype_test = np.array(dataset[split]['targets_type'])
-    X_test = [X_text_test, X_source_test, X_target_test]
-    Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
-
-    X_marks_test = dataset[split]['mark']
-    X_dist_test = dataset[split]['distance']
-    X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test]
-
-    print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
-
-    print(str(time.ctime()) + "\tLOADING NETWORK: " + last_path)
-
-    # create metrics for the model
-    fmeasure_0 = get_avgF1([0])
-    fmeasure_1 = get_avgF1([1])
-    fmeasure_2 = get_avgF1([2])
-    fmeasure_3 = get_avgF1([3])
-    fmeasure_4 = get_avgF1([4])
-    fmeasure_0_1_2_3 = get_avgF1([0, 1, 2, 3])
-    fmeasure_0_1_2_3_4 = get_avgF1([0, 1, 2, 3, 4])
-    fmeasure_0_2 = get_avgF1([0, 2])
-    fmeasure_0_1_2 = get_avgF1([0, 1, 2])
-    fmeasure_0_1 = get_avgF1([0, 1, 2])
-
-    fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3, fmeasure_0_1_2_3_4,
-                 fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1]
-
-
-    if dataset_name == 'cdcp_ACL17':
-        props_fmeasures = [fmeasure_0_1_2_3_4]
-    # elif dataset_name == 'AAEC_v2':
-    #    props_fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_0_1_2]
-    elif dataset_name == 'AAEC_v2':
-        props_fmeasures = [fmeasure_0_1_2]
-
-    # for using them during model loading
-    fmeasures_names = {}
-    for fmeasure in fmeasures:
-        fmeasures_names[fmeasure.__name__] = fmeasure
-
-    model = load_model(last_path,
-                       custom_objects=fmeasures_names
-                       )
-
-
-    print(str(time.ctime()) + "\t\tNETWORK LOADED")
-
-    testfile = open(os.path.join(save_dir, netname + ".%03d_eval.txt" % epoch), 'a')
-
-
-    print("\n-----------------------\n")
-
-    print(str(time.ctime()) + "\tEVALUATING MODEL")
-
-    # evaluate the model with sci-kit learn
-
-    if dataset_name == "AAEC_v2":
-        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
-                       "P AVG\tP premise\tP claim\tP major claim\n")
-    elif dataset_name == "cdcp_ACL17":
-        testfile.write("\n\nset\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
-                       "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n")
-
-    Y_pred = model.predict(X3_test)
-
-    Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
-    Y_test_prop = np.concatenate([Y_test[2], Y_test[3]])
-
-    Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
-    Y_test_prop = np.argmax(Y_test_prop, axis=-1)
-
-    Y_pred_links = np.argmax(Y_pred[0], axis=-1)
-    Y_test_links = np.argmax(Y_test[0], axis=-1)
-
-    Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
-    Y_test_rel = np.argmax(Y_test[1], axis=-1)
-
-    score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-    score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-    score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
-    score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
-    score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
-
-    score_AVG_LP = np.mean([score_link, score_prop_AVG])
-    score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
-
-    string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
-    string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
-    for score in score_rel:
-        string += "\t" + str(score)
-    string += "\t" + str(score_prop_AVG)
-    for score in score_prop:
-        string += "\t" + str(score)
-
-    testfile.write(string + "\n")
-
-    testfile.flush()
-    testfile.close()
-
-    print(str(time.ctime()) + "\t\tFINISHED")
-
-
-# TODO: optimize (test evaluation outside of cycle
-def evaluate_every_epoch(netname, dataset_name, dataset_version, split='test', feature_type='bow',
-                         context=True, distance=True):
-    """
-    Evaluate the network in each of the available epochs
-    :param netname:
-    :param dataset_name:
-    :param dataset_version:
-    :param split:
-    :param feature_type:
-    :return:
-    """
-
-
-    if dataset_name == 'AAEC_v2':
-        min_text = 168
-        min_prop = 72
-    else:
-        min_text = 552
-        min_prop = 153
-
-    epochs = MAXEPOCHS
-
-    print(str(time.ctime()) + "\tTESTING NET: " + netname)
-    print(str(time.ctime()) + "\tLOADING DATASET...")
-    dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
-                                                       dataset_version=dataset_version,
-                                                       dataset_split=split,
-                                                       feature_type=feature_type,
-                                                       min_prop_len=min_prop,
-                                                       min_text_len=min_text)
-    print(str(time.ctime()) + "\tDATASET LOADED...")
-
-    sys.stdout.flush()
-
-    print(str(time.ctime()) + "\tPROCESSING DATA AND MODEL...")
-    X_text_test = dataset[split]['texts']
-    dataset[split]['texts'] = 0
-    X_source_test = dataset[split]['source_props']
-    dataset[split]['source_props'] = 0
-    X_target_test = dataset[split]['target_props']
-    dataset[split]['target_props'] = 0
-    Y_links_test = np.array(dataset[split]['links'])
-    Y_rtype_test = np.array(dataset[split]['relations_type'])
-    Y_stype_test = np.array(dataset[split]['sources_type'])
-    Y_ttype_test = np.array(dataset[split]['targets_type'])
-    X_test = [X_text_test, X_source_test, X_target_test]
-    Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
-
-    X_marks_test = dataset[split]['mark']
-    X_dist_test = dataset[split]['distance']
-    
-    if context and distance:
-        X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test]
-    elif distance:
-        X3_test = [X_source_test, X_target_test, X_dist_test]
-    elif context:
-        X3_test = [X_text_test, X_source_test, X_target_test, X_marks_test]
-    else:
-        X3_test = [X_source_test, X_target_test]
-
-    print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
-
-    # create metrics for the model
-    fmeasure_0 = get_avgF1([0])
-    fmeasure_1 = get_avgF1([1])
-    fmeasure_2 = get_avgF1([2])
-    fmeasure_3 = get_avgF1([3])
-    fmeasure_4 = get_avgF1([4])
-    fmeasure_0_1_2_3 = get_avgF1([0, 1, 2, 3])
-    fmeasure_0_1_2_3_4 = get_avgF1([0, 1, 2, 3, 4])
-    fmeasure_0_2 = get_avgF1([0, 2])
-    fmeasure_0_1_2 = get_avgF1([0, 1, 2])
-    fmeasure_0_1 = get_avgF1([0, 1, 2])
-
-    crop0 = networks.create_crop_fn(1, 0, 1)
-    crop1 = networks.create_crop_fn(1, 1, 2)
-    crop2 = networks.create_crop_fn(1, 2, 3)
-    crop3 = networks.create_crop_fn(1, 3, 4)
-    crop4 = networks.create_crop_fn(1, 4, 5)
-
-    fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3, fmeasure_0_1_2_3_4,
-                 fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1]
-
-    crops = [crop0, crop1, crop2, crop3, crop4]
-
-
-    # for using them during model loading
-    custom_objects = {}
-    for fmeasure in fmeasures:
-        custom_objects[fmeasure.__name__] = fmeasure
-    for crop in crops:
-        custom_objects[crop.__name__] = crop
-
-
-    # determine which network to load
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
-    testfile = open(os.path.join(save_dir, netname + ".history_eval.txt"), 'a')
-
-    if dataset_name == "AAEC_v2":
-        testfile.write("epoch\tset\tAVG all\tAVG LP\tlink\tR AVG dir\tR support\tR attack\t" +
-                       "P AVG\tP premise\tP claim\tP major claim\n")
-    elif dataset_name == "cdcp_ACL17":
-        testfile.write("epoch\tset\tAVG all\tAVG LP\tlink\tR AVG dir\tR reason\tR evidence\t" +
-                       "P AVG\tP policy\tP fact\tP testimony\tP value\tP reference\n")
-
-    last_path = ""
-
-    model_path = os.path.join(save_dir, netname + '_model.json')
-    save_weights_only = False
-    if os.path.exists(model_path):
-        save_weights_only = True
-
-        with open(model_path, "r") as f:
-            string = json.load(f)
-            model = model_from_json(string, custom_objects=custom_objects)
-
-    for epoch in range(epochs, 0, -1):
-        if save_weights_only:
-            netpath = os.path.join(save_dir, netname + '_weights.%03d.h5' % epoch)
-        else:
-            netpath = os.path.join(save_dir, netname + '_completemodel.%03d.h5' % epoch)
-        if os.path.exists(netpath):
-            last_path = netpath
-
-            print(str(time.ctime()) + "\tLOADING NETWORK: " + last_path)
-
-            if save_weights_only:
-                model.load_weights(last_path)
-            else:
-                model = load_model(last_path, custom_objects=custom_objects)
-
-            print(str(time.ctime()) + "\t\tNETWORK LOADED")
-
-            print("\n- - - - - - - - - -\n")
-
-            print(str(time.ctime()) + "\tEVALUATING MODEL")
-            sys.stdout.flush()
-
-            # evaluate the model with sci-kit learn
-
-            # 2 dim
-            # ax0 = samples
-            # ax1 = classes
-            Y_pred = model.predict(X3_test)
-
-            # begin of the evaluation of the single propositions scores
-            sids = dataset[split]['s_id']
-            tids = dataset[split]['t_id']
-
-            # dic
-            # each values has 2 dim
-            # ax0: ids
-            # ax1: classes
-            s_pred_scores = {}
-            s_test_scores = {}
-            t_pred_scores = {}
-            t_test_scores = {}
-
-            for index in range(len(sids)):
-                sid = sids[index]
-                tid = tids[index]
-
-                if sid not in s_pred_scores.keys():
-                    s_pred_scores[sid] = []
-                    s_test_scores[sid] = []
-                s_pred_scores[sid].append(Y_pred[2][index])
-                s_test_scores[sid].append(Y[split][2][index])
-
-                if tid not in t_pred_scores.keys():
-                    t_pred_scores[tid] = []
-                    t_test_scores[tid] = []
-                t_pred_scores[tid].append(Y_pred[3][index])
-                t_test_scores[tid].append(Y[split][3][index])
-
-            Y_pred_prop_real_list = []
-            Y_test_prop_real_list = []
-
-            for p_id in t_pred_scores.keys():
-                Y_pred_prop_real_list.append(np.concatenate([s_pred_scores[p_id], t_pred_scores[p_id]]))
-                Y_test_prop_real_list.append(np.concatenate([s_test_scores[p_id], t_test_scores[p_id]]))
-
-            # 3 dim
-            # ax0: ids
-            # ax1: samples
-            # ax2: classes
-            Y_pred_prop_real_list = np.array(Y_pred_prop_real_list)
-            Y_test_prop_real_list = np.array(Y_test_prop_real_list)
-
-            Y_pred_prop_real = []
-            Y_test_prop_real = []
-            for index in range(len(Y_pred_prop_real_list)):
-                Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
-                Y_test_prop_real.append(np.sum(Y_test_prop_real_list[index], axis=-2))
-
-            Y_pred_prop_real = np.array(Y_pred_prop_real)
-            Y_test_prop_real = np.array(Y_test_prop_real)
-            Y_pred_prop_real = np.argmax(Y_pred_prop_real, axis=-1)
-            Y_test_prop_real = np.argmax(Y_test_prop_real, axis=-1)
-
-            # end of the evaluation of the single propositions scores
-
-            # Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
-            # Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
-
-            # Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
-            # Y_test_prop = np.argmax(Y_test_prop, axis=-1)
-
-            Y_pred_links = np.argmax(Y_pred[0], axis=-1)
-            Y_test_links = np.argmax(Y[split][0], axis=-1)
-
-            Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
-            Y_test_rel = np.argmax(Y[split][1], axis=-1)
-
-            score_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-            score_rel_AVG = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
-            # score_prop = f1_score(Y_test_prop, Y_pred_prop, average=None)
-            # score_prop_AVG = f1_score(Y_test_prop, Y_pred_prop, average='macro')
-
-            # score_AVG_LP = np.mean([score_link, score_prop_AVG])
-            # score_AVG_all = np.mean([score_link, score_prop_AVG, score_rel_AVG])
-
-            score_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
-            score_prop_AVG_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
-
-            score_AVG_LP_real = np.mean([score_link, score_prop_AVG_real])
-            score_AVG_all_real = np.mean([score_link, score_prop_AVG_real, score_rel_AVG])
-
-            # string = split + "\t" + str(score_AVG_all[0]) + "\t" + str(score_AVG_LP[0])
-            # string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
-            string = split + "_" + str(epoch) + "\t" + str(score_AVG_all_real[0]) + "\t" + str(score_AVG_LP_real[0])
-            string += "\t" + str(score_link[0]) + "\t" + str(score_rel_AVG)
-            for score in score_rel:
-                string += "\t" + str(score)
-            string += "\t" + str(score_prop_AVG_real)
-            # for score in score_prop:
-            #     string += "\t" + str(score)
-            for score in score_prop_real:
-                string += "\t" + str(score)
-
-            testfile.write(string + "\n")
-
-            testfile.flush()
-
-    testfile.close()
-
-    print(str(time.ctime()) + "\t\tFINISHED")
-    print("\n-----------------------\n")
-
 
 
 def print_model(netname, dataset_name, dataset_version):
@@ -502,9 +113,8 @@ def print_model(netname, dataset_name, dataset_version):
             break
 
 
-
 def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', context=False, distance=5,
-                       ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link"):
+                       ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link", token_wise=False):
     return_value = 0
 
     # name of the network
@@ -536,6 +146,16 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                                                 context=context,
                                                                 min_text_len=min_text,
                                                                 min_prop_len=min_prop,)
+
+    # for token-wise evaluation, memorize the number of tokens in each proposition
+    num_of_tokens = {}
+    if token_wise:
+        for split in ['train', 'test', 'validation']:
+            for index in range(len(dataset[split]['t_id'])):
+                prop_id = dataset[split]['t_id'][index]
+                if prop_id not in num_of_tokens.keys():
+                    target_prop = dataset[split]['target_props'][index]
+                    num_of_tokens[prop_id] = len(target_prop) - len(np.where(target_prop == 0)[0])
 
     print(str(time.ctime()) + "\tDATASET LOADED...")
 
@@ -648,26 +268,6 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
         print("Length: " + str(len(X3_validation[0])))
 
-    if context and distance > 0:
-        X = {'test': X3_test,
-             'train': X3_train,
-             'validation': X3_validation}
-    elif distance > 0:
-        X = {'test': X3_test[1:-1],
-             'train': X3_train[1:-1],
-             'validation': X3_validation[1:-1]}
-    elif context:
-        X = {'test': X3_test[:-2] + X3_test[-1:],
-             'train': X3_train[:-2] + X3_train[-1:],
-             'validation': X3_validation[:-2] + X3_validation[-1:]}
-    else:
-        X = {'test': X3_test[1:-2],
-             'train': X3_train[1:-2],
-             'validation': X3_validation[1:-2]}
-
-    Y = {'test': Y_test,
-         'train': Y_train,
-         'validation': Y_validation}
 
     sys.stdout.flush()
 
@@ -705,7 +305,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P majclaim\tF1 P avgi\t" +
                                "Pr P AVG\tF1 Pr premise\tF1 Pr claim\tF1 Pr majclaim\tPr P avgi\t" +
                                "Rec P AVG\tRec P premise\tRec P claim\tRec P majclaim\tRec P avgi\t" +
-                               "Supp P premise\tSupp P claim\tSupp P majclaim" +
+                               "Supp P premise\tSupp P claim\tSupp P majclaim\tF1 nonLink" +
                                "\n\n")
     elif dataset_name == "cdcp_ACL17":
         evaluation_headline = ("set\t" +
@@ -715,7 +315,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                "F1 P AVG\tF1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\t"+
                                "Pr P AVG\tPr P policy\tPr P fact\tPr P testimony\tPr P value\tPr P reference\tPr P avg\t"+
                                "Rec P AVG\tRec P policy\tRec P fact\tRec P testimony\tRec P value\tRec P reference\tRec P avg\t"+
-                               "Supp P policy\tSupp P fact\tSupp P testimony\tSupp P value\tSupp P reference" +
+                               "Supp P policy\tSupp P fact\tSupp P testimony\tSupp P value\tSupp P reference\tF1 nonLink" +
                                "\n\n")
     elif dataset_name == "RCT":
         evaluation_headline = ("set\t" +
@@ -726,12 +326,16 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                 "Pr P AVG\tPr P premise\tPr P claim\tPr P avg\t" +
                                 "Rec P AVG\tRec P premise\tRec P claim\tRec P avg\t" +
                                 "Fs P AVG\tFs P premise\tFs P claim\tFs P avg\t" +
-                                "Supp P premise\tSupp P claim" +
+                                "Supp P premise\tSupp P claim\tF1 nonLink" +
                                 "\n\n")
     elif dataset_name == "DrInventor":
         evaluation_headline = this_ds_info["evaluation_headline_short"]
 
     print(str(time.ctime()) + "\t\tCREATING MODEL...")
+
+    # used to compute the F1 score for the relations
+    relations_labels = this_ds_info["link_as_sum"][0]
+    not_a_link_labels = this_ds_info["link_as_sum"][1]
 
 
     fmeasure_0 = get_avgF1([0])
@@ -772,6 +376,19 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     for crop in crops:
         custom_objects[crop.__name__] = crop
 
+    mean_fn = create_average_fn(1)
+    sum_fn = create_sum_fn(1)
+    division_fn = create_elementwise_division_fn()
+    pad_fn = create_count_nonpadding_fn(1, (DIM,))
+    padd_fn = create_padding_mask_fn()
+    neg_fn = create_mutiply_negative_elements_fn()
+    custom_objects[mean_fn.__name__] = mean_fn
+    custom_objects[sum_fn.__name__] = sum_fn
+    custom_objects[division_fn.__name__] = division_fn
+    custom_objects[pad_fn.__name__] = pad_fn
+    custom_objects[padd_fn.__name__] = padd_fn
+    custom_objects[neg_fn.__name__] = neg_fn
+
 
     save_dir = os.path.join(netfolder)
     if not os.path.exists(save_dir):
@@ -804,10 +421,14 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             iterations = iteration
             break
 
+
+    X = None
+    Y = None
+
     # train and test iterations
     for iteration in range(iterations+1):
 
-        print("Evaluating networks: " + str(iteration) + "/" + str(iterations))
+        print("Evaluating networks: " + str(iteration+1) + "/" + str(iterations+1))
         sys.stdout.flush()
 
         # explore all the possible epochs to fine the last one (the first one found)
@@ -831,6 +452,29 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                     model = load_model(last_path, custom_objects=custom_objects)
                 break
 
+
+        if X == None:
+            if not context and not distance and len(model.input_shape) < 5:
+                X = {'test': X3_test[1:-2],
+                     'train': X3_train[1:-2],
+                     'validation': X3_validation[1:-2]}
+            elif not distance and len(model.input_shape) < 5:
+                X = {'test': X3_test[:-2] + X3_test[-1:],
+                     'train': X3_train[:-2] + X3_train[-1:],
+                     'validation': X3_validation[:-2] + X3_validation[-1:]}
+            elif not context and len(model.input_shape) < 5:
+                X = {'test': X3_test[1:-1],
+                     'train': X3_train[1:-1],
+                     'validation': X3_validation[1:-1]}
+            else:
+                X = {'test': X3_test,
+                     'train': X3_train,
+                     'validation': X3_validation}
+
+            Y = {'test': Y_test,
+                 'train': Y_train,
+                 'validation': Y_validation}
+
         if training.DEBUG:
             plot_model(model, netname + ".png", show_shapes=True)
 
@@ -845,10 +489,13 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         testfile.write("\n\n")
         testfile.write("DATASET VERSION:\n")
         testfile.write(dataset_version)
-        testfile.write("\n\n")
+        testfile.write("\n")
 
         print("\n-----------------------\n")
 
+        if token_wise:
+            testfile.write("TOKEN-WISE EVALUATION")
+        testfile.write("\n")
 
         testfile.write(evaluation_headline)
 
@@ -867,11 +514,17 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             Y_pred = model.predict(X[split])
 
-            # begin of the evaluation of the single propositions scores
-            sids = dataset[split]['s_id']
-            tids = dataset[split]['t_id']
 
-            # dic
+            # every proposition is evaluated multiple times. all these evaluation must be merged together.
+            # merging is performed choosing the class that has received the highest probability score summing all the cases
+            # it is equivalent to the class that has received the highest probability on average
+            # Possible alternative: voting
+
+            # --- begin of the evaluation of the single propositions scores
+            sids = dataset[split]['s_id']  # list of source_ids for each pair
+            tids = dataset[split]['t_id']  # list of target_ids for each pair
+
+            # dictionaries that will contain the predictions and the truth for each component
             # each values has 2 dim
             # ax0: ids
             # ax1: classes
@@ -880,11 +533,12 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             t_pred_scores = {}
             t_test_scores = {}
 
+            # for each component, gather the list of predictions and ground truth (keeps separate source and target)
             for index in range(len(sids)):
                 sid = sids[index]
                 tid = tids[index]
 
-                if sid not in s_pred_scores.keys():
+                if sid not in s_pred_scores.keys():  # id not seen before
                     s_pred_scores[sid] = []
                     s_test_scores[sid] = []
                 s_pred_scores[sid].append(Y_pred[2][index])
@@ -899,9 +553,13 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             Y_pred_prop_real_list = []
             Y_test_prop_real_list = []
 
+            components_id_list = []
+
+            # merges sources and targets
             for p_id in t_pred_scores.keys():
                 Y_pred_prop_real_list.append(np.concatenate([s_pred_scores[p_id], t_pred_scores[p_id]]))
                 Y_test_prop_real_list.append(np.concatenate([s_test_scores[p_id], t_test_scores[p_id]]))
+                components_id_list.append(p_id)
 
             # 3 dim
             # ax0: ids
@@ -912,21 +570,57 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             Y_pred_prop_real = []
             Y_test_prop_real = []
+            # sum the prediction scores for each class
             for index in range(len(Y_pred_prop_real_list)):
                 Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
                 Y_test_prop_real.append(np.sum(Y_test_prop_real_list[index], axis=-2))
 
+            # select the class that has received the highest probability
             Y_pred_scores_prop_real = np.array(Y_pred_prop_real)
             Y_test_scores_prop_real = np.array(Y_test_prop_real)
             Y_pred_prop_real = np.argmax(Y_pred_scores_prop_real, axis=-1)
             Y_test_prop_real = np.argmax(Y_test_scores_prop_real, axis=-1)
-            # end of the evaluation of the single propositions scores
+            # --- end of the evaluation of the single propositions scores
 
             Y_pred_links = np.argmax(Y_pred[0], axis=-1)
             Y_test_links = np.argmax(Y[split][0], axis=-1)
 
             Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
             Y_test_rel = np.argmax(Y[split][1], axis=-1)
+
+
+            # If a comparison with a sequence tagging method is needed, it is necessary to split components into tokens
+            if token_wise:
+                print("Splitting token for token-wise")
+                # test and predictions are sorted according to components_id_list
+
+                if len(components_id_list) != len(Y_pred_prop_real):
+                    print(len(components_id_list))
+                    print(len(Y_pred_prop_real))
+                    print("ERROR!!! Components_id_list must be as long as the list of the predictions!!!")
+                    sys.exit(40)
+
+                Y_pred_scores_tok_real = []
+                Y_pred_tok_real = []
+                Y_test_tok_real = []
+
+                # expand each element for the number of tokens
+                for index in range(len(components_id_list)):
+                    id_prop = components_id_list[index]
+                    prop_pred = Y_pred_prop_real[index]
+                    prop_test = Y_test_prop_real[index]
+                    prop_score = Y_pred_scores_prop_real[index]
+                    tokens = num_of_tokens[id_prop]
+                    for j in range(tokens):
+                        Y_pred_scores_tok_real.append(prop_score)
+                        Y_pred_tok_real.append(prop_pred)
+                        Y_test_tok_real.append(prop_test)
+
+                # overwrite previous arrays
+                Y_pred_scores_prop_real = np.array(Y_pred_scores_tok_real)
+                Y_pred_prop_real = np.array(Y_pred_tok_real)
+                Y_test_prop_real = np.array(Y_test_tok_real)
+
 
             if ensemble is not None and ensemble is not False:
                 ensemble_prop_truth[split] = Y_test_prop_real
@@ -946,8 +640,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             # F1s
             score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
+            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
+            score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
+
 
             score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
             score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
@@ -1004,6 +700,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             for score in score_supp_prop:
                 iteration_scores.append(score)
 
+            iteration_scores.append(score_f1_non_link[0])
+
             final_scores[split].append(iteration_scores)
 
             # take note of the main desired value, so to select only top network for ensamble
@@ -1018,7 +716,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             # writing single iteration scores
             string = split
             for value in iteration_scores:
-                string += "\t" + "{:10.4f}".format(value)
+                string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
 
             print(string)
             testfile.write(string + "\n")
@@ -1084,7 +782,13 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     testfile.write("\n\n")
     testfile.write("DATASET VERSION:\n")
     testfile.write(dataset_version)
-    testfile.write("\n\n")
+    testfile.write("\n")
+
+    print("\n-----------------------\n")
+
+    if token_wise:
+        testfile.write("TOKEN-WISE EVALUATION")
+    testfile.write("\n")
 
     testfile.write(evaluation_headline)
     print(evaluation_headline)
@@ -1097,7 +801,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             string = split
             for value in split_scores:
-                string += "\t" + "{:10.4f}".format(value)
+                string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
 
             testfile.write(string + "\n")
             print(string)
@@ -1116,7 +820,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         # take only the top N networks (according to validation) into account
         ensemble_top_n = int((iterations+1) * ensemble_top_n)
         if ensemble_top_n < (iterations+1):
-            testfile.write("\tENSEMBLE\t" + "top " + str(ensemble_top_n) + "\t" + ensemble_top_criterion + "\n")
+            testfile.write("\tENSEMBLE\t" + "top " + str(ensemble_top_n) + "/" + str(iterations+1) + "\t"
+                           + ensemble_top_criterion + "\n")
             top_n_indexes = []
 
             # find the indexes of the top N networks
@@ -1143,7 +848,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 ensemble_prop_votes[split] = new_prop_votes
                 ensemble_rel_votes[split] = new_rel_votes
         else:
-            testfile.write("\tENSEMBLE\n")
+            testfile.write("\tENSEMBLE\t/" + str(iterations+1) + "\n")
 
         testfile.write(evaluation_headline)
         print(evaluation_headline)
@@ -1169,8 +874,9 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
                 # F1s
                 score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
+                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
+                score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
 
                 score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
                 score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
@@ -1202,7 +908,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 iteration_scores.append(score_f1_AVG_all_real[0])
                 iteration_scores.append(score_f1_AVG_LP_real[0])
                 iteration_scores.append(score_f1_link[0])
-                return_value = score_f1_link[0]
+
+                if split == "validation":
+                    return_value = score_f1_link[0]
+
                 iteration_scores.append(score_f1_rel_AVGM)
                 for score in score_f1_rel:
                     iteration_scores.append(score)
@@ -1229,12 +938,14 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 for score in score_supp_prop:
                     iteration_scores.append(score)
 
+                iteration_scores.append(score_f1_non_link[0])
+
                 final_scores[split].append(iteration_scores)
 
                 # writing single iteration scores
                 string = split
                 for value in iteration_scores:
-                    string += "\t" + "{:10.4f}".format(value)
+                    string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
 
                 print(string)
                 testfile.write(string + "\n")
@@ -1290,25 +1001,24 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
 
 
-def RCT_routine():
+def RCT_routine(netname="RCT7net2018"):
 
     dataset_name = "RCT"
     training_dataset_version = "neo"
-    netname = "RCT7net2018"
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
     test_dataset_version = "neo"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
 
     test_dataset_version = "mixed"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
 
     test_dataset_version = "glaucoma"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5, ensemble=True, token_wise=True)
 
 
 def drinv_routine():
@@ -1340,7 +1050,7 @@ def cdcp_routine():
     dataset_name = 'cdcp_ACL17'
     training_dataset_version = 'new_3'
     test_dataset_version = "new_3"
-    netname = 'cdcp7net2018'
+    netname = 'cdcp111'
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
@@ -1647,11 +1357,11 @@ def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_ty
 
 
 if __name__ == '__main__':
-    cdcp_routine()
+    # cdcp_routine()
 
     # drinv_routine()
 
-    # RCT_routine()
+    RCT_routine(netname='RCT11')
 
     """
     netname = 'prova'

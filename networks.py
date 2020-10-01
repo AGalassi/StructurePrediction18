@@ -9,201 +9,20 @@ __email__ = "a.galassi@unibo.it"
 Code for creating some neural network models. Don't judge them, please. They are just born this way.
 """
 
-
-import keras
+from tensorflow.python.ops import math_ops
+import tensorflow as tf
+import tensorflow.keras as keras
 import numpy as np
-import keras.backend as K
-from keras.layers import (BatchNormalization, Dropout, Dense, Input, Activation, LSTM, Conv1D, Add, Lambda, MaxPool1D,
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import (BatchNormalization, Dropout, Dense, Input, Activation, LSTM, Conv1D, Add, Lambda, MaxPool1D,
                           Bidirectional, Concatenate, Flatten, Embedding, TimeDistributed, AveragePooling1D, Multiply,
                           GlobalAveragePooling1D, GlobalMaxPooling1D, Reshape, Permute, RepeatVector, Masking)
-from keras.utils.vis_utils import plot_model
-from tensorflow.contrib.sparsemax import sparsemax
+# from keras.utils.vis_utils import plot_model
+# from tensorflow.contrib.sparsemax import sparsemax
 import pydot
 from glove_loader import DIM
-
-
-def build_net_1(bow=None,
-                text_length=200, propos_length=100,
-                regularizer_weight=0.001,
-                use_conv=True,
-                dropout_embedder=0.1,
-                dropout_resnet=0.1,
-                embedding_size=int(DIM/3),
-                embedder_layers=2,
-                res_size=int(DIM/3),
-                resnet_layers=(3, 2),
-                final_size=int(DIM/3),
-                outputs=(2, 5, 5, 5)):
-
-    if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length,), name="sourceprop_input_L")
-        targetprop_il = Input(shape=(propos_length,), name="targetprop_input_L")
-
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
-
-        prev_source_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="sourceprop_embed")(sourceprop_il)
-
-        prev_target_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="targetprop_embed")(targetprop_il)
-    else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length, DIM), name="sourceprop_input_L")
-        targetprop_il = Input(shape=(propos_length, DIM), name="targetprop_input_L")
-        prev_text_l = text_il
-        prev_source_l = sourceprop_il
-        prev_target_l = targetprop_il
-
-    text_LSTM = make_embedder(prev_text_l, 'text', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-    sourceprop_LSTM = make_embedder(prev_source_l, 'sourceprop', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-    targetprop_LSTM = make_embedder(prev_target_l, 'targetprop', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-
-    concat_l = Concatenate(name='embed_merge')([text_LSTM, sourceprop_LSTM, targetprop_LSTM])
-
-    prev_l = make_resnet(concat_l, regularizer_weight, resnet_layers,
-                         res_size=res_size, dropout=dropout_resnet)
-
-    prev_l = BatchNormalization(name='final_BN')(prev_l)
-
-    prev_l = Dropout(dropout_resnet, name='final_dropout')(prev_l)
-
-    link_ol = Dense(units=outputs[0],
-                    name='link',
-                    activation='softmax',
-                    )(prev_l)
-
-    rel_ol = Dense(units=outputs[1],
-                   name='relation',
-                   activation='softmax',
-                   )(prev_l)
-
-    source_ol = Dense(units=outputs[2],
-                      name='source',
-                      activation='softmax',
-                      )(prev_l)
-
-    target_ol = Dense(units=outputs[3],
-                      name='target',
-                      activation='softmax',
-                      )(prev_l)
-
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il),
-                             outputs=(link_ol, rel_ol, source_ol, target_ol),
-                             )
-
-    return full_model
-
-
-def build_net_3(bow=None,
-                text_length=200, propos_length=100,
-                regularizer_weight=0.001,
-                use_conv=True,
-                dropout_embedder=0.1,
-                dropout_resnet=0.1,
-                embedding_size=int(DIM/3),
-                embedder_layers=2,
-                res_size=int(DIM/3),
-                resnet_layers=(3, 2),
-                final_size=int(DIM/3),
-                outputs=(2, 5, 5, 5)):
-
-    if bow is not None:
-        text_il = Input(shape=(text_length,), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length,), name="sourceprop_input_L")
-        targetprop_il = Input(shape=(propos_length,), name="targetprop_input_L")
-
-        prev_text_l = Embedding(bow.shape[0],
-                                bow.shape[1],
-                                weights=[bow],
-                                input_length=text_length,
-                                trainable=False,
-                                name="text_embed")(text_il)
-
-        prev_source_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="sourceprop_embed")(sourceprop_il)
-
-        prev_target_l = Embedding(bow.shape[0],
-                                  bow.shape[1],
-                                  weights=[bow],
-                                  input_length=propos_length,
-                                  trainable=False,
-                                  name="targetprop_embed")(targetprop_il)
-    else:
-        text_il = Input(shape=(text_length, DIM), name="text_input_L")
-        sourceprop_il = Input(shape=(propos_length, DIM), name="sourceprop_input_L")
-        targetprop_il = Input(shape=(propos_length, DIM), name="targetprop_input_L")
-        prev_text_l = text_il
-        prev_source_l = sourceprop_il
-        prev_target_l = targetprop_il
-
-    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
-    dist_il = Input(shape=(10,), name="dist_input_L")
-
-    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
-
-    text_LSTM = make_embedder(prev_text_l, 'text', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-    sourceprop_LSTM = make_embedder(prev_source_l, 'sourceprop', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-    targetprop_LSTM = make_embedder(prev_target_l, 'targetprop', regularizer_weight, embedder_layers,
-                              embedding_size=embedding_size, dropout=dropout_embedder, use_conv=use_conv)
-
-    concat_l = Concatenate(name='embed_merge')([text_LSTM, sourceprop_LSTM, targetprop_LSTM, dist_il])
-
-    prev_l = make_resnet(concat_l, regularizer_weight, resnet_layers,
-                         res_size=res_size, dropout=dropout_resnet)
-
-    prev_l = BatchNormalization(name='final_BN')(prev_l)
-
-    prev_l = Dropout(dropout_resnet, name='final_dropout')(prev_l)
-
-    link_ol = Dense(units=outputs[0],
-                    name='link',
-                    activation='softmax',
-                    )(prev_l)
-
-    rel_ol = Dense(units=outputs[1],
-                   name='relation',
-                   activation='softmax',
-                   )(prev_l)
-
-    source_ol = Dense(units=outputs[2],
-                      name='source',
-                      activation='softmax',
-                      )(prev_l)
-
-    target_ol = Dense(units=outputs[3],
-                      name='target',
-                      activation='softmax',
-                      )(prev_l)
-
-    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, mark_il, dist_il),
-                             outputs=(link_ol, rel_ol, source_ol, target_ol),
-                             )
-
-    return full_model
-
+import sys
+from attentionLayers import AdditiveAttention
 
 def make_resnet(input_layer, regularizer_weight, layers=(2, 2), res_size=int(DIM/3)*3, dropout=0, bn=True):
     prev_layer = input_layer
@@ -545,6 +364,1219 @@ def make_embedder_with_all_layers(input_layer, layer_name, layers, bn=True, temp
     return prev_layer
 
 
+# net 7 with attention
+def build_net_10(bow,
+                propos_length,
+                outputs,
+                link_as_sum,
+                distance,
+                text_length=200,
+                regularizer_weight=0.001,
+                dropout_embedder=0.1,
+                dropout_resnet=0.1,
+                dropout_final=0,
+                embedding_size=int(25),
+                embedder_layers=2,
+                resnet_layers=(2, 2),
+                res_size=50,
+                final_size=int(20),
+                bn_embed=True,
+                bn_res=True,
+                bn_final=True,
+                single_LSTM=False,
+                pooling=0,
+                text_pooling=0,
+                pooling_type='avg',
+                same_DE_layers=False,
+                context=True,
+                temporalBN=False, ):
+    """
+    Creates a neural network that takes as input two components (propositions) and ouputs the class of the two
+    components, whether a relation between the two exists, and the class of that relation.
+
+
+
+    :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
+                layer of keras, the input is supposed in BoW form.
+                If it is None, the input is supposed to already contain pre-trained embeddings.
+    :param text_length: The temporal length of the text input
+    :param propos_length: The temporal length of the proposition input
+    :param regularizer_weight: Regularization weight
+    :param dropout_embedder: Dropout used in the embedder
+    :param dropout_resnet: Dropout used in the residual network
+    :param dropout_final: Dropout used in the final classifiers
+    :param embedding_size: Size of the spatial reduced embeddings
+    :param embedder_layers: Number of layers in the initial embedder (int)
+    :param resnet_layers: Number of layers in the final residual network. Tuple where the first value indicates the
+                          number of blocks and the second the number of layers per block
+    :param res_size: Number of neurons in the residual blocks
+    :param final_size: Number of neurons of the final layer
+    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
+                        of the relation classifier will be summed together according to the values in the arrays.
+                        Example: if the link classification is binary, and its contributions from relation
+                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                        [[0, 2], [1, 3, 4]]
+    :param bn_embed: Whether the batch normalization should be used in the embedding block
+    :param bn_res: Whether the batch normalization should be used in the residual blocks
+    :param bn_final: Whether the batch normalization should be used in the final layer
+    :param single_LSTM: Whether the same LSTM should be used both for processing the target and the source
+    :param pooling:
+    :param text_pooling:
+    :param pooling_type: 'avg' or 'max' pooling
+    :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
+    :param context: If the context (the original text) should be used as input
+    :param distance: The maximum distance that is taken into account
+    :param temporalBN: Whether temporal batch-norm is applied
+    :return:
+    """
+
+    if bow is not None:
+        text_il = Input(shape=(text_length,), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length,), name="target_input_L")
+
+        prev_text_l = Embedding(bow.shape[0],
+                                bow.shape[1],
+                                weights=[bow],
+                                input_length=text_length,
+                                trainable=False,
+                                name="text_embed")(text_il)
+
+        prev_source_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="source_embed")(sourceprop_il)
+
+        prev_target_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="target_embed")(targetprop_il)
+    else:
+        text_il = Input(shape=(text_length, DIM), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
+        prev_text_l = text_il
+        prev_source_l = sourceprop_il
+        prev_target_l = targetprop_il
+
+    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
+    if distance > 0:
+        dist_il = Input(shape=(int(distance * 2),), name="dist_input_L")
+    else:
+        dist_il = Input(shape=(2,), name="dist_input_L")
+
+    shape = int(np.shape(prev_text_l)[2])
+    layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
+                                  layers_size=embedding_size, temporalBN=temporalBN)
+    if same_DE_layers:
+        make_embedder = make_embedder_with_all_layers
+    else:
+        make_embedder = make_embedder_with_layers
+        layers = layers[0]
+
+    if embedder_layers > 0:
+        prev_text_l = make_embedder(prev_text_l, 'text', dropout=dropout_embedder, layers=layers,
+                                    bn=bn_embed, temporalBN=temporalBN)
+
+        prev_source_l = make_embedder(prev_source_l, 'source', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+        prev_target_l = make_embedder(prev_target_l, 'target', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+
+    if same_DE_layers:
+        if bn_embed:
+            if temporalBN:
+                bn_layer = BatchNormalization(name="TBN_DENSE_prop", axis=-2)
+                bn_layer_t = BatchNormalization(name="TBN_DENSE_text", axis=-2)
+            else:
+                bn_layer = BatchNormalization(name="BN_DENSE_generic")
+                bn_layer_t = bn_layer
+            prev_text_l = bn_layer_t(prev_text_l)
+            prev_source_l = bn_layer(prev_source_l)
+            prev_target_l = bn_layer(prev_target_l)
+
+        drop_layer = Dropout(dropout_embedder)
+
+        prev_text_l = drop_layer(prev_text_l)
+        prev_source_l = drop_layer(prev_source_l)
+        prev_target_l = drop_layer(prev_target_l)
+
+    else:
+        if bn_embed:
+            if temporalBN:
+                prev_text_l = BatchNormalization(axis=-2)(prev_text_l)
+                prev_source_l = BatchNormalization(axis=-2)(prev_source_l)
+                prev_target_l = BatchNormalization(axis=-2)(prev_target_l)
+            else:
+                prev_text_l = BatchNormalization()(prev_text_l)
+                prev_source_l = BatchNormalization()(prev_source_l)
+                prev_target_l = BatchNormalization()(prev_target_l)
+
+        prev_text_l = Dropout(dropout_embedder)(prev_text_l)
+        prev_source_l = Dropout(dropout_embedder)(prev_source_l)
+        prev_target_l = Dropout(dropout_embedder)(prev_target_l)
+
+    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
+
+    # COARSE-GRAINED CO-ATTENTION (Ma et al) + ADDITIVE ATTENTION (Bahdanau et al):
+    # average of the two act as query on the other
+
+    # create keys using dense layer
+    print("Source shape")
+    print(prev_source_l.shape)
+    source_linearity = Dense(units=embedding_size,
+                          name='att_linearity_K_source')
+    source_keys = TimeDistributed(source_linearity, name='att_K_source')(prev_source_l)
+    print("Keys shape")
+    print(source_keys.shape)
+    target_linearity = Dense(units=embedding_size,
+                          name='att_linearity_K_target')
+    target_keys = TimeDistributed(target_linearity, name='att_K_target')(prev_target_l)
+
+    # create query elements doing average and then multiplication
+    source_avg = GlobalAveragePooling1D(name="avg_query_source")(prev_source_l)
+    print("source avg")
+    print(source_avg.shape)
+    target_avg = GlobalAveragePooling1D(name="avg_query_target")(prev_target_l)
+    source_query = source_linearity(target_avg)
+    target_query = source_linearity(source_avg)
+    print("target query")
+    print(target_query.shape)
+
+    time_shape = (source_keys.shape)[1]
+    space_shape = (source_keys.shape)[2]
+
+    # repeat the query and sum
+    source_query = RepeatVector(time_shape, name='repeat_query_source')(source_query)
+    target_query = RepeatVector(time_shape, name='repeat_query_target')(target_query)
+    print("repeat target query")
+    print(target_query.shape)
+    source_score = Add(name='att_addition_source')([source_query, source_keys])
+    target_score = Add(name='att_addition_target')([target_query, target_keys])
+    print("target score (sum)")
+    print(target_score.shape)
+
+    # activation and dot product with importance vector
+    target_score = Activation(activation='relu', name='att_activation_target')(target_score)
+    source_score = Activation(activation='relu', name='att_activation_source')(source_score)
+    print("target score (activation)")
+    print(target_score.shape)
+    imp_v_target = Dense(units=1,
+                          kernel_initializer='he_normal',
+                          name='importance_vector_target')
+    target_score = TimeDistributed(imp_v_target, name='att_scores_target')(target_score)
+    imp_v_source = Dense(units=1,
+                          kernel_initializer='he_normal',
+                          name='importance_vector_source')
+    source_score = TimeDistributed(imp_v_source, name='att_scores_source')(source_score)
+    print("target score (dot product)")
+    print(target_score.shape)
+
+    # application of mask: padding layer are associated to very negative scores to improve softmax
+    source_score = Flatten(name='att_scores_flat_source')(source_score)
+    target_score = Flatten(name='att_scores_flat_target')(target_score)
+    print("target score (flat)")
+    print(target_score.shape)
+    maskLayer = Lambda(create_padding_mask_fn(), name='masking')
+    negativeLayer = Lambda(create_mutiply_negative_elements_fn(), name='negative_mul')
+    mask_source = maskLayer(sourceprop_il)
+    mask_target = maskLayer(targetprop_il)
+    print("target mask (01)")
+    print(mask_target.shape)
+    neg_source = negativeLayer(mask_source)
+    neg_target = negativeLayer(mask_target)
+    print("target mask (negative)")
+    print(neg_target.shape)
+    source_score = Add(name='att_masked_addition_source')([neg_source, source_score])
+    target_score = Add(name='att_masked_addition_target')([neg_target, target_score])
+    print("target score (masked)")
+    print(neg_target.shape)
+
+    # softmax application
+    source_weight = Activation(activation='softmax', name='att_weights_source')(source_score)
+    target_weight = Activation(activation='softmax', name='att_weights_target')(target_score)
+    print("target weights (softmax)")
+    print(target_weight.shape)
+
+    # weighted sum
+    source_weight = Reshape(target_shape=(source_weight.shape[-1], 1), name='att_weights_reshape_source')(source_weight)
+    target_weight = Reshape(target_shape=(target_weight.shape[-1], 1), name='att_weights_reshape_target')(target_weight)
+    print("target weights (reshape)")
+    print(target_weight.shape)
+    source_weighted = Multiply(name='att_multiply_source')([source_weight, prev_source_l])
+    target_weighted = Multiply(name='att_multiply_target')([target_weight, prev_target_l])
+    print("target weighted values")
+    print(target_weighted.shape)
+    source_embed2 = Lambda(create_sum_fn(1), name='att_cv_source')(source_weighted)
+    target_embed2 = Lambda(create_sum_fn(1), name='att_cv_target')(target_weighted)
+    print("target context vector")
+    print(target_embed2.shape)
+
+    """
+    # ATTENTION FOLLOWING KERAS LIBRARY (WRONG!!!!!!!!!!)
+    # reshape for compatibility
+    source_query = Reshape((1, embedding_size), input_shape=(embedding_size,), name='expand_source')(source_query)
+    print("target query reshaped")
+    print(source_query.shape)
+    target_query = Reshape((1, embedding_size), input_shape=(embedding_size,), name='expand_target')(target_query)
+    # apply attention
+    source_embed2 = AdditiveAttention(name="att_source", use_scale=True)([source_query, prev_source_l, source_keys])
+    print("attention source")
+    print(source_embed2.shape)
+    target_embed2 = AdditiveAttention(name="att_target", use_scale=True)([target_query, prev_target_l, target_keys])
+    # average of context vectors (it should be only 1 context vector, use of average for compatibility with other ideas)
+    source_embed2 = GlobalAveragePooling1D(name="avg_att_source")(source_embed2)
+    print("attention source averaged")
+    print(source_embed2.shape)
+    target_embed2 = GlobalAveragePooling1D(name="avg_att_target")(target_embed2)
+    """
+
+    if context and distance > 0:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
+    elif distance > 0:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
+    elif context:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
+    else:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
+
+    if bn_res:
+        prev_l = BatchNormalization(name='merge_BN')(prev_l)
+
+    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
+
+    prev_l = Dense(units=final_size,
+                   activation='relu',
+                   kernel_initializer='he_normal',
+                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                   name='merge_dense'
+                   )(prev_l)
+
+    prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
+                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
+
+    if bn_final:
+        prev_l = BatchNormalization(name='final_BN')(prev_l)
+
+    prev_l = Dropout(dropout_final, name='final_dropout')(prev_l)
+
+    rel_ol = Dense(units=outputs[1],
+                   name='relation',
+                   activation='softmax',
+                   )(prev_l)
+
+    if link_as_sum is None:
+        link_ol = Dense(units=outputs[0],
+                        name='link',
+                        activation='softmax',
+                        )(prev_l)
+    else:
+        link_scores = []
+        rel_scores = []
+        # creates a layer that extracts the score of a single relation classification class
+        for i in range(outputs[1]):
+            rel_scores.append(Lambda(create_crop_fn(1, i, i + 1), name='rel' + str(i))(rel_ol))
+
+        # for each link class, sums the relation score contributions
+        for i in range(len(link_as_sum)):
+            # terms to be summed together for one of the link classes
+            link_contribute = []
+            for j in range(len(link_as_sum[i])):
+                value = link_as_sum[i][j]
+                link_contribute.append(rel_scores[value])
+            link_class = Add(name='link_' + str(i))(link_contribute)
+            link_scores.append(link_class)
+
+        link_ol = Concatenate(name='link')(link_scores)
+
+    """
+    Custom code for cdcp
+    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
+    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
+    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
+    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
+    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
+
+    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
+    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
+    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
+    """
+
+    source_ol = Dense(units=outputs[2],
+                      name='source',
+                      activation='softmax',
+                      )(prev_l)
+
+    target_ol = Dense(units=outputs[3],
+                      name='target',
+                      activation='softmax',
+                      )(prev_l)
+
+    full_model = keras.Model(inputs=[text_il, sourceprop_il, targetprop_il, dist_il, mark_il],
+                             outputs=[link_ol, rel_ol, source_ol, target_ol],
+                             )
+
+    return full_model
+
+
+
+
+# net 7 with attention
+def build_net_9(bow,
+                propos_length,
+                outputs,
+                link_as_sum,
+                distance,
+                text_length=200,
+                regularizer_weight=0.001,
+                dropout_embedder=0.1,
+                dropout_resnet=0.1,
+                dropout_final=0,
+                embedding_size=int(25),
+                embedder_layers=2,
+                resnet_layers=(2, 2),
+                res_size=50,
+                final_size=int(20),
+                bn_embed=True,
+                bn_res=True,
+                bn_final=True,
+                single_LSTM=False,
+                pooling=0,
+                text_pooling=0,
+                pooling_type='avg',
+                same_DE_layers=False,
+                context=True,
+                temporalBN=False, ):
+    """
+    Creates a neural network that takes as input two components (propositions) and ouputs the class of the two
+    components, whether a relation between the two exists, and the class of that relation.
+
+
+
+    :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
+                layer of keras, the input is supposed in BoW form.
+                If it is None, the input is supposed to already contain pre-trained embeddings.
+    :param text_length: The temporal length of the text input
+    :param propos_length: The temporal length of the proposition input
+    :param regularizer_weight: Regularization weight
+    :param dropout_embedder: Dropout used in the embedder
+    :param dropout_resnet: Dropout used in the residual network
+    :param dropout_final: Dropout used in the final classifiers
+    :param embedding_size: Size of the spatial reduced embeddings
+    :param embedder_layers: Number of layers in the initial embedder (int)
+    :param resnet_layers: Number of layers in the final residual network. Tuple where the first value indicates the
+                          number of blocks and the second the number of layers per block
+    :param res_size: Number of neurons in the residual blocks
+    :param final_size: Number of neurons of the final layer
+    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
+                        of the relation classifier will be summed together according to the values in the arrays.
+                        Example: if the link classification is binary, and its contributions from relation
+                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                        [[0, 2], [1, 3, 4]]
+    :param bn_embed: Whether the batch normalization should be used in the embedding block
+    :param bn_res: Whether the batch normalization should be used in the residual blocks
+    :param bn_final: Whether the batch normalization should be used in the final layer
+    :param single_LSTM: Whether the same LSTM should be used both for processing the target and the source
+    :param pooling:
+    :param text_pooling:
+    :param pooling_type: 'avg' or 'max' pooling
+    :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
+    :param context: If the context (the original text) should be used as input
+    :param distance: The maximum distance that is taken into account
+    :param temporalBN: Whether temporal batch-norm is applied
+    :return:
+    """
+
+    if bow is not None:
+        text_il = Input(shape=(text_length,), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length,), name="target_input_L")
+
+        prev_text_l = Embedding(bow.shape[0],
+                                bow.shape[1],
+                                weights=[bow],
+                                input_length=text_length,
+                                trainable=False,
+                                name="text_embed")(text_il)
+
+        prev_source_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="source_embed")(sourceprop_il)
+
+        prev_target_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="target_embed")(targetprop_il)
+    else:
+        text_il = Input(shape=(text_length, DIM), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
+        prev_text_l = text_il
+        prev_source_l = sourceprop_il
+        prev_target_l = targetprop_il
+
+    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
+    if distance > 0:
+        dist_il = Input(shape=(int(distance * 2),), name="dist_input_L")
+    else:
+        dist_il = Input(shape=(2,), name="dist_input_L")
+
+    shape = int(np.shape(prev_text_l)[2])
+    layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
+                                  layers_size=embedding_size, temporalBN=temporalBN)
+    if same_DE_layers:
+        make_embedder = make_embedder_with_all_layers
+    else:
+        make_embedder = make_embedder_with_layers
+        layers = layers[0]
+
+    if embedder_layers > 0:
+        prev_text_l = make_embedder(prev_text_l, 'text', dropout=dropout_embedder, layers=layers,
+                                    bn=bn_embed, temporalBN=temporalBN)
+
+        prev_source_l = make_embedder(prev_source_l, 'source', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+        prev_target_l = make_embedder(prev_target_l, 'target', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+
+    if same_DE_layers:
+        if bn_embed:
+            if temporalBN:
+                bn_layer = BatchNormalization(name="TBN_DENSE_prop", axis=-2)
+                bn_layer_t = BatchNormalization(name="TBN_DENSE_text", axis=-2)
+            else:
+                bn_layer = BatchNormalization(name="BN_DENSE_generic")
+                bn_layer_t = bn_layer
+            prev_text_l = bn_layer_t(prev_text_l)
+            prev_source_l = bn_layer(prev_source_l)
+            prev_target_l = bn_layer(prev_target_l)
+
+        drop_layer = Dropout(dropout_embedder)
+
+        prev_text_l = drop_layer(prev_text_l)
+        prev_source_l = drop_layer(prev_source_l)
+        prev_target_l = drop_layer(prev_target_l)
+
+    else:
+        if bn_embed:
+            if temporalBN:
+                prev_text_l = BatchNormalization(axis=-2)(prev_text_l)
+                prev_source_l = BatchNormalization(axis=-2)(prev_source_l)
+                prev_target_l = BatchNormalization(axis=-2)(prev_target_l)
+            else:
+                prev_text_l = BatchNormalization()(prev_text_l)
+                prev_source_l = BatchNormalization()(prev_source_l)
+                prev_target_l = BatchNormalization()(prev_target_l)
+
+        prev_text_l = Dropout(dropout_embedder)(prev_text_l)
+        prev_source_l = Dropout(dropout_embedder)(prev_source_l)
+        prev_target_l = Dropout(dropout_embedder)(prev_target_l)
+
+    relu_embedder = Dense(units=embedding_size,
+                          activation='relu',
+                          kernel_initializer='he_normal',
+                          kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                          bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                          name='relu_embedder')
+
+    prev_text_l = TimeDistributed(relu_embedder, name='TD_text_embedder')(prev_text_l)
+    TD_prop = TimeDistributed(relu_embedder, name='TD_prop_embedder')
+    prev_source_l = TD_prop(prev_source_l)
+    prev_target_l = TD_prop(prev_target_l)
+
+    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
+
+    '''
+    if pooling > 0:
+        if pooling_type == 'max':
+            pooling_class = MaxPool1D
+        else:
+            pooling_class = AveragePooling1D
+        prop_pooling = pooling_class(pool_size=pooling, name='prop_pooling')
+        prev_source_l = prop_pooling(prev_source_l)
+        prev_target_l = prop_pooling(prev_target_l)
+
+        if context:
+            # if text_pooling is negative, the same pooling of the propositions is used
+            if not text_pooling > 0:
+                text_pooling = pooling
+            prev_text_l = pooling_class(pool_size=text_pooling, name='text_pooling')(prev_text_l)
+    '''
+    if bn_embed:
+        if temporalBN:
+            prev_text_l = BatchNormalization(name="TBN_LSTM_text", axis=-2)(prev_text_l)
+        else:
+            prev_text_l = BatchNormalization(name="BN_LSTM_text")(prev_text_l)
+
+    # COARSE-GRAINED CO-ATTENTION (Ma et al) + ADDITIVE ATTENTION (Bahdanau et al):
+    # average of the two act as query on the other
+
+    # create keys using dense layer
+    print("Source shape")
+    print(prev_source_l.shape)
+    source_linearity = Dense(units=embedding_size,
+                          name='att_linearity_K_source')
+    source_keys = TimeDistributed(source_linearity, name='att_K_source')(prev_source_l)
+    print("Keys shape")
+    print(source_keys.shape)
+    target_linearity = Dense(units=embedding_size,
+                          name='att_linearity_K_target')
+    target_keys = TimeDistributed(target_linearity, name='att_K_target')(prev_target_l)
+
+    # create query elements doing average and then multiplication
+    source_avg = GlobalAveragePooling1D(name="avg_query_source")(prev_source_l)
+    print("source avg")
+    print(source_avg.shape)
+    target_avg = GlobalAveragePooling1D(name="avg_query_target")(prev_target_l)
+    source_query = source_linearity(target_avg)
+    target_query = source_linearity(source_avg)
+    print("target query")
+    print(target_query.shape)
+
+    time_shape = (source_keys.shape)[1]
+    space_shape = (source_keys.shape)[2]
+
+    # repeat the query and sum
+    source_query = RepeatVector(time_shape, name='repeat_query_source')(source_query)
+    target_query = RepeatVector(time_shape, name='repeat_query_target')(target_query)
+    print("repeat target query")
+    print(target_query.shape)
+    source_score = Add(name='att_addition_source')([source_query, source_keys])
+    target_score = Add(name='att_addition_target')([target_query, target_keys])
+    print("target score (sum)")
+    print(target_score.shape)
+
+    # activation and dot product with importance vector
+    target_score = Activation(activation='relu', name='att_activation_target')(target_score)
+    source_score = Activation(activation='relu', name='att_activation_source')(source_score)
+    print("target score (activation)")
+    print(target_score.shape)
+    imp_v_target = Dense(units=1,
+                          kernel_initializer='he_normal',
+                          name='importance_vector_target')
+    target_score = TimeDistributed(imp_v_target, name='att_scores_target')(target_score)
+    imp_v_source = Dense(units=1,
+                          kernel_initializer='he_normal',
+                          name='importance_vector_source')
+    source_score = TimeDistributed(imp_v_source, name='att_scores_source')(source_score)
+    print("target score (dot product)")
+    print(target_score.shape)
+
+    # application of mask: padding layer are associated to very negative scores to improve softmax
+    source_score = Flatten(name='att_scores_flat_source')(source_score)
+    target_score = Flatten(name='att_scores_flat_target')(target_score)
+    print("target score (flat)")
+    print(target_score.shape)
+    maskLayer = Lambda(create_padding_mask_fn(), name='masking')
+    negativeLayer = Lambda(create_mutiply_negative_elements_fn(), name='negative_mul')
+    mask_source = maskLayer(sourceprop_il)
+    mask_target = maskLayer(targetprop_il)
+    print("target mask (01)")
+    print(mask_target.shape)
+    neg_source = negativeLayer(mask_source)
+    neg_target = negativeLayer(mask_target)
+    print("target mask (negative)")
+    print(neg_target.shape)
+    source_score = Add(name='att_masked_addition_source')([neg_source, source_score])
+    target_score = Add(name='att_masked_addition_target')([neg_target, target_score])
+    print("target score (masked)")
+    print(neg_target.shape)
+
+    # softmax application
+    source_weight = Activation(activation='softmax', name='att_weights_source')(source_score)
+    target_weight = Activation(activation='softmax', name='att_weights_target')(target_score)
+    print("target weights (softmax)")
+    print(target_weight.shape)
+
+    # weighted sum
+    source_weight = Reshape(target_shape=(source_weight.shape[-1], 1), name='att_weights_reshape_source')(source_weight)
+    target_weight = Reshape(target_shape=(target_weight.shape[-1], 1), name='att_weights_reshape_target')(target_weight)
+    print("target weights (reshape)")
+    print(target_weight.shape)
+    source_weighted = Multiply(name='att_multiply_source')([source_weight, prev_source_l])
+    target_weighted = Multiply(name='att_multiply_target')([target_weight, prev_target_l])
+    print("target weighted values")
+    print(target_weighted.shape)
+    source_embed2 = Lambda(create_sum_fn(1), name='att_cv_source')(source_weighted)
+    target_embed2 = Lambda(create_sum_fn(1), name='att_cv_target')(target_weighted)
+    print("target context vector")
+    print(target_embed2.shape)
+
+    """
+    # ATTENTION FOLLOWING KERAS LIBRARY (WRONG!!!!!!!!!!)
+    # reshape for compatibility
+    source_query = Reshape((1, embedding_size), input_shape=(embedding_size,), name='expand_source')(source_query)
+    print("target query reshaped")
+    print(source_query.shape)
+    target_query = Reshape((1, embedding_size), input_shape=(embedding_size,), name='expand_target')(target_query)
+    # apply attention
+    source_embed2 = AdditiveAttention(name="att_source", use_scale=True)([source_query, prev_source_l, source_keys])
+    print("attention source")
+    print(source_embed2.shape)
+    target_embed2 = AdditiveAttention(name="att_target", use_scale=True)([target_query, prev_target_l, target_keys])
+    # average of context vectors (it should be only 1 context vector, use of average for compatibility with other ideas)
+    source_embed2 = GlobalAveragePooling1D(name="avg_att_source")(source_embed2)
+    print("attention source averaged")
+    print(source_embed2.shape)
+    target_embed2 = GlobalAveragePooling1D(name="avg_att_target")(target_embed2)
+    """
+
+    if context and distance > 0:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
+    elif distance > 0:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
+    elif context:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
+    else:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
+
+    if bn_res:
+        prev_l = BatchNormalization(name='merge_BN')(prev_l)
+
+    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
+
+    prev_l = Dense(units=final_size,
+                   activation='relu',
+                   kernel_initializer='he_normal',
+                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                   name='merge_dense'
+                   )(prev_l)
+
+    prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
+                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
+
+    if bn_final:
+        prev_l = BatchNormalization(name='final_BN')(prev_l)
+
+    prev_l = Dropout(dropout_final, name='final_dropout')(prev_l)
+
+    rel_ol = Dense(units=outputs[1],
+                   name='relation',
+                   activation='softmax',
+                   )(prev_l)
+
+    if link_as_sum is None:
+        link_ol = Dense(units=outputs[0],
+                        name='link',
+                        activation='softmax',
+                        )(prev_l)
+    else:
+        link_scores = []
+        rel_scores = []
+        # creates a layer that extracts the score of a single relation classification class
+        for i in range(outputs[1]):
+            rel_scores.append(Lambda(create_crop_fn(1, i, i + 1), name='rel' + str(i))(rel_ol))
+
+        # for each link class, sums the relation score contributions
+        for i in range(len(link_as_sum)):
+            # terms to be summed together for one of the link classes
+            link_contribute = []
+            for j in range(len(link_as_sum[i])):
+                value = link_as_sum[i][j]
+                link_contribute.append(rel_scores[value])
+            link_class = Add(name='link_' + str(i))(link_contribute)
+            link_scores.append(link_class)
+
+        link_ol = Concatenate(name='link')(link_scores)
+
+    """
+    Custom code for cdcp
+    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
+    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
+    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
+    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
+    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
+
+    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
+    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
+    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
+    """
+
+    source_ol = Dense(units=outputs[2],
+                      name='source',
+                      activation='softmax',
+                      )(prev_l)
+
+    target_ol = Dense(units=outputs[3],
+                      name='target',
+                      activation='softmax',
+                      )(prev_l)
+
+    full_model = keras.Model(inputs=[text_il, sourceprop_il, targetprop_il, dist_il, mark_il],
+                             outputs=[link_ol, rel_ol, source_ol, target_ol],
+                             )
+
+    return full_model
+
+
+# Space reduction, LSTM, attention
+def build_net_11(bow,
+                propos_length,
+                outputs,
+                link_as_sum,
+                distance,
+                text_length=200,
+                regularizer_weight=0.001,
+                dropout_embedder=0.1,
+                dropout_resnet=0.1,
+                dropout_final=0,
+                embedding_size=int(25),
+                embedder_layers=2,
+                resnet_layers=(2, 2),
+                res_size=50,
+                final_size=int(20),
+                bn_embed=True,
+                bn_res=True,
+                bn_final=True,
+                single_LSTM=False,
+                pooling=0,
+                text_pooling=0,
+                pooling_type='avg',
+                same_DE_layers=False,
+                context=True,
+                temporalBN=False, ):
+    """
+    Creates a neural network that takes as input two components (propositions) and ouputs the class of the two
+    components, whether a relation between the two exists, and the class of that relation.
+
+
+
+    :param bow: If it is different from None, it is the matrix with the pre-trained embeddings used by the Embedding
+                layer of keras, the input is supposed in BoW form.
+                If it is None, the input is supposed to already contain pre-trained embeddings.
+    :param text_length: The temporal length of the text input
+    :param propos_length: The temporal length of the proposition input
+    :param regularizer_weight: Regularization weight
+    :param dropout_embedder: Dropout used in the embedder
+    :param dropout_resnet: Dropout used in the residual network
+    :param dropout_final: Dropout used in the final classifiers
+    :param embedding_size: Size of the spatial reduced embeddings
+    :param embedder_layers: Number of layers in the initial embedder (int)
+    :param resnet_layers: Number of layers in the final residual network. Tuple where the first value indicates the
+                          number of blocks and the second the number of layers per block
+    :param res_size: Number of neurons in the residual blocks
+    :param final_size: Number of neurons of the final layer
+    :param outputs: Tuple, the classes of the four classifiers: link, relation, source, target
+    :param link_as_sum: if None, the link classifier will be built as usual. If it is an array of arrays: the outputs
+                        of the relation classifier will be summed together according to the values in the arrays.
+                        Example: if the link classification is binary, and its contributions from relation
+                        classification are classes 0 and 2 for positive and 1, 3, 4 for negative, it will be
+                        [[0, 2], [1, 3, 4]]
+    :param bn_embed: Whether the batch normalization should be used in the embedding block
+    :param bn_res: Whether the batch normalization should be used in the residual blocks
+    :param bn_final: Whether the batch normalization should be used in the final layer
+    :param single_LSTM: Whether the same LSTM should be used both for processing the target and the source
+    :param pooling:
+    :param text_pooling:
+    :param pooling_type: 'avg' or 'max' pooling
+    :param same_DE_layers: Whether the deep embedder layers should be shared between source and target
+    :param context: If the context (the original text) should be used as input
+    :param distance: The maximum distance that is taken into account
+    :param temporalBN: Whether temporal batch-norm is applied
+    :return:
+    """
+
+    if bow is not None:
+        text_il = Input(shape=(text_length,), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length,), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length,), name="target_input_L")
+
+        prev_text_l = Embedding(bow.shape[0],
+                                bow.shape[1],
+                                weights=[bow],
+                                input_length=text_length,
+                                trainable=False,
+                                name="text_embed")(text_il)
+
+        prev_source_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="source_embed")(sourceprop_il)
+
+        prev_target_l = Embedding(bow.shape[0],
+                                  bow.shape[1],
+                                  weights=[bow],
+                                  input_length=propos_length,
+                                  trainable=False,
+                                  name="target_embed")(targetprop_il)
+    else:
+        text_il = Input(shape=(text_length, DIM), name="text_input_L")
+        sourceprop_il = Input(shape=(propos_length, DIM), name="source_input_L")
+        targetprop_il = Input(shape=(propos_length, DIM), name="target_input_L")
+        prev_text_l = text_il
+        prev_source_l = sourceprop_il
+        prev_target_l = targetprop_il
+
+    mark_il = Input(shape=(text_length, 2), name="mark_input_L")
+    if distance > 0:
+        dist_il = Input(shape=(int(distance * 2),), name="dist_input_L")
+    else:
+        dist_il = Input(shape=(2,), name="dist_input_L")
+
+    shape = int(np.shape(prev_text_l)[2])
+    layers = make_embedder_layers(regularizer_weight, shape=shape, layers=embedder_layers,
+                                  layers_size=embedding_size, temporalBN=temporalBN)
+    if same_DE_layers:
+        make_embedder = make_embedder_with_all_layers
+    else:
+        make_embedder = make_embedder_with_layers
+        layers = layers[0]
+
+    if embedder_layers > 0:
+        prev_text_l = make_embedder(prev_text_l, 'text', dropout=dropout_embedder, layers=layers,
+                                    bn=bn_embed, temporalBN=temporalBN)
+
+        prev_source_l = make_embedder(prev_source_l, 'source', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+        prev_target_l = make_embedder(prev_target_l, 'target', dropout=dropout_embedder,
+                                      layers=layers, bn=bn_embed, temporalBN=temporalBN)
+
+    if same_DE_layers:
+        if bn_embed:
+            if temporalBN:
+                bn_layer = BatchNormalization(name="TBN_DENSE_prop", axis=-2)
+                bn_layer_t = BatchNormalization(name="TBN_DENSE_text", axis=-2)
+            else:
+                bn_layer = BatchNormalization(name="BN_DENSE_generic")
+                bn_layer_t = bn_layer
+            prev_text_l = bn_layer_t(prev_text_l)
+            prev_source_l = bn_layer(prev_source_l)
+            prev_target_l = bn_layer(prev_target_l)
+
+        drop_layer = Dropout(dropout_embedder)
+
+        prev_text_l = drop_layer(prev_text_l)
+        prev_source_l = drop_layer(prev_source_l)
+        prev_target_l = drop_layer(prev_target_l)
+
+    else:
+        if bn_embed:
+            if temporalBN:
+                prev_text_l = BatchNormalization(axis=-2)(prev_text_l)
+                prev_source_l = BatchNormalization(axis=-2)(prev_source_l)
+                prev_target_l = BatchNormalization(axis=-2)(prev_target_l)
+            else:
+                prev_text_l = BatchNormalization()(prev_text_l)
+                prev_source_l = BatchNormalization()(prev_source_l)
+                prev_target_l = BatchNormalization()(prev_target_l)
+
+        prev_text_l = Dropout(dropout_embedder)(prev_text_l)
+        prev_source_l = Dropout(dropout_embedder)(prev_source_l)
+        prev_target_l = Dropout(dropout_embedder)(prev_target_l)
+
+    relu_embedder = Dense(units=embedding_size,
+                          activation='relu',
+                          kernel_initializer='he_normal',
+                          kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                          bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                          name='relu_embedder')
+
+    prev_text_l = TimeDistributed(relu_embedder, name='TD_text_embedder')(prev_text_l)
+    TD_prop = TimeDistributed(relu_embedder, name='TD_prop_embedder')
+    prev_source_l = TD_prop(prev_source_l)
+    prev_target_l = TD_prop(prev_target_l)
+
+    prev_text_l = Concatenate(name="mark_concatenation")([prev_text_l, mark_il])
+
+    if bn_embed:
+        if temporalBN:
+            prev_text_l = BatchNormalization(name="TBN_LSTM_text", axis=-2)(prev_text_l)
+        else:
+            prev_text_l = BatchNormalization(name="BN_LSTM_text")(prev_text_l)
+
+    if single_LSTM:
+        if bn_embed:
+
+            if temporalBN:
+                bn_layer = BatchNormalization(name="TBN_LSTM_prop", axis=-2)
+                prev_source_l = bn_layer(prev_source_l)
+                prev_target_l = bn_layer(prev_target_l)
+            else:
+                bn_layer = BatchNormalization(name="BN_LSTM_prop")
+                prev_source_l = bn_layer(prev_source_l)
+                prev_target_l = bn_layer(prev_target_l)
+
+        embed2 = Bidirectional(LSTM(units=embedding_size,
+                                    dropout=dropout_embedder,
+                                    recurrent_dropout=dropout_embedder,
+                                    kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                    recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                    bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                    return_sequences=True,
+                                    unroll=False,  # not possible to unroll if the time shape is not specified
+                                    name='prop_LSTM',
+                                    ),
+                               merge_mode='mul',
+                               name='biLSTM'
+                               )
+
+        source_embed2 = embed2(prev_source_l)
+        target_embed2 = embed2(prev_target_l)
+
+        text_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                         dropout=dropout_embedder,
+                                         recurrent_dropout=dropout_embedder,
+                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         return_sequences=True,
+                                         unroll=False,  # not possible to unroll if the time shape is not specified
+                                         name='text_LSTM'),
+                                    merge_mode='mul',
+                                    name='text_biLSTM'
+                                    )(prev_text_l)
+    else:
+        if bn_embed:
+            if temporalBN:
+                prev_source_l = BatchNormalization(name="TBN_LSTM_source", axis=-2)(prev_source_l)
+                prev_target_l = BatchNormalization(name="TBN_LSTM_target", axis=-2)(prev_target_l)
+            else:
+                prev_source_l = BatchNormalization(name="BN_LSTM_source")(prev_source_l)
+                prev_target_l = BatchNormalization(name="BN_LSTM_target")(prev_target_l)
+
+        text_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                         dropout=dropout_embedder,
+                                         recurrent_dropout=dropout_embedder,
+                                         kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                         return_sequences=True,
+                                         unroll=False,  # not possible to unroll if the time shape is not specified
+                                         name='text_LSTM'),
+                                    merge_mode='mul',
+                                    name='text_biLSTM'
+                                    )(prev_text_l)
+
+        source_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                           dropout=dropout_embedder,
+                                           recurrent_dropout=dropout_embedder,
+                                           kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           return_sequences=True,
+                                           unroll=False,  # not possible to unroll if the time shape is not specified
+                                           name='source_LSTM'),
+                                      merge_mode='mul',
+                                      name='source_biLSTM'
+                                      )(prev_source_l)
+
+        target_embed2 = Bidirectional(LSTM(units=embedding_size,
+                                           dropout=dropout_embedder,
+                                           recurrent_dropout=dropout_embedder,
+                                           kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           recurrent_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                                           return_sequences=True,
+                                           unroll=False,  # not possible to unroll if the time shape is not specified
+                                           name='target_LSTM'),
+                                      merge_mode='mul',
+                                      name='target_biLSTM'
+                                      )(prev_target_l)
+
+    # COARSE-GRAINED CO-ATTENTION (Ma et al) + ADDITIVE ATTENTION (Bahdanau et al):
+    # average of the two act as query on the other
+
+    # create keys using dense layer
+    print("Source shape")
+    print(source_embed2.shape)
+    source_linearity = Dense(units=embedding_size,
+                             name='att_linearity_K_source')
+    source_keys = TimeDistributed(source_linearity, name='att_K_source')(source_embed2)
+    print("Keys shape")
+    print(source_keys.shape)
+    target_linearity = Dense(units=embedding_size,
+                             name='att_linearity_K_target')
+    target_keys = TimeDistributed(target_linearity, name='att_K_target')(target_embed2)
+
+    # create query elements doing average and then multiplication
+    source_avg = GlobalAveragePooling1D(name="avg_query_source")(source_embed2)
+    print("source avg")
+    print(source_avg.shape)
+    target_avg = GlobalAveragePooling1D(name="avg_query_target")(target_embed2)
+    source_query = source_linearity(target_avg)
+    target_query = source_linearity(source_avg)
+    print("target query")
+    print(target_query.shape)
+
+    time_shape = (source_keys.shape)[1]
+    space_shape = (source_keys.shape)[2]
+
+    # repeat the query and sum
+    source_query = RepeatVector(time_shape, name='repeat_query_source')(source_query)
+    target_query = RepeatVector(time_shape, name='repeat_query_target')(target_query)
+    print("repeat target query")
+    print(target_query.shape)
+    source_score = Add(name='att_addition_source')([source_query, source_keys])
+    target_score = Add(name='att_addition_target')([target_query, target_keys])
+    print("target score (sum)")
+    print(target_score.shape)
+
+    # activation and dot product with importance vector
+    target_score = Activation(activation='relu', name='att_activation_target')(target_score)
+    source_score = Activation(activation='relu', name='att_activation_source')(source_score)
+    print("target score (activation)")
+    print(target_score.shape)
+    imp_v_target = Dense(units=1,
+                         kernel_initializer='he_normal',
+                         name='importance_vector_target')
+    target_score = TimeDistributed(imp_v_target, name='att_scores_target')(target_score)
+    imp_v_source = Dense(units=1,
+                         kernel_initializer='he_normal',
+                         name='importance_vector_source')
+    source_score = TimeDistributed(imp_v_source, name='att_scores_source')(source_score)
+    print("target score (dot product)")
+    print(target_score.shape)
+
+    # application of mask: padding layer are associated to very negative scores to improve softmax
+    source_score = Flatten(name='att_scores_flat_source')(source_score)
+    target_score = Flatten(name='att_scores_flat_target')(target_score)
+    print("target score (flat)")
+    print(target_score.shape)
+    maskLayer = Lambda(create_padding_mask_fn(), name='masking')
+    negativeLayer = Lambda(create_mutiply_negative_elements_fn(), name='negative_mul')
+    mask_source = maskLayer(sourceprop_il)
+    mask_target = maskLayer(targetprop_il)
+    print("target mask (01)")
+    print(mask_target.shape)
+    neg_source = negativeLayer(mask_source)
+    neg_target = negativeLayer(mask_target)
+    print("target mask (negative)")
+    print(neg_target.shape)
+    source_score = Add(name='att_masked_addition_source')([neg_source, source_score])
+    target_score = Add(name='att_masked_addition_target')([neg_target, target_score])
+    print("target score (masked)")
+    print(neg_target.shape)
+
+    # softmax application
+    source_weight = Activation(activation='softmax', name='att_weights_source')(source_score)
+    target_weight = Activation(activation='softmax', name='att_weights_target')(target_score)
+    print("target weights (softmax)")
+    print(target_weight.shape)
+
+    # weighted sum
+    source_weight = Reshape(target_shape=(source_weight.shape[-1], 1), name='att_weights_reshape_source')(
+        source_weight)
+    target_weight = Reshape(target_shape=(target_weight.shape[-1], 1), name='att_weights_reshape_target')(
+        target_weight)
+    print("target weights (reshape)")
+    print(target_weight.shape)
+    source_weighted = Multiply(name='att_multiply_source')([source_weight, prev_source_l])
+    target_weighted = Multiply(name='att_multiply_target')([target_weight, prev_target_l])
+    print("target weighted values")
+    print(target_weighted.shape)
+    source_embed2 = Lambda(create_sum_fn(1), name='att_cv_source')(source_weighted)
+    target_embed2 = Lambda(create_sum_fn(1), name='att_cv_target')(target_weighted)
+    print("target context vector")
+    print(target_embed2.shape)
+
+
+
+
+
+
+
+    if context and distance > 0:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2, dist_il])
+    elif distance > 0:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2, dist_il])
+    elif context:
+        prev_l = Concatenate(name='embed_merge')([text_embed2, source_embed2, target_embed2])
+    else:
+        prev_l = Concatenate(name='embed_merge')([source_embed2, target_embed2])
+
+    if bn_res:
+        prev_l = BatchNormalization(name='merge_BN')(prev_l)
+
+    prev_l = Dropout(dropout_resnet, name='merge_Dropout')(prev_l)
+
+    prev_l = Dense(units=final_size,
+                   activation='relu',
+                   kernel_initializer='he_normal',
+                   kernel_regularizer=keras.regularizers.l2(regularizer_weight),
+                   bias_regularizer=keras.regularizers.l2(regularizer_weight),
+                   name='merge_dense'
+                   )(prev_l)
+
+    prev_l = make_resnet(prev_l, regularizer_weight, resnet_layers,
+                         res_size=res_size, dropout=dropout_resnet, bn=bn_res)
+
+    if bn_final:
+        prev_l = BatchNormalization(name='final_BN')(prev_l)
+
+    prev_l = Dropout(dropout_final, name='final_dropout')(prev_l)
+
+    rel_ol = Dense(units=outputs[1],
+                   name='relation',
+                   activation='softmax',
+                   )(prev_l)
+
+    if link_as_sum is None:
+        link_ol = Dense(units=outputs[0],
+                        name='link',
+                        activation='softmax',
+                        )(prev_l)
+    else:
+        link_scores = []
+        rel_scores = []
+        # creates a layer that extracts the score of a single relation classification class
+        for i in range(outputs[1]):
+            rel_scores.append(Lambda(create_crop_fn(1, i, i + 1), name='rel' + str(i))(rel_ol))
+
+        # for each link class, sums the relation score contributions
+        for i in range(len(link_as_sum)):
+            # terms to be summed together for one of the link classes
+            link_contribute = []
+            for j in range(len(link_as_sum[i])):
+                value = link_as_sum[i][j]
+                link_contribute.append(rel_scores[value])
+            link_class = Add(name='link_' + str(i))(link_contribute)
+            link_scores.append(link_class)
+
+        link_ol = Concatenate(name='link')(link_scores)
+
+    """
+    Custom code for cdcp
+    rel_0 = Lambda(create_crop_fn(1, 0, 1), name='rel0')(rel_ol)
+    rel_2 = Lambda(create_crop_fn(1, 2, 3), name='rel2')(rel_ol)
+    rel_1 = Lambda(create_crop_fn(1, 1, 2), name='rel1')(rel_ol)
+    rel_3 = Lambda(create_crop_fn(1, 3, 4), name='rel3')(rel_ol)
+    rel_4 = Lambda(create_crop_fn(1, 4, 5), name='rel4')(rel_ol)
+
+    pos_rel = Add(name='rel_pos')([rel_0, rel_2])
+    neg_rel = Add(name='rel_neg')([rel_1, rel_3, rel_4])
+    link_ol = Concatenate(name='link')([pos_rel, neg_rel])
+    """
+
+    source_ol = Dense(units=outputs[2],
+                      name='source',
+                      activation='softmax',
+                      )(prev_l)
+
+    target_ol = Dense(units=outputs[3],
+                      name='target',
+                      activation='softmax',
+                      )(prev_l)
+
+    full_model = keras.Model(inputs=(text_il, sourceprop_il, targetprop_il, dist_il, mark_il),
+                             outputs=(link_ol, rel_ol, source_ol, target_ol),
+                             )
+
+    return full_model
 
 
 def build_net_7(bow,
@@ -1768,6 +2800,7 @@ def build_net_8(bow=None,
     :return:
     """
 
+
     if distribution == "sparsemax":
         distribution = sparsemax
     if classification == "sparsemax":
@@ -2369,6 +3402,34 @@ def create_count_nonpadding_fn(axis, pad_dims):
     return func
 
 
+def create_mutiply_negative_elements_fn():
+    """
+    Creates multiply the tensor for a set of very negative numbers
+    :return: the tensor mutiplied for  -1e9
+    """
+    def func(x):
+        n = x * (-1e9)
+        return n
+
+    func.__name__ = "mutiply_negative_elements_"
+    return func
+
+
+def create_padding_mask_fn():
+    """
+    Given a padded tensor, provides a mask with padded elements set to 1
+    :return: a tensor whose elements are 1 in correspondence of the padding elements
+    """
+    def func(x, axis=-1):
+        zeros = tf.equal(x, 0)
+        # zeros = K.equal(x, K.zeros(x.shape[axis], dtype='float32'))
+        zeros = K.cast(zeros, dtype='float32')
+        return zeros
+
+    func.__name__ = "create_padding_mask_"
+    return func
+
+
 
 def create_elementwise_division_fn():
     """
@@ -2450,10 +3511,10 @@ if __name__ == '__main__':
     plot_model(model, to_file='model6.png', show_shapes=True)
     """
 
-    """
-    model = build_net_7(bow=bow,
-                        text_length=552,
-                        propos_length=153,
+
+    model = build_net_9(bow=bow,
+                        text_length=10,
+                        propos_length=10,
                         res_size=5,
                         resnet_layers=(1, 2),
                         embedding_size=50,
@@ -2472,10 +3533,13 @@ if __name__ == '__main__':
                         temporalBN=False,
                         same_DE_layers=False,
                         context=False,
-                        distance=5)
+                        distance=5,
+                        link_as_sum=[[0, 2], [1, 3, 4, 5, 6, 7]],
+                        outputs=(2, 8, 2, 2)
+                        )
+
+
     """
-
-
     model = build_net_8(bow=bow,
                         text_length=552,
                         propos_length=153,
@@ -2500,8 +3564,9 @@ if __name__ == '__main__':
                         distribution="sparsemax",
                         space_scale=int(6),
                         use_lstm=True)
+    """
 
-    plot_model(model, to_file='8R05.png', show_shapes=True)
+    plot_model(model, to_file='9.png', show_shapes=True)
 
     print("YEP")
 
