@@ -195,7 +195,7 @@ def DrInventor_routine():
     mode = "propositions"
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    for version in ["arg40"]:
+    for version in ["arg10"]:
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
@@ -238,8 +238,8 @@ def ECHR_routine():
 
 if __name__ == '__main__':
 
-    # DrInventor_routine()
-    ECHR_routine()
+    DrInventor_routine()
+    # ECHR_routine()
 
 
 

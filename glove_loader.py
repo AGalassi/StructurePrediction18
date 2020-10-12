@@ -252,7 +252,7 @@ def DrInventor_routine():
     dataset_name = 'DrInventor'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg40'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg10'))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
@@ -301,9 +301,9 @@ def RCT_routine():
 
 if __name__ == '__main__':
 
-    # DrInventor_routine()
+    DrInventor_routine()
     # RCT_routine()
-    ECHR_routine()
+    # ECHR_routine()
 
     """
 

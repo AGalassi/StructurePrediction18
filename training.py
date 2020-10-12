@@ -23,7 +23,7 @@ from networks import (build_net_7, build_not_res_net_7, create_crop_fn, create_s
 from tensorflow.keras.callbacks import Callback, LearningRateScheduler, ModelCheckpoint, EarlyStopping, CSVLogger
 from tensorflow.keras.optimizers import RMSprop, Adam
 from tensorflow.keras.models import load_model, model_from_json
-from training_utils import TimingCallback, create_lr_annealing_function, get_avgF1,
+from training_utils import TimingCallback, create_lr_annealing_function, get_avgF1
 from glove_loader import DIM
 from sklearn.metrics import f1_score
 from tensorflow.keras import backend as K
@@ -526,6 +526,8 @@ def perform_training(name = 'prova999',
             # plot_model(model, to_file=name + '.png', show_shapes=True)
             print()
 
+        relations_labels = dataset_info[dataset_name]["link_as_sum"][0]
+        not_a_link_labels = dataset_info[dataset_name]["link_as_sum"][1]
 
         # it is necessary to save all the custom functions
         fmeasure_0 = get_avgF1([0])
@@ -538,9 +540,10 @@ def perform_training(name = 'prova999',
         fmeasure_0_2 = get_avgF1([0, 2])
         fmeasure_0_1_2 = get_avgF1([0, 1, 2])
         fmeasure_0_1 = get_avgF1([0, 1, 2])
+        fmeasure_0_2_4 = get_avgF1([0, 2, 4])
 
         fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3, fmeasure_0_1_2_3_4,
-                     fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1]
+                     fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1, fmeasure_0_2_4]
 
         props_fmeasures = []
 
@@ -735,9 +738,12 @@ def perform_training(name = 'prova999',
                 Y_pred_links = np.argmax(Y_pred[0], axis=-1)
                 Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
 
+                positive_link_labels = dataset_info[dataset_name]["link_as_sum"][0]
+                negative_link_labels = dataset_info[dataset_name]["link_as_sum"][1]
+
                 score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[0, 2])
-                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=[0, 2])
+                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=positive_link_labels)
+                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=positive_link_labels)
                 score_prop = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
                 score_prop_AVG = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
 
@@ -1351,16 +1357,16 @@ def cdcp_routine2():
 
 def drinv_routine():
     dataset_name = 'DrInventor'
-    dataset_version = 'arg40'
+    dataset_version = 'arg10'
     split = 'total'
-    name = 'drinv7net2018'
+    name = 'drinv11'
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=10000,
         feature_type='bow',
-        patience=50,
+        patience=20,
         loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.001,
@@ -1380,12 +1386,11 @@ def drinv_routine():
         bn_embed=True,
         bn_res=True,
         bn_final=True,
-        network=7,
+        network=11,
         monitor="links",
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1393,12 +1398,14 @@ def drinv_routine():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
         dataset_split=split,
     )
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
+
+    evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True, token_wise=True)
 
 
 # TODO: this is not working. Why? Don't know.
@@ -1590,14 +1597,14 @@ def ECHR_routine():
 
 if __name__ == '__main__':
 
-    RCT_routine()
+    #RCT_routine()
     
     # cdcp_routine2()
 
     # UKP_routine()
     # evaluate_net.UKP_routine()
 
-    # drinv_routine()
+    drinv_routine()
 
     #ECHR_routine()
     # evaluate_net.ECHR_routine()

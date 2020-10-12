@@ -491,7 +491,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
                       reflexive=False):
     """
     Creates a pickle for the DrInventor Corpus. The sections are considered as documents, therefore no links are allowed
-    outside a document (but they are still logged). The "parts_of_same" links are exploited to create new links between
+    in different sections (but they are still logged). The "parts_of_same" links are exploited to create new links between
     components and different part of the same component: if T1 and T2 are linked as parts_of_same (the direction doesn't
     matter), and T1 is linked to T3, then also T2 is linked to T3 (same type of relation and same direction). A maximum
     distance between the links can be enforced.
@@ -516,6 +516,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
     relation_types.extend(asymmetric_link_types)
     relation_types.extend(symmetric_link_types)
     relation_types.extend(s_non_link_types)
+    argumentative_relation_types = ('semantically_same', 'supports', 'contradicts')
 
     row_list = {"train":[], "test":[], "validation":[]}
     rel_count = {"train":{}, "test":{}, "validation":{}}
@@ -673,7 +674,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
         # DEBUG
         # print(parts_of_same)
 
-        # all the linked parts indicate the same id
+        # all the linked parts need to indicate the same id
         new_parts_of_same = {}
         for idmax in sorted(parts_of_same.keys()):
             idmin = parts_of_same[idmax]
@@ -795,7 +796,7 @@ def create_inv_pickle(dataset_path, dataset_version, documents_path,
 
 
                 # relation type
-                for relation_type in relation_types:
+                for relation_type in argumentative_relation_types:
                     links = data[relation_type]
 
                     for link in links:
@@ -1238,7 +1239,7 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                 continue
             i = int(document_name.split(".")[0])
 
-            labels_file = open(document_path, 'r', encoding='utf-8')
+            labels_file = open(document_path, 'r')
 
             labels_line = []
 
@@ -1256,9 +1257,6 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
 
             for link_type in link_types:
                 data[link_type] = []
-
-            if i == 7680374:
-                print()
 
             for line in labels_line:
                 splits = line.split(maxsplit=4)
@@ -1291,9 +1289,6 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                         relation = "attack"
 
                     data[relation].append([source, target])
-
-            if i == 7680374:
-                print()
 
             # in case annotations are not made following the temporal order
             # new order given by the starting offsets
@@ -1340,10 +1335,6 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
             num_propositions = len(propositions)
 
             assert (num_propositions >= 1)
-
-            if i == 7680374:
-                print()
-
 
             for sourceID in range(num_propositions):
 
@@ -1420,6 +1411,7 @@ def create_RCT_pickle(dataset_path, dataset_version, documents_path,
                 if type1 not in prop_count.keys():
                     prop_count[type1] = 0
                 prop_count[type1] += 1
+            i += 1
 
         pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
         if not os.path.exists(pickles_path):
@@ -1660,13 +1652,12 @@ def routine_RCT_corpus():
         pickles_path = os.path.join(dataset_path, "pickles", dataset_version)
         print_distance_analysis(pickles_path)
 
-def routine_DrInventor_corpus():
+def routine_DrInventor_corpus(maxdistance=0):
     # DR INVENTOR CORPUS
     a_link_types = ['supports', 'contradicts']
-    s_link_types = []
-    s_non_link_types = ['semantically_same', 'parts_of_same']
+    s_link_types = ['semantically_same']
+    s_non_link_types = ['parts_of_same']
     dataset_name = 'DrInventor'
-    maxdistance = 0
     dataset_version = 'arg' + str(maxdistance)
     splits = ['total', 'train', 'test', 'validation']
 
@@ -1837,10 +1828,10 @@ if __name__ == '__main__':
     # i = 2
 
     # RCT CORPUS
-    routine_RCT_corpus()
+    # routine_RCT_corpus()
 
     # Dr.Inventor CORPUS
-    # routine_DrInventor_corpus()
+    routine_DrInventor_corpus(10)
 
     # ECHR CORPUS
     # routine_ECHR_corpus()
