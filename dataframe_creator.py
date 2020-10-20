@@ -1,7 +1,7 @@
 __author__ = "Andrea Galassi"
-__copyright__ = "Copyright 2018, Andrea Galassi"
+__copyright__ = "Copyright 2018-2020 Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __email__ = "a.galassi@unibo.it"
 
 """
@@ -15,6 +15,7 @@ import random
 import sys
 import ast
 import numpy as np
+import argparse
 
 
 
@@ -1813,49 +1814,17 @@ def routine_ECHR_corpus():
 
 
 
-if __name__ == '__main__':
-
+# this has been changed and not yet tested:
+def routine_CDCP_corpus():
     # CDCP CORPUS
-    # link_types = ['evidences', 'reasons']
-    # dataset_name = 'cdcp_ACL17'
-    # dataset_version = 'new_3'
-    # i = 1
-
-    # UKP CORPUS
-    # dataset_name = 'AAEC_v2'
-    # dataset_version = 'new_2'
-    # link_types = ['supports', 'attacks']
-    # i = 2
-
-    # RCT CORPUS
-    # routine_RCT_corpus()
-
-    # Dr.Inventor CORPUS
-    routine_DrInventor_corpus(10)
-
-    # ECHR CORPUS
-    # routine_ECHR_corpus()
-
-    """
+    link_types = ['evidences', 'reasons']
+    dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
 
     dataset_type = 'train'
-    # dataset_name = 'cdcp_ACL17'
-    # dataset_version = 'preprocessed+tran_data'
-    dataset_name = 'AAEC_v2'
-    dataset_version = 'original_data'
-    create_function = None
-
-
-    link_types = []
-
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    if dataset_name == 'cdcp_ACL17':
-        link_types = ['evidences', 'reasons']
-        create_function = create_preprocessed_cdcp_pickle
-    elif dataset_name == 'AAEC_v2':
-        link_types = ['supports', 'attacks']
-        create_function = create_ukp_pickle
+    create_function = create_preprocessed_cdcp_pickle
 
     create_function(dataset_path, dataset_version, link_types, dataset_type, validation=0.1, reflexive=False)
     dataset_type = 'test'
@@ -1865,109 +1834,37 @@ if __name__ == '__main__':
     create_total_dataframe(pickles_path)
 
 
-    print("----------------------\n\n")
-    dataframe_path = os.path.join(pickles_path, 'validation.pkl')
-    if os.path.exists(dataframe_path):
-        print("VALIDATION")
-        print_dataframe_details(dataframe_path)
-    print("----------------------\n\n")
-    print("TRAIN")
-    dataframe_path = os.path.join(pickles_path, 'train.pkl')
-    print_dataframe_details(dataframe_path)
-    print("----------------------\n\n")
-    print("TEST")
-    dataframe_path = os.path.join(pickles_path, 'test.pkl')
-    print_dataframe_details(dataframe_path)
-    """
-
-
-
-
-    """
-    link_types = ['evidences', 'reasons']
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_3'
-    i = 1
-
-    # dataset_name = 'AAEC_v2'
-    # dataset_version = 'new_2'
-    # link_types = ['supports', 'attacks']
-    # i = 2
-
-    highest = 0
-    lowest = 0
-
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-
-    for split in ['train', 'test', 'validation', 'total']:
-        dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
-        df = pandas.read_pickle(dataframe_path)
-
-        for index, row in df.iterrows():
-            s_index = int(row['source_ID'].split('_')[i])
-            t_index = int(row['target_ID'].split('_')[i])
-
-            difference = (s_index-t_index)
-
-            if highest<difference:
-                highest = difference
-            if lowest>difference:
-                lowest=difference
-
-    for split in ['train', 'test', 'validation', 'total']:
-        dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
-        df = pandas.read_pickle(dataframe_path)
-
-        diff_l = {}
-        diff_nl = {}
-
-        for index, row in df.iterrows():
-            s_index = int(row['source_ID'].split('_')[i])
-            t_index = int(row['target_ID'].split('_')[i])
-
-            difference = (s_index-t_index)
-
-            if highest<difference:
-                highest = difference
-            if lowest>difference:
-                lowest=difference
-
-            if row['source_to_target']:
-                voc = diff_l
-            else:
-                voc = diff_nl
-
-            if difference in voc.keys():
-                voc[difference] += 1
-            else:
-                voc[difference] = 1
-
-        print()
-        print()
-        print(split)
-        print("distance\tnot links\tlinks")
-        for key in range(lowest, highest+1):
-            if key not in diff_nl.keys():
-                diff_nl[key] = 0
-            if key not in diff_l.keys():
-                diff_l[key] = 0
-
-            print(str(key) + "\t" + str(diff_nl[key]) + '\t' + str(diff_l[key]))
-
-    """
-
-    """
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_3'
-    # dataset_name = 'AAEC_v2'
-    # dataset_version = 'new_2'
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-
     for split in ('train', 'test', 'validation', 'total'):
         print(split)
         dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
 
         print_dataframe_details(dataframe_path)
         print('_______________________')
+        print('_______________________')
 
-    """
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Create a new dataframe")
+
+    parser.add_argument('-c', '--corpus',
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        help="Corpus", default="cdcp")
+    parser.add_argument('-d', '--distance', help="The maximum distance considered to create pairs", default=10)
+
+
+    args = parser.parse_args()
+
+    corpus = args.corpus
+    distance = args.distance
+
+    if corpus.lower() == "rct":
+        routine_RCT_corpus
+    elif corpus.lower() == "cdcp":
+        routine_CDCP_corpus()
+    elif corpus.lower() == "drinv":
+        routine_DrInventor_corpus(distance)
+
+
+

@@ -1,7 +1,7 @@
 __author__ = "Andrea Galassi"
-__copyright__ = "Copyright 2018, Andrea Galassi"
+__copyright__ = "Copyright 2018-2020 Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.0.1"
+__version__ = "0.2.0"
 __email__ = "a.galassi@unibo.it"
 
 import os
@@ -11,6 +11,7 @@ import sys
 import time
 import json
 import training
+import argparse
 
 from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import load_model, model_from_json
@@ -303,26 +304,9 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                "Supp P premise\tSupp P claim\tSupp P majclaim\tF1 nonLink" +
                                "\n\n")
     elif dataset_name == "cdcp_ACL17":
-        evaluation_headline = ("set\t" +
-                               "F1 AVG all\tF1 AVG LP\t" +
-                               "F1 Link\tF1 R AVG dir\t" +
-                               "F1 R reason\tF1 R evidence\t" +
-                               "F1 P AVG\tF1 P policy\tF1 P fact\tF1 P testimony\tF1 P value\tF1 P reference\tF1 P avg\t"+
-                               "Pr P AVG\tPr P policy\tPr P fact\tPr P testimony\tPr P value\tPr P reference\tPr P avg\t"+
-                               "Rec P AVG\tRec P policy\tRec P fact\tRec P testimony\tRec P value\tRec P reference\tRec P avg\t"+
-                               "Supp P policy\tSupp P fact\tSupp P testimony\tSupp P value\tSupp P reference\tF1 nonLink" +
-                               "\n\n")
+        evaluation_headline = this_ds_info["evaluation_headline"]
     elif dataset_name == "RCT":
-        evaluation_headline = ("set\t" +
-                               "F1 AVG all\tF1 AVG LP\t"
-                               "F1 Link\tF1 R AVG dir\t"
-                               "F1 R support\tF1 R attack\t" +
-                                "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\t" +
-                                "Pr P AVG\tPr P premise\tPr P claim\tPr P avg\t" +
-                                "Rec P AVG\tRec P premise\tRec P claim\tRec P avg\t" +
-                                "Fs P AVG\tFs P premise\tFs P claim\tFs P avg\t" +
-                                "Supp P premise\tSupp P claim\tF1 nonLink" +
-                                "\n\n")
+        evaluation_headline = this_ds_info["evaluation_headline"]
     elif dataset_name == "DrInventor":
         evaluation_headline = this_ds_info["evaluation_headline_short"]
 
@@ -631,8 +615,6 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
             score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
 
-
-            score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
             score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
             score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
 
@@ -643,7 +625,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
             score_prec_prop = score_prfs_prop[0]
             score_rec_prop = score_prfs_prop[1]
-            score_fscore_prop = score_prfs_prop[2]
+            score_f1_prop_real = score_prfs_prop[2]
             score_supp_prop = score_prfs_prop[3]
 
             score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='macro')
@@ -679,10 +661,12 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 iteration_scores.append(score)
             iteration_scores.append(score_rec_prop_AVGm)
 
+            """
             iteration_scores.append(score_fscore_prop_AVGM)
             for score in score_fscore_prop:
                 iteration_scores.append(score)
             iteration_scores.append(score_fscore_prop_AVGm)
+            """
 
             for score in score_supp_prop:
                 iteration_scores.append(score)
@@ -988,7 +972,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
 
 
-def RCT_routine(netname="RCT7net2018"):
+def RCT_routine(netname="RCT11", retrocompatibility=True, distance=5, ensemble=True, token_wise=True):
 
     dataset_name = "RCT"
     training_dataset_version = "neo"
@@ -997,65 +981,65 @@ def RCT_routine(netname="RCT7net2018"):
 
     test_dataset_version = "neo"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
     test_dataset_version = "mixed"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
     test_dataset_version = "glaucoma"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=True, distance=5, ensemble=True, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
 
-def drinv_routine():
+def drinv_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True):
 
     dataset_name = 'DrInventor'
     dataset_version = 'arg40'
-    netname = 'drinv7net2018'
+    netname = netname
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
 
-def ECHR_routine():
+def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
 
     dataset_name = 'ECHR2018'
     dataset_version = 'arg0'
-    netname = 'echr7net2018'
+    netname = netname
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
 
 
 
-def cdcp_routine():
+def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
 
     dataset_name = 'cdcp_ACL17'
     training_dataset_version = 'new_3'
     test_dataset_version = "new_3"
-    netname = 'cdcp111'
+    netname = netname
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
     # perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
     #                    ensemble=True, ensemble_top_criterion="link", ensemble_top_n=0.3)
 
 
-def UKP_routine():
+def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
 
     dataset_name = 'AAEC_v2'
     training_dataset_version = 'new_2'
     test_dataset_version = "new_2"
-    netname = 'UKP7net2018'
+    netname = netname
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
 
 
 def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):
@@ -1348,37 +1332,35 @@ if __name__ == '__main__':
 
     # drinv_routine()
 
-    RCT_routine(netname='RCT11')
+    # RCT_routine(netname='RCT11')
 
-    """
-    netname = 'prova'
-    if len(sys.argv) > 1:
-        netname = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Evaluate a neural network approach.")
+    parser.add_argument("netname", help="The name of the network")
 
-    name = 'cdcp7R13tv'
-    dataset_name = 'cdcp_ACL17'
-    dataset_version = 'new_3'
-    split = 'test'
-    epoch = None
-    epoch = 295
 
-    # evaluate_single_epoch(name, dataset_name, dataset_version)
+    parser.add_argument('-c', '--corpus',
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        help="corpus", default="cdcp")
+    parser.add_argument('-r', '--retrocompatibility', help="Use of a network trained with the previous approach", action="store_true")
+    parser.add_argument('-d', '--distance', help="The maximum distance considered in the features", default=5)
+    parser.add_argument('-e', '--ensemble', help="Use of an ensemble of networks", action="store_true")
+    parser.add_argument('-t', '--token', help="Perform token-wise component classification (instead of component-wise)", action="store_true")
 
-    # evaluate_every_epoch(name, dataset_name, dataset_version)
+    args = parser.parse_args()
 
-    # print_model(name, dataset_name, dataset_version)
+    netname = args.netname
+    corpus = args.corpus
+    distance = args.distance
+    ensemble = args.ensemble
+    retrocompatibility = args.retrocompatibility
+    token_wise = args.token
 
-    perform_evaluation(name, dataset_name, dataset_version)
-    generate_confusion_matrix(name, dataset_name, dataset_version)
+    if corpus.lower() == "rct":
+        RCT_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+    elif corpus.lower() == "cdcp":
+        cdcp_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+    elif corpus.lower() == "drinv":
+        drinv_routine(netname, retrocompatibility, distance, ensemble, token_wise)
 
-    name = 'cdcp7R13'
-    perform_evaluation(name, dataset_name, dataset_version)
-    generate_confusion_matrix(name, dataset_name, dataset_version)
-    name = 'cdcp7R13nc'
-    perform_evaluation(name, dataset_name, dataset_version, context=False)
-    generate_confusion_matrix(name, dataset_name, dataset_version, context=False)
-    name = 'cdcp7R13tvnc'
-    perform_evaluation(name, dataset_name, dataset_version, context=False)
-    generate_confusion_matrix(name, dataset_name, dataset_version, context=False)
-    """
+
 

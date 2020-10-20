@@ -1,7 +1,7 @@
 __author__ = "Andrea Galassi"
-__copyright__ = "Copyright 2018, Andrea Galassi"
+__copyright__ = "Copyright 2018-2020 Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.0.1"
+__version__ = "0.2.0"
 __email__ = "a.galassi@unibo.it"
 
 
@@ -9,6 +9,7 @@ import pandas
 import os
 import numpy as np
 import pickle
+import argparse
 from glove_loader import DIM, SEPARATORS, STOPWORDS, REPLACINGS
 
 def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='texts', type='bow'):
@@ -151,13 +152,6 @@ def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='text
 
 def RCT_routine():
     global MAX
-    # MAX = 0
-    # save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
-    # print(MAX)
-
-    # MAX = 0
-    # save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
-    # print(MAX)
 
     MAX = 0
 
@@ -180,14 +174,6 @@ def RCT_routine():
 
 def DrInventor_routine():
     global MAX
-    # MAX = 0
-    # save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
-    # print(MAX)
-
-    # MAX = 0
-    # save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
-    # print(MAX)
-
     MAX = 0
 
     dataset_name = "DrInventor"
@@ -207,16 +193,31 @@ def DrInventor_routine():
     print("MAX = " + str(MAX))
 
 
+
+def cdcp_routine():
+    global MAX
+
+    MAX = 0
+
+    dataset_name = "cdcp_ACL17"
+    type = "bow"
+    mode = "propositions"
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    for version in ["new_3"]:
+
+        dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
+
+        embeddings_path = os.path.join(dataset_path, type, version)
+        # load glove vocabulary and embeddings
+        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+
+        save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
+    print("MAX = " + str(MAX))
+
+
 def ECHR_routine():
     global MAX
-    # MAX = 0
-    # save_embeddings('AAEC_v2', 'new_2', 'propositions', 'bow')
-    # print(MAX)
-
-    # MAX = 0
-    # save_embeddings('cdcp_ACL17', 'new_3', 'propositions', 'bow')
-    # print(MAX)
-
     MAX = 0
 
     dataset_name = 'ECHR2018'
@@ -238,8 +239,22 @@ def ECHR_routine():
 
 if __name__ == '__main__':
 
-    DrInventor_routine()
-    # ECHR_routine()
+    parser = argparse.ArgumentParser(description="Creates embeddings for the dataset")
 
+    parser.add_argument('-c', '--corpus',
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        help="Corpus", default="cdcp")
+
+
+    args = parser.parse_args()
+
+    corpus = args.corpus
+
+    if corpus.lower() == "rct":
+        RCT_routine()
+    elif corpus.lower() == "cdcp":
+        cdcp_routine()
+    elif corpus.lower() == "drinv":
+        DrInventor_routine()
 
 

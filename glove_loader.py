@@ -1,7 +1,7 @@
 __author__ = "Andrea Galassi"
-__copyright__ = "Copyright 2018, Andrea Galassi"
+__copyright__ = "Copyright 2018-2020 Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.0.1"
+__version__ = "0.2.0"
 __email__ = "a.galassi@unibo.it"
 
 
@@ -9,6 +9,7 @@ import pandas
 import os
 import numpy as np
 import re
+import argparse
 
 DIM = 300
 SEPARATORS = ['(', ')', '[', ']', '{', '}', '...', '_', '--', '|',
@@ -299,36 +300,43 @@ def RCT_routine():
     vocabulary_creator(m1, glove_path, dataframe_path)
 
 
-if __name__ == '__main__':
+def cdcp_routine():
+    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
 
-    DrInventor_routine()
-    # RCT_routine()
-    # ECHR_routine()
-
-    """
-
-    dataset_name = 'AAEC_v2'
-    version = 'new_2'
+    dataset_name = 'cdcp_ACL17'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
-    version_path = os.path.join(os.path.join(pickles_path, version))
-    dataframe_path = os.path.join(version_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove', version)
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove')
+
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
 
     vocabulary_creator(m1, glove_path, dataframe_path)
 
 
-    dataset_name = 'cdcp_ACL17'
-    version = 'new_3'
 
-    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
-    version_path = os.path.join(os.path.join(pickles_path, version))
-    dataframe_path = os.path.join(version_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove', version)
 
-    vocabulary_creator(model, glove_path, dataframe_path)
+if __name__ == '__main__':
 
-    """
 
+    parser = argparse.ArgumentParser(description="Loads glove embeddings related to the dataset")
+
+    parser.add_argument('-c', '--corpus',
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        help="Corpus", default="cdcp")
+
+
+    args = parser.parse_args()
+
+    corpus = args.corpus
+
+    if corpus.lower() == "rct":
+        RCT_routine()
+    elif corpus.lower() == "cdcp":
+        cdcp_routine()
+    elif corpus.lower() == "drinv":
+        DrInventor_routine()
