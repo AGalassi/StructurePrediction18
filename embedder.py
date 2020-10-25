@@ -194,6 +194,28 @@ def DrInventor_routine():
 
 
 
+def UKP_routine():
+    global MAX
+
+    MAX = 0
+
+    dataset_name = 'AAEC_v2'
+    type = "bow"
+    mode = "propositions"
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    for version in ["new_2"]:
+
+        dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
+
+        embeddings_path = os.path.join(dataset_path, type, version)
+        # load glove vocabulary and embeddings
+        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+
+        save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
+    print("MAX = " + str(MAX))
+
+
 def cdcp_routine():
     global MAX
 
@@ -256,5 +278,9 @@ if __name__ == '__main__':
         cdcp_routine()
     elif corpus.lower() == "drinv":
         DrInventor_routine()
+    elif corpus.lower() == "ukp":
+        UKP_routine()
+    else:
+        print("Datset not yet supported")
 
 

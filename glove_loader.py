@@ -319,6 +319,25 @@ def cdcp_routine():
 
 
 
+def UKP_routine():
+    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+
+    dataset_name = 'AAEC_v2'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, 'glove')
+
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
+
+    vocabulary_creator(m1, glove_path, dataframe_path)
+
+
+
 
 if __name__ == '__main__':
 
@@ -340,3 +359,7 @@ if __name__ == '__main__':
         cdcp_routine()
     elif corpus.lower() == "drinv":
         DrInventor_routine()
+    elif corpus.lower() == "ukp":
+        UKP_routine()
+    else:
+        print("Datset not yet supported")

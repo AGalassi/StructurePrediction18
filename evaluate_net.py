@@ -12,6 +12,7 @@ import time
 import json
 import training
 import argparse
+import krippendorff
 
 from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import load_model, model_from_json
@@ -292,23 +293,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             ensemble_prop_truth[split] = []
             ensemble_rel_truth[split] = []
 
-    evaluation_headline = ""
-    if dataset_name == "AAEC_v2":
-        evaluation_headline = ("set\t"
-                               "F1 AVG all\tF1 AVG LP\t"
-                               "F1 Link\tF1 R AVG dir\t"
-                               "F1 R support\tF1 R attack\t" +
-                               "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P majclaim\tF1 P avgi\t" +
-                               "Pr P AVG\tF1 Pr premise\tF1 Pr claim\tF1 Pr majclaim\tPr P avgi\t" +
-                               "Rec P AVG\tRec P premise\tRec P claim\tRec P majclaim\tRec P avgi\t" +
-                               "Supp P premise\tSupp P claim\tSupp P majclaim\tF1 nonLink" +
-                               "\n\n")
-    elif dataset_name == "cdcp_ACL17":
-        evaluation_headline = this_ds_info["evaluation_headline"]
-    elif dataset_name == "RCT":
-        evaluation_headline = this_ds_info["evaluation_headline"]
-    elif dataset_name == "DrInventor":
-        evaluation_headline = this_ds_info["evaluation_headline_short"]
+    evaluation_headline = this_ds_info["evaluation_headline"]
 
     print(str(time.ctime()) + "\t\tCREATING MODEL...")
 
@@ -474,6 +459,158 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
         extensive_report = ""
 
+
+
+        def create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real):
+
+            report = ""
+
+            # F1s
+            score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
+            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
+            score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
+
+
+            score_f1_rel_completeM = f1_score(Y_test_rel, Y_pred_rel, average='macro')
+            score_f1_non_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[not_a_link_labels[-1]])
+
+
+            score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
+            score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
+            score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
+
+            score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
+            score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
+
+            # Precision-recall-fscore-support
+            score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
+            score_prec_prop = score_prfs_prop[0]
+            score_rec_prop = score_prfs_prop[1]
+            score_fscore_prop = score_prfs_prop[2]
+            score_supp_prop = score_prfs_prop[3]
+
+            score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                                   average='macro')
+            score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
+            score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
+            score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
+
+            score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                                   average='micro')
+            score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
+            score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
+            score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
+
+            iteration_scores = []
+            iteration_scores.append(score_f1_AVG_all_real[0])
+            iteration_scores.append(score_f1_AVG_LP_real[0])
+            iteration_scores.append(score_f1_link[0])
+
+            if split == "validation":
+                return_value = score_f1_link[0]
+
+            iteration_scores.append(score_f1_rel_AVGM)
+            for score in score_f1_rel:
+                iteration_scores.append(score)
+            iteration_scores.append(score_f1_prop_AVGM_real)
+            for score in score_f1_prop_real:
+                iteration_scores.append(score)
+            iteration_scores.append(score_f1_prop_AVGm_real)
+
+            iteration_scores.append(score_prec_prop_AVGM)
+            for score in score_prec_prop:
+                iteration_scores.append(score)
+            iteration_scores.append(score_prec_prop_AVGm)
+
+            iteration_scores.append(score_rec_prop_AVGM)
+            for score in score_rec_prop:
+                iteration_scores.append(score)
+            iteration_scores.append(score_rec_prop_AVGm)
+
+            # iteration_scores.append(score_fscore_prop_AVGM)
+            # for score in score_fscore_prop:
+            #     iteration_scores.append(score)
+            # iteration_scores.append(score_fscore_prop_AVGm)
+
+            for score in score_supp_prop:
+                iteration_scores.append(score)
+
+            iteration_scores.append(score_f1_non_link[0])
+
+            iteration_scores.append(score_f1_rel_completeM)
+            iteration_scores.append(score_f1_non_rel[0])
+
+
+            final_scores[split].append(iteration_scores)
+
+            # writing single iteration scores
+            string = split
+            for value in iteration_scores:
+                string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
+
+            print(string)
+            shortrep = string
+
+            report += "\n\n"
+            report += split
+
+            report += "\nLinks\n"
+            report += classification_report(Y_test_links, Y_pred_links,
+                                                      labels=range(2),
+                                                      target_names=["YES", "NO"])
+            report += "\n"
+
+            report += "\nRelations\n"
+
+            rel_types = []
+            for idx in relations_labels:
+                rel_type = this_ds_info["rel_types"][idx]
+                rel_types.append(rel_type)
+                print("\t" + str(rel_type))
+            rel_types.append("None")
+            rel_idx = relations_labels.copy()
+            rel_idx.append(not_a_link_labels[-1])
+            print(relations_labels)
+            print(rel_idx)
+            print(rel_types)
+
+            report += classification_report(Y_test_rel, Y_pred_rel,
+                                                      labels=rel_idx,
+                                                      target_names=rel_types)
+            report += "\n"
+
+            report += "\nComponents\n"
+            report += classification_report(Y_test_prop_real, Y_pred_prop_real,
+                                                      labels=range(len(this_ds_info["prop_types"])),
+                                                      target_names=this_ds_info["prop_types"])
+            report += "\n"
+
+            # CONFUSION MATRICES (the code for normalized matrices is in comment cause it requires python
+            confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
+            #confusion_link2 = confusion_matrix(Y_test_links, Y_pred_links, normalize='true')
+            confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
+            #confusion_rel2 = confusion_matrix(Y_test_rel, Y_pred_rel, normalize='true')
+            confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
+            #confusion_prop_real2 = confusion_matrix(Y_test_prop_real, Y_pred_prop_real, normalize='true')
+            report += "\n\nlink\n"
+            report += str(confusion_link)
+            #report += "\n"
+            #report += str(confusion_link2)
+            report += "\n\nrel\n"
+            report += str(confusion_rel)
+            #report += "\n"
+            #report += str(confusion_rel2)
+            report += "\n\nprop real\n"
+            report += str(confusion_prop_real)
+            #report += "\n"
+            #report += str(confusion_prop_real2)
+            report += "\n\n"
+
+            return shortrep, report
+
+
+
         for split in ['test', 'validation', 'train']:
 
             if len(X[split][0]) <= 1:
@@ -593,6 +730,12 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_test_prop_real = np.array(Y_test_tok_real)
 
 
+            # Merge all the not-link labels in the first of them
+            for label in not_a_link_labels:
+                Y_test_rel = np.where(Y_test_rel == label, not_a_link_labels[-1], Y_test_rel)
+                Y_pred_rel = np.where(Y_pred_rel == label, not_a_link_labels[-1], Y_pred_rel)
+
+
             if ensemble is not None and ensemble is not False:
                 ensemble_prop_truth[split] = Y_test_prop_real
                 ensemble_link_truth[split] = Y_test_links
@@ -609,127 +752,12 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             # predictions computed! Computing measures!
 
-            # F1s
-            score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
-            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
-            score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
+            shortrep, report = create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real)
 
-            score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
-            score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
+            extensive_report += report
 
-            score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
-            score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
-
-            # Precision-recall-fscore-support
-            score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
-            score_prec_prop = score_prfs_prop[0]
-            score_rec_prop = score_prfs_prop[1]
-            score_f1_prop_real = score_prfs_prop[2]
-            score_supp_prop = score_prfs_prop[3]
-
-            score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='macro')
-            score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
-            score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
-            score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
-
-            score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average='micro')
-            score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
-            score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
-            score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
-
-            iteration_scores = []
-            iteration_scores.append(score_f1_AVG_all_real[0])
-            iteration_scores.append(score_f1_AVG_LP_real[0])
-            iteration_scores.append(score_f1_link[0])
-            iteration_scores.append(score_f1_rel_AVGM)
-            for score in score_f1_rel:
-                iteration_scores.append(score)
-            iteration_scores.append(score_f1_prop_AVGM_real)
-            for score in score_f1_prop_real:
-                iteration_scores.append(score)
-            iteration_scores.append(score_f1_prop_AVGm_real)
-
-
-            iteration_scores.append(score_prec_prop_AVGM)
-            for score in score_prec_prop:
-                iteration_scores.append(score)
-            iteration_scores.append(score_prec_prop_AVGm)
-
-            iteration_scores.append(score_rec_prop_AVGM)
-            for score in score_rec_prop:
-                iteration_scores.append(score)
-            iteration_scores.append(score_rec_prop_AVGm)
-
-            """
-            iteration_scores.append(score_fscore_prop_AVGM)
-            for score in score_fscore_prop:
-                iteration_scores.append(score)
-            iteration_scores.append(score_fscore_prop_AVGm)
-            """
-
-            for score in score_supp_prop:
-                iteration_scores.append(score)
-
-            iteration_scores.append(score_f1_non_link[0])
-
-            final_scores[split].append(iteration_scores)
-
-            # take note of the main desired value, so to select only top network for ensamble
-            if ensemble is not None and ensemble is not False and split == "validation":
-                if ensemble_top_criterion == "link":
-                    criterion_scores.append(score_f1_link[0])
-
-                elif ensemble_top_criterion == "propositions-macro":
-                    criterion_scores.append(score_f1_prop_AVGM_real)
-
-
-            # writing single iteration scores
-            string = split
-            for value in iteration_scores:
-                string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
-
-            print(string)
-            testfile.write(string + "\n")
-
-            testfile.flush()
-            sys.stdout.flush()
-
-            extensive_report += "\n\n"
-            extensive_report += split
-
-            extensive_report += "\nLinks\n"
-            extensive_report += classification_report(Y_test_links, Y_pred_links,
-                                                      labels=range(2),
-                                                      target_names=["YES", "NO"])
-            extensive_report += "\n"
-
-            extensive_report += "\nRelations\n"
-            extensive_report += classification_report(Y_test_rel, Y_pred_rel,
-                                                      labels=range(len(this_ds_info["rel_types"])),
-                                                      target_names=this_ds_info["rel_types"])
-            extensive_report += "\n"
-
-            extensive_report += "\nComponents\n"
-            extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
-                                                      labels=range(len(this_ds_info["prop_types"])),
-                                                      target_names=this_ds_info["prop_types"])
-            extensive_report += "\n"
-
-            # CONFUSION MATRIX
-            confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
-            confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
-            # confusion_prop = confusion_matrix(Y_test_prop, Y_pred_prop)
-            confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
-            extensive_report += "\n\nlink\n"
-            extensive_report += str(confusion_link)
-            extensive_report += "\n\nrel\n"
-            extensive_report += str(confusion_rel)
-            # testfile.write("\n\nprop\n")
-            # testfile.write(str(confusion_prop))
-            extensive_report += "\n\nprop real\n"
-            extensive_report += str(confusion_prop_real)
-            extensive_report += "\n\n"
+            testfile.write(shortrep)
+            testfile.write("\n")
 
             testfile.flush()
             sys.stdout.flush()
@@ -782,6 +810,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
     # ENSEMBLE SCORE
     # TODO: implement ensemble score consideration
+    # REMEMBER THAT not-link relation votes have been merged, but the scores have not
     print(str(time.ctime()) + "\t\tENSEMBLE EVALUATION")
     if ensemble is not None and ensemble is not False:
 
@@ -835,6 +864,15 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_test_prop_real = ensemble_prop_truth[split]
                 # print(Y_test_prop_real)
 
+
+                # compute IAA between networks: krippendorff's alpha
+                kalpha_prop = krippendorff.alpha(reliability_data=ensemble_prop_votes[split],
+                                                 value_domain=range(this_ds_info['output_units'][2]))
+                kalpha_link = krippendorff.alpha(reliability_data=ensemble_link_votes[split],
+                                                 value_domain=[0, 1])
+                kalpha_rel = krippendorff.alpha(reliability_data=ensemble_rel_votes[split],
+                                                 value_domain=range(this_ds_info['output_units'][1]))
+
                 link_votes = np.array(ensemble_link_votes[split])
                 Y_pred_links = stats.mode(link_votes)[0][0]
                 Y_test_links = ensemble_link_truth[split]
@@ -843,120 +881,20 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_pred_rel = stats.mode(rel_votes)[0][0]
                 Y_test_rel = ensemble_rel_truth[split]
 
-                # F1s
-                score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-                score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
-                score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
-                score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
-
-                score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
-                score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
-                score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
-
-                score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
-                score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
-
-                # Precision-recall-fscore-support
-                score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
-                score_prec_prop = score_prfs_prop[0]
-                score_rec_prop = score_prfs_prop[1]
-                score_fscore_prop = score_prfs_prop[2]
-                score_supp_prop = score_prfs_prop[3]
-
-                score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
-                                                                       average='macro')
-                score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
-                score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
-                score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
-
-                score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
-                                                                       average='micro')
-                score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
-                score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
-                score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
-
-                iteration_scores = []
-                iteration_scores.append(score_f1_AVG_all_real[0])
-                iteration_scores.append(score_f1_AVG_LP_real[0])
-                iteration_scores.append(score_f1_link[0])
-
-                if split == "validation":
-                    return_value = score_f1_link[0]
-
-                iteration_scores.append(score_f1_rel_AVGM)
-                for score in score_f1_rel:
-                    iteration_scores.append(score)
-                iteration_scores.append(score_f1_prop_AVGM_real)
-                for score in score_f1_prop_real:
-                    iteration_scores.append(score)
-                iteration_scores.append(score_f1_prop_AVGm_real)
-
-                iteration_scores.append(score_prec_prop_AVGM)
-                for score in score_prec_prop:
-                    iteration_scores.append(score)
-                iteration_scores.append(score_prec_prop_AVGm)
-
-                iteration_scores.append(score_rec_prop_AVGM)
-                for score in score_rec_prop:
-                    iteration_scores.append(score)
-                iteration_scores.append(score_rec_prop_AVGm)
-
-                iteration_scores.append(score_fscore_prop_AVGM)
-                for score in score_fscore_prop:
-                    iteration_scores.append(score)
-                iteration_scores.append(score_fscore_prop_AVGm)
-
-                for score in score_supp_prop:
-                    iteration_scores.append(score)
-
-                iteration_scores.append(score_f1_non_link[0])
-
-                final_scores[split].append(iteration_scores)
-
-                # writing single iteration scores
-                string = split
-                for value in iteration_scores:
-                    string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
-
-                print(string)
-                testfile.write(string + "\n")
-
-                extensive_report += "\n\n"
-                extensive_report += split
+                shortrep, report = create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real,
+                                                 Y_pred_prop_real)
 
 
-                extensive_report += "\nLinks\n"
-                extensive_report += classification_report(Y_test_links, Y_pred_links,
-                                                          labels=range(2),
-                                                          target_names=["YES", "NO"])
-                extensive_report += "\n"
+                report += "\n\nkrippendorff's alpha\n"
+                report += "Propositions:\t" + str(kalpha_prop) + "\n"
+                report += "Link:\t" + str(kalpha_link) + "\n"
+                report += "Relations:\t" + str(kalpha_rel) + "\n"
 
-                extensive_report += "\nRelations\n"
-                extensive_report += classification_report(Y_test_rel, Y_pred_rel,
-                                                          labels=range(len(this_ds_info["rel_types"])),
-                                                          target_names=this_ds_info["rel_types"])
-                extensive_report += "\n"
 
-                extensive_report += "\nComponents\n"
-                extensive_report += classification_report(Y_test_prop_real, Y_pred_prop_real,
-                                                          labels=range(len(this_ds_info["prop_types"])),
-                                                          target_names=this_ds_info["prop_types"])
-                extensive_report += "\n"
+                extensive_report += report
 
-                # CONFUSION MATRIX
-                confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
-                confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
-                # confusion_prop = confusion_matrix(Y_test_prop, Y_pred_prop)
-                confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
-                extensive_report += "\n\nlink\n"
-                extensive_report += str(confusion_link)
-                extensive_report += "\n\nrel\n"
-                extensive_report += str(confusion_rel)
-                # testfile.write("\n\nprop\n")
-                # testfile.write(str(confusion_prop))
-                extensive_report += "\n\nprop real\n"
-                extensive_report += str(confusion_prop_real)
-                extensive_report += "\n\n"
+                testfile.write(shortrep)
+                testfile.write("\n")
 
                 testfile.flush()
                 sys.stdout.flush()
@@ -964,7 +902,9 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
         print("------------------\n\n------------------\n\n")
 
     testfile.write(extensive_report)
-    testfile.write("------------------\n\n")
+    testfile.write("------------------------------------------------------------------------------------------\n")
+    testfile.write("------------------------------------------------------------------------------------------\n")
+    testfile.write("------------------------------------------------------------------------------------------\n\n\n\n")
     testfile.close()
 
     # return the F1
@@ -972,7 +912,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
 
 
-def RCT_routine(netname="RCT11", retrocompatibility=True, distance=5, ensemble=True, token_wise=True):
+def     RCT_routine(netname="RCT11", retrocompatibility=True, distance=5, ensemble=True, token_wise=True):
 
     dataset_name = "RCT"
     training_dataset_version = "neo"
@@ -995,7 +935,7 @@ def RCT_routine(netname="RCT11", retrocompatibility=True, distance=5, ensemble=T
 def drinv_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True):
 
     dataset_name = 'DrInventor'
-    dataset_version = 'arg40'
+    dataset_version = 'arg10'
     netname = netname
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
@@ -1016,7 +956,7 @@ def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, t
 
 
 
-def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
+def cdcp_routine(netname='cdcp111', retrocompatibility=True, distance=5, ensemble=True, token_wise=False):
 
     dataset_name = 'cdcp_ACL17'
     training_dataset_version = 'new_3'
@@ -1345,6 +1285,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--distance', help="The maximum distance considered in the features", default=5)
     parser.add_argument('-e', '--ensemble', help="Use of an ensemble of networks", action="store_true")
     parser.add_argument('-t', '--token', help="Perform token-wise component classification (instead of component-wise)", action="store_true")
+    parser.add_argument('-x', '--default', help="Perform the evaluation on the dataset with the default options configured for that specific dataset", action="store_true")
 
     args = parser.parse_args()
 
@@ -1354,13 +1295,26 @@ if __name__ == '__main__':
     ensemble = args.ensemble
     retrocompatibility = args.retrocompatibility
     token_wise = args.token
+    default = args.default
 
-    if corpus.lower() == "rct":
-        RCT_routine(netname, retrocompatibility, distance, ensemble, token_wise)
-    elif corpus.lower() == "cdcp":
-        cdcp_routine(netname, retrocompatibility, distance, ensemble, token_wise)
-    elif corpus.lower() == "drinv":
-        drinv_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+    if default:
+        if corpus.lower() == "rct":
+            RCT_routine(netname)
+        elif corpus.lower() == "cdcp":
+            cdcp_routine(netname)
+        elif corpus.lower() == "drinv":
+            drinv_routine(netname)
+        elif corpus.lower() == "ukp":
+            UKP_routine(netname)
+    else:
+        if corpus.lower() == "rct":
+            RCT_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+        elif corpus.lower() == "cdcp":
+            cdcp_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+        elif corpus.lower() == "drinv":
+            drinv_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+        elif corpus.lower() == "ukp":
+            UKP_routine(netname, retrocompatibility, distance, ensemble, token_wise)
 
 
 

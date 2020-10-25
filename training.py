@@ -119,6 +119,8 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         dataset[split]['sources_type'].append(categorical_prop[row['source_type']])
         dataset[split]['targets_type'].append(categorical_prop[row['target_type']])
+
+
         dataset[split]['relations_type'].append(categorical_link[row['relation_type']])
 
         dataset[split]['s_id'].append(row['source_ID'])
@@ -1147,7 +1149,6 @@ def cdcp_argmining18_routine():
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1155,7 +1156,6 @@ def cdcp_argmining18_routine():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
@@ -1166,24 +1166,24 @@ def UKP_routine():
     dataset_name = 'AAEC_v2'
     dataset_version = 'new_2'
     split = 'total'
-    name = 'UKP7net2018'
+    name = 'UKP11'
 
     perform_training(
         name=name,
         save_weights_only=True,
         epochs=10000,
         feature_type='bow',
-        patience=200,
+        patience=100,
         loss_weights=[0, 10, 1, 1],
         lr_alfa=0.005,
         lr_kappa=0.001,
         beta_1=0.9,
         beta_2=0.9999,
-        res_scale=60, # res_siz =5
+        res_scale=60,  # res_siz =5
         resnet_layers=(1, 2),
-        embedding_scale=6, # embedding_size=50
+        embedding_scale=6,  # embedding_size=50
         embedder_layers=4,
-        final_scale=15, # final_size=20
+        final_scale=15,  # final_size=20
         space_scale=10,
         batch_size=500,
         regularizer_weight=0.0001,
@@ -1193,12 +1193,11 @@ def UKP_routine():
         bn_embed=True,
         bn_res=True,
         bn_final=True,
-        network=7,
+        network=11,
         monitor="links",
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1206,12 +1205,18 @@ def UKP_routine():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
-        classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
         dataset_split=split,
+        clean_previous_networks=True,
     )
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
+
+    evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True, token_wise=True)
+
+
 
 def cdcp_routine():
 
@@ -1259,7 +1264,6 @@ def cdcp_routine():
                             true_validation=True,
                             temporalBN=False,
                             same_layers=False,
-                            context=False,
                             distance=5,
                             iterations=10,
                             merge=None,
@@ -1267,7 +1271,6 @@ def cdcp_routine():
                             pooling=pooling,
                             text_pooling=50,
                             pooling_type='avg',
-                            distribution="sparsemax",
                             classification="softmax",
                             dataset_name=dataset_name,
                             dataset_version=dataset_version,
@@ -1325,7 +1328,6 @@ def cdcp_routine2():
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1333,7 +1335,6 @@ def cdcp_routine2():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
@@ -1348,6 +1349,8 @@ def cdcp_routine2():
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
 
     evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+
+
 
 
 
@@ -1507,7 +1510,6 @@ def min_func(param):
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1515,7 +1517,6 @@ def min_func(param):
         pooling=int(param["pooling"]),
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
@@ -1579,7 +1580,6 @@ def ECHR_routine():
         true_validation=True,
         temporalBN=False,
         same_layers=False,
-        context=False,
         distance=5,
         iterations=10,
         merge=None,
@@ -1587,7 +1587,6 @@ def ECHR_routine():
         pooling=10,
         text_pooling=50,
         pooling_type='avg',
-        distribution="sparsemax",
         classification="softmax",
         dataset_name=dataset_name,
         dataset_version=dataset_version,
@@ -1602,9 +1601,9 @@ if __name__ == '__main__':
     # cdcp_routine2()
 
     # UKP_routine()
-    # evaluate_net.UKP_routine()
+    UKP_routine()
 
-    drinv_routine()
+    # drinv_routine()
 
     #ECHR_routine()
     # evaluate_net.ECHR_routine()

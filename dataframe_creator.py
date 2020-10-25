@@ -224,7 +224,7 @@ ukp_test_ids = [4, 5, 6, 21, 42, 52, 61, 68, 71, 72, 77, 82, 86, 91, 97, 98,
 
 
 def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=False):
-    data_path = os.path.join(dataset_path, dataset_version)
+    data_path = os.path.join(dataset_path, "original_data")
 
     normal_list = []
     validation_list = []
@@ -1843,6 +1843,37 @@ def routine_CDCP_corpus():
         print('_______________________')
 
 
+def routine_UKP_corpus():
+    link_types = ['supports', 'attacks']
+    dataset_name = 'AAEC_v2'
+    dataset_version = 'new_2'
+
+    dataset_type = 'train'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+
+    # Use of reflexive creates 8k additional pairs of no-link :(
+    # Avoidance of reflexive misses 400 major claims :(
+
+    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0.1, reflexive=False)
+
+    dataset_type = 'test'
+    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0, reflexive=False)
+
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+    create_total_dataframe(pickles_path)
+
+
+    for split in ('train', 'test', 'validation', 'total'):
+        print(split)
+        dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
+
+        print_dataframe_details(dataframe_path)
+        print('_______________________')
+        print('_______________________')
+
+
+
 
 if __name__ == '__main__':
 
@@ -1851,7 +1882,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--corpus',
                         choices=["rct", "drinv", "cdcp", "echr", "ukp"],
                         help="Corpus", default="cdcp")
-    parser.add_argument('-d', '--distance', help="The maximum distance considered to create pairs", default=10)
+    parser.add_argument('-d', '--distance',
+                        help="The maximum distance considered to create pairs. Used only for some corpora.", default=10)
 
 
     args = parser.parse_args()
@@ -1865,6 +1897,10 @@ if __name__ == '__main__':
         routine_CDCP_corpus()
     elif corpus.lower() == "drinv":
         routine_DrInventor_corpus(distance)
+    elif corpus.lower() == "ukp":
+        routine_UKP_corpus()
+    else:
+        print("Datset not yet supported")
 
 
 

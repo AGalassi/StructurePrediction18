@@ -26,8 +26,18 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                "F1 AVG all\tF1 AVG LP\tF1 Link\t" +
                                                                "F1 R AVG dir\tF1 R support\tF1 R attack\t" +
                                                                 "F1 P AVG\t" +
-                                                                "F1 P premise\tF1 P claim\tF1 P major claim\t" +
+                                                                "F1 P premise\tF1 P claim\tF1 P majclaim\t" +
                                                                 "F1 P avg\n\n"),
+                                 "evaluation_headlinet": ("set\t" +
+                                                         "F1 AVG all\tF1 AVG LP\t"
+                                                       "F1 Link\tF1 R AVG dir\t"
+                                                       "F1 R support\tF1 R attack\t" +
+                                                        "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P majclaim\tF1 P avg\t" +
+                                                        "Pr P AVG\tPr P premise\tPr P claim\tPr P majclaim\tPr P avg\t" +
+                                                        "Rec P AVG\tRec P premise\tRec P claim\tRec P majclaim\tRec P avg\t" +
+                                                        "Supp P premise\tSupp P claim\t"
+                                                        "F1 nonLink\tF1_R_avg\tF1_R_not-rel" +
+                                                        "\n\n"),
                                  "prop_types": ['Premise', 'Claim', 'MajorClaim'],
                                  "rel_types": ['supports', 'inv_supports', 'attacks', 'inv_attacks', "None"],
 
@@ -91,7 +101,7 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                          "PR P AVG\tPr P policy\tPr P fact\tPr P testimony\tPr P value\tPr P reference\tpr P avg\t"
                                                          "REC P AVG\tRec P policy\tRec P fact\tRec P testimony\tRec P value\tRec P reference\trec P avg\t"
                                                          "Supp P policy\tSupp P fact\tSupp P testimony\tSupp P value\tSupp P reference\t"
-                                                         "F1 nonLink\n\n"),
+                                                         "F1 nonLink\tF1_R_avg\tF1_R_not-rel\n\n"),
                                  "prop_types": ['policy', 'fact', 'testimony', 'value', 'reference'],
                                  "rel_types": ['reasons', 'inv_reasons', 'evidences', 'inv_evidences', "None"],
                                 },
@@ -124,7 +134,8 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                         "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P avg\t" +
                                                         "Pr P AVG\tPr P premise\tPr P claim\tPr P avg\t" +
                                                         "Rec P AVG\tRec P premise\tRec P claim\tRec P avg\t" +
-                                                        "Supp P premise\tSupp P claim\tF1 nonLink" +
+                                                        "Supp P premise\tSupp P claim\t"
+                                                        "F1 nonLink\tF1_R_avg\tF1_R_not-rel" +
                                                         "\n\n"),
                                  "prop_types": ['Premise', 'Claim',],
                                  "rel_types": ['supports', 'inv_supports', 'attacks', 'inv_attacks', "None"],
@@ -153,7 +164,7 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                "f1 P avg\n\n"),
                                  "evaluation_headline": ("set\t" +
                                                                "F1 AVG all\tF1 AVG LP\tF1 Link\t" +
-                                                               "F1 R AVG dir\tF1 R supports\tF1 R contradicts\t" +
+                                                               "F1 R AVG dir\tF1 R supports\tF1 R contradicts\tF1 R semsame\t" +
                                                                "F1 P avg\t" +
                                                                "F1 P own_claim\tF1 P background_claim\tF1 P data\t" +
                                                                "f1 P avg\t"
@@ -164,7 +175,7 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                "Rec P own_claim\tRec P background_claim\tRec P data\t" +
                                                                "Rec P avg\t"
                                                                "Supp P own_claim\tSupp P background_claim\tSupp P data\t" +
-                                                               "F1 non-Link"
+                                                               "F1 non-Link\tF1_R_avg\tF1_R_not-rel"
                                                                "\n\n"),
                                  "prop_types": ['own_claim', 'background_claim', 'data'],
                                  "rel_types": ['supports', 'inv_supports', 'contradicts', 'inv_contradicts',
