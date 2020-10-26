@@ -730,6 +730,24 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_test_prop_real = np.array(Y_test_tok_real)
 
 
+            Y_pred_scores_links = Y_pred[0]
+            Y_pred_scores_rel = Y_pred[1]
+
+            # Remove all the symmetric links
+            reflexive = []
+            for index in range(len(sids)):
+                sid = sids[index]
+                tid = tids[index]
+                if sid == tid:
+                    reflexive.append(index)
+            if len(reflexive) > 0:
+                Y_test_rel = np.delete(Y_test_rel, reflexive, axis=0)
+                Y_pred_rel = np.delete(Y_pred_rel, reflexive, axis=0)
+                Y_test_links = np.delete(Y_test_links, reflexive, axis=0)
+                Y_pred_links = np.delete(Y_pred_links, reflexive, axis=0)
+                Y_pred_scores_links = np.delete(Y_pred_scores_links, reflexive, axis=0)
+                Y_pred_scores_rel = np.delete(Y_pred_scores_rel, reflexive, axis=0)
+
             # Merge all the not-link labels in the first of them
             for label in not_a_link_labels:
                 Y_test_rel = np.where(Y_test_rel == label, not_a_link_labels[-1], Y_test_rel)
@@ -744,10 +762,10 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 ensemble_prop_scores[split].append(Y_pred_scores_prop_real)
                 ensemble_prop_votes[split].append(Y_pred_prop_real)
 
-                ensemble_link_scores[split].append(Y_pred[0])
+                ensemble_link_scores[split].append(Y_pred_scores_links)
                 ensemble_link_votes[split].append(Y_pred_links)
 
-                ensemble_rel_scores[split].append(Y_pred[1])
+                ensemble_rel_scores[split].append(Y_pred_scores_rel)
                 ensemble_rel_votes[split].append(Y_pred_rel)
 
             # predictions computed! Computing measures!
@@ -979,7 +997,9 @@ def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, to
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility,
+                       distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=True)
 
 
 def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):

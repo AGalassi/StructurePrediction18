@@ -28,14 +28,14 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                                                 "F1 P AVG\t" +
                                                                 "F1 P premise\tF1 P claim\tF1 P majclaim\t" +
                                                                 "F1 P avg\n\n"),
-                                 "evaluation_headlinet": ("set\t" +
+                                 "evaluation_headline": ("set\t" +
                                                          "F1 AVG all\tF1 AVG LP\t"
                                                        "F1 Link\tF1 R AVG dir\t"
                                                        "F1 R support\tF1 R attack\t" +
                                                         "F1 P AVG\tF1 P premise\tF1 P claim\tF1 P majclaim\tF1 P avg\t" +
                                                         "Pr P AVG\tPr P premise\tPr P claim\tPr P majclaim\tPr P avg\t" +
                                                         "Rec P AVG\tRec P premise\tRec P claim\tRec P majclaim\tRec P avg\t" +
-                                                        "Supp P premise\tSupp P claim\t"
+                                                        "Supp P premise\tSupp P claim\tSupp P majclaim\t"
                                                         "F1 nonLink\tF1_R_avg\tF1_R_not-rel" +
                                                         "\n\n"),
                                  "prop_types": ['Premise', 'Claim', 'MajorClaim'],

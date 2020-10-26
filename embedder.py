@@ -56,11 +56,11 @@ def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='text
                 splits[i] = word
                 tokens[i] = word
                 tokens[i] = word
-
             elif word in vocabulary.keys():
                 tokens[i] = word
 
             i += 1
+
 
         for separator in separators:
             i = 0
@@ -204,7 +204,7 @@ def UKP_routine():
     mode = "propositions"
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    for version in ["new_2"]:
+    for version in ["new_2R"]:
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 

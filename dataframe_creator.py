@@ -400,9 +400,9 @@ def create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type='t
 
                     dataframe_row = {'text_ID': str(i) + "_" + str(par),
                                      'rawtext': paragraphs[par],
-                                     'source_proposition': propositions[sourceID],
+                                     'source_proposition': propositions[sourceID][0],
                                      'source_ID': str(i) + "_" + str(par) + "_" + str(sourceID),
-                                     'target_proposition': propositions[targetID],
+                                     'target_proposition': propositions[targetID][0],
                                      'target_ID': str(i) + "_" + str(par) + "_" + str(targetID),
                                      'source_type': type1,
                                      'target_type': type2,
@@ -1846,7 +1846,7 @@ def routine_CDCP_corpus():
 def routine_UKP_corpus():
     link_types = ['supports', 'attacks']
     dataset_name = 'AAEC_v2'
-    dataset_version = 'new_2'
+    dataset_version = 'new_2R'
 
     dataset_type = 'train'
 
@@ -1855,10 +1855,10 @@ def routine_UKP_corpus():
     # Use of reflexive creates 8k additional pairs of no-link :(
     # Avoidance of reflexive misses 400 major claims :(
 
-    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0.1, reflexive=False)
+    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0.1, reflexive=True)
 
     dataset_type = 'test'
-    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0, reflexive=False)
+    create_ukp_pickle(dataset_path, dataset_version, link_types, dataset_type, validation=0, reflexive=True)
 
     pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
     create_total_dataframe(pickles_path)

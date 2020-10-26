@@ -693,8 +693,8 @@ def perform_training(name = 'prova999',
             Y_test_prop_real = np.array(Y_test_prop_real)
             Y_test_prop_real = np.argmax(Y_test_prop_real, axis=-1)
 
-            Y_test_links = np.argmax(Y_validation[0], axis=-1)
-            Y_test_rel = np.argmax(Y_validation[1], axis=-1)
+            Y_test_links_or = np.argmax(Y_validation[0], axis=-1)
+            Y_test_rel_or = np.argmax(Y_validation[1], axis=-1)
 
 
             last_epoch = 0
@@ -715,6 +715,9 @@ def perform_training(name = 'prova999',
 
                 # evaluation
                 Y_pred = model.predict(X3_validation)
+
+                Y_test_links = Y_test_links_or.copy()
+                Y_test_rel = Y_test_rel_or.copy()
 
                 for index in range(len(sids)):
                     sid = sids[index]
@@ -739,6 +742,26 @@ def perform_training(name = 'prova999',
 
                 Y_pred_links = np.argmax(Y_pred[0], axis=-1)
                 Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
+
+
+                # Remove all the symmetric links
+                reflexive = []
+                for index in range(len(sids)):
+                    sid = sids[index]
+                    tid = tids[index]
+                    if sid == tid:
+                        reflexive.append(index)
+                if len(reflexive) > 0:
+                    Y_test_rel = np.delete(Y_test_rel, reflexive, axis=0)
+                    Y_pred_rel = np.delete(Y_pred_rel, reflexive, axis=0)
+                    Y_test_links = np.delete(Y_test_links, reflexive, axis=0)
+                    Y_pred_links = np.delete(Y_pred_links, reflexive, axis=0)
+                    if len(Y_test_rel) != len(Y_pred_rel):
+                        print(len(Y_test_rel))
+                        print(len(Y_pred_rel))
+                    if len(Y_test_links) != len(Y_pred_links):
+                        print(len(Y_test_links))
+                        print(len(Y_pred_links))
 
                 positive_link_labels = dataset_info[dataset_name]["link_as_sum"][0]
                 negative_link_labels = dataset_info[dataset_name]["link_as_sum"][1]
@@ -1164,7 +1187,7 @@ def cdcp_argmining18_routine():
 
 def UKP_routine():
     dataset_name = 'AAEC_v2'
-    dataset_version = 'new_2'
+    dataset_version = 'new_2R'
     split = 'total'
     name = 'UKP11'
 

@@ -251,9 +251,10 @@ def DrInventor_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
 
     dataset_name = 'DrInventor'
+    dataset_version = 'arg10'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg10'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
@@ -268,9 +269,10 @@ def ECHR_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
 
     dataset_name = 'ECHR2018'
+    dataset_version = 'arg0'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', 'arg0'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
@@ -304,9 +306,10 @@ def cdcp_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
 
     dataset_name = 'cdcp_ACL17'
+    dataset_version = 'new_3'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
@@ -323,9 +326,10 @@ def UKP_routine():
     vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
 
     dataset_name = 'AAEC_v2'
+    dataset_version = 'new_2R'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
     glove_path = os.path.join(dataset_path, 'glove')
 
