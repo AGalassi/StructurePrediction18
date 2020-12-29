@@ -1,6 +1,6 @@
 # StructurePrediction18
 
-Use of deep networks for Argument Structure Prediction.
+Use of residual deep networks and attention for Argument Structure Prediction.
 
 ## Results and citing
 The results of this work have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201)
