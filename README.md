@@ -7,7 +7,7 @@ Use of residual deep networks, ensemble learning, and attention for Argument Str
 
 The results of one of the first architecture implemented in this repository have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201). Such models (called net_7 in the code), along with the paper, are available in the Publications folder.
 
-The results with the new models have still to be published.
+The results with the new models have not been published yet.
 
 
 Please, if you use any of this material, cite our work as:
