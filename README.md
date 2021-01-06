@@ -1,9 +1,14 @@
 # StructurePrediction18
 
-Use of residual deep networks and attention for Argument Structure Prediction.
+Use of residual deep networks, ensemble learning, and attention for Argument Structure Prediction.
+
 
 ## Results and citing
-The results of this work have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201)
+
+The results of one of the first architecture implemented in this repository have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201). Such models (called net_7 in the code), along with the paper, are available in the Publications folder.
+
+The results with the new models have still to be published.
+
 
 Please, if you use any of this material, cite our work as:
 ```
