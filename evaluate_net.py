@@ -1,11 +1,10 @@
 __author__ = "Andrea Galassi"
 __copyright__ = "Copyright 2018-2020 Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __email__ = "a.galassi@unibo.it"
 
 import os
-import pandas
 import numpy as np
 import sys
 import time
@@ -16,7 +15,7 @@ import krippendorff
 
 from keras.utils.vis_utils import plot_model
 from tensorflow.keras.models import load_model, model_from_json
-from training_utils import TimingCallback, fmeasure, get_avgF1
+from training_utils import get_avgF1
 from sklearn.metrics import f1_score, confusion_matrix, precision_recall_fscore_support, classification_report
 from glove_loader import DIM
 from scipy import stats
@@ -30,84 +29,6 @@ import networks
 
 MAXEPOCHS = 1000
 MAXITERATIONS = 20
-
-
-def print_model(netname, dataset_name, dataset_version):
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
-
-    # create metrics for the model
-    fmeasure_0 = get_avgF1([0])
-    fmeasure_1 = get_avgF1([1])
-    fmeasure_2 = get_avgF1([2])
-    fmeasure_3 = get_avgF1([3])
-    fmeasure_4 = get_avgF1([4])
-    fmeasure_0_1_2_3 = get_avgF1([0, 1, 2, 3])
-    fmeasure_0_1_2_3_4 = get_avgF1([0, 1, 2, 3, 4])
-    fmeasure_0_2 = get_avgF1([0, 2])
-    fmeasure_0_1_2 = get_avgF1([0, 1, 2])
-    fmeasure_0_1 = get_avgF1([0, 1, 2])
-
-    crop0 = networks.create_crop_fn(1, 0, 1)
-    crop1 = networks.create_crop_fn(1, 1, 2)
-    crop2 = networks.create_crop_fn(1, 2, 3)
-    crop3 = networks.create_crop_fn(1, 3, 4)
-    crop4 = networks.create_crop_fn(1, 4, 5)
-
-    fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3, fmeasure_0_1_2_3_4,
-                 fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1]
-
-    crops = [crop0, crop1, crop2, crop3, crop4]
-
-    epochs = MAXEPOCHS
-
-    # for using them during model loading
-    custom_objects = {}
-    for fmeasure in fmeasures:
-        custom_objects[fmeasure.__name__] = fmeasure
-
-    for crop in crops:
-        custom_objects[crop.__name__] = crop
-
-    model_path = os.path.join(save_dir, netname + '_model.json')
-    save_weights_only = False
-    if os.path.exists(model_path):
-        save_weights_only = True
-
-        with open(model_path, "r") as f:
-            string = json.load(f)
-            model = model_from_json(string, custom_objects=custom_objects)
-
-    for epoch in range(epochs, 0, -1):
-        if save_weights_only:
-            netpath = os.path.join(save_dir, netname + '_weights.%03d.h5' % epoch)
-        else:
-            netpath = os.path.join(save_dir, netname + '_completemodel.%03d.h5' % epoch)
-        if os.path.exists(netpath):
-            last_path = netpath
-
-            print(str(time.ctime()) + "\tLOADING NETWORK: " + last_path)
-
-            if save_weights_only:
-                model.load_weights(last_path)
-            else:
-                model = load_model(last_path, custom_objects=custom_objects)
-
-            model.summary()
-
-            # TODO: print model details
-            """
-            details_path = os.path.join(save_dir, netname + 'details.txt')
-            print(details_path)
-            details_file = open(details_path, 'a')
-            details_file.write(str(model))
-            details_file.close()
-            """
-
-            plot_path = os.path.join(save_dir, netname + 'plot.png')
-
-            plot_model(model, to_file=plot_path, show_shapes=True)
-
-            break
 
 
 def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', retrocompatibility=False, distance=5,
@@ -366,9 +287,18 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
     if os.path.exists(model_path):
         save_weights_only = True
 
-        with open(model_path, "r") as f:
-            string = json.load(f)
-            model = model_from_json(string, custom_objects=custom_objects)
+        try:
+            with open(model_path, "r") as f:
+                string = json.load(f)
+                model = model_from_json(string, custom_objects=custom_objects)
+        except:
+            print("Default model not working, trying alternative")
+            model_path = os.path.join(netfolder, netname + '_modelv2.json')
+            with open(model_path, "r") as f:
+                    string = json.load(f)
+                    model = model_from_json(string, custom_objects=custom_objects)
+
+    model.summary()
 
     iterations = MAXITERATIONS
     file_names = os.listdir(netfolder)
@@ -451,6 +381,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
         if token_wise:
             testfile.write("TOKEN-WISE EVALUATION")
+        else:
+            testfile.write("COMPONENT-WISE EVALUATION")
         testfile.write("\n")
 
         testfile.write(evaluation_headline)
@@ -805,6 +737,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
     if token_wise:
         testfile.write("TOKEN-WISE EVALUATION")
+    else:
+        testfile.write("COMPONENT-WISE EVALUATION")
     testfile.write("\n")
 
     testfile.write(evaluation_headline)
@@ -930,7 +864,323 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
 
 
-def     RCT_routine(netname="RCT11", retrocompatibility=True, distance=5, ensemble=True, token_wise=True):
+
+def regenerate_network(netname="cdcp7net2018", dataset_name='cdcp_ACL17', dataset_version='new_3', split='total', netnum=7):
+    """
+    In case of impossibility to load old networks model, try to recreate it with code and save the new model.
+    e.g. problems between python 3.5 and python 3.6
+    :param netnum: type of network. Only 7 and 11 are supported (ResArg and ResAttArg). In case of different networks,
+    use the related .info file and past here the parameters
+    :return:
+    """
+    iterations=1
+
+
+    # training config:
+    if netnum==7:
+        save_weights_only=True
+        epochs=10000
+        feature_type='bow'
+        patience=200
+        loss_weights=[0, 10, 1, 1]
+        lr_alfa=0.005
+        lr_kappa=0.001
+        beta_1=0.9
+        beta_2=0.9999
+        res_scale=60 # res_siz =5
+        resnet_layers=(1, 2)
+        embedding_scale=6# embedding_size=50
+        embedder_layers=4
+        final_scale=15 # final_size=20
+        space_scale=10
+        batch_size=500,
+        regularizer_weight=0.0001
+        dropout_resnet=0.1
+        dropout_embedder=0.1
+        dropout_final=0.1
+        bn_embed=True
+        bn_res=True
+        bn_final=True
+        network=7
+        monitor="links"
+        true_validation=True
+        temporalBN=False
+        same_layers=False
+        distance=5
+        merge=None
+        single_LSTM=True
+        pooling=10
+        text_pooling=50
+        pooling_type='avg'
+        classification="softmax"
+        dataset_name=dataset_name
+        dataset_version=dataset_version
+        dataset_split=split
+        distance_train_limit=-1
+    elif netnum== 11:
+        save_weights_only=True,
+        epochs=10000
+        feature_type='bow'
+        patience=100
+        loss_weights=[0, 10, 1, 1]
+        lr_alfa=0.005
+        lr_kappa=0.001
+        beta_1=0.9
+        beta_2=0.9999
+        res_scale=60 # res_siz =5
+        resnet_layers=(1, 2)
+        embedding_scale=6 # embedding_size=50
+        embedder_layers=4
+        final_scale=15 # final_size=20
+        space_scale=10
+        batch_size=500
+        regularizer_weight=0.0001
+        dropout_resnet=0.1
+        dropout_embedder=0.1
+        dropout_final=0.1
+        bn_embed=True
+        bn_res=True
+        bn_final=True
+        network=11
+        monitor="links"
+        true_validation=True
+        temporalBN=False
+        same_layers=False
+        distance=5
+        merge=None
+        single_LSTM=True
+        pooling=10
+        text_pooling=50
+        pooling_type='avg'
+        dataset_name=dataset_name
+        dataset_version=dataset_version
+        dataset_split=split
+        distance_train_limit=-1
+
+
+    if True:
+        embedding_size = int(DIM / embedding_scale)
+        res_size = int(DIM / res_scale)
+        final_size = int(DIM / final_scale)
+
+        parameters = locals()
+
+        save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version)
+
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+
+        output_units = ()
+        min_text = 0
+        min_prop = 0
+        link_as_sum = [[]]
+
+        output_units = dataset_info[dataset_name]["output_units"]
+        min_text = dataset_info[dataset_name]["min_text"]
+        min_prop = dataset_info[dataset_name]["min_prop"]
+        link_as_sum = dataset_info[dataset_name]["link_as_sum"]
+
+        distance_num = distance
+        if distance < 0:
+            distance = False
+        else:
+            distance = True
+
+        print(str(time.ctime()) + "\tLOADING DATASET...")
+        dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
+                                                           dataset_version=dataset_version,
+                                                           dataset_split=dataset_split,
+                                                           feature_type=feature_type,
+                                                           min_text_len=min_text,
+                                                           min_prop_len=min_prop,
+                                                           distance=distance_num,
+                                                           distance_train_limit=distance_train_limit)
+        print(str(time.ctime()) + "\tDATASET LOADED...")
+        sys.stdout.flush()
+
+        print(str(time.ctime()) + "\tPROCESSING DATA AND MODEL...")
+
+        split = 'train'
+        X_source_train = dataset[split]['source_props']
+        del dataset[split]['source_props']
+        X_target_train = dataset[split]['target_props']
+        del dataset[split]['target_props']
+        Y_links_train = np.array(dataset[split]['links'])
+        Y_rtype_train = np.array(dataset[split]['relations_type'], dtype=np.float32)
+        Y_stype_train = np.array(dataset[split]['sources_type'])
+        Y_ttype_train = np.array(dataset[split]['targets_type'])
+
+        # if they are not used, creates a mock (necessary for compatibility with other stuff)
+        numdata = len(Y_links_train)
+        if distance > 0:
+            X_dist_train = dataset[split]['distance']
+        else:
+            X_dist_train = np.zeros((numdata, 2))
+
+        Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
+        X3_train = [X_source_train, X_target_train, X_dist_train, ]
+
+        print(str(time.ctime()) + "\t\tTRAINING DATA PROCESSED...")
+        print("Length: " + str(len(X3_train[0])))
+
+        split = 'test'
+
+        X_source_test = dataset[split]['source_props']
+        del dataset[split]['source_props']
+        X_target_test = dataset[split]['target_props']
+        del dataset[split]['target_props']
+        Y_links_test = np.array(dataset[split]['links'])
+        Y_rtype_test = np.array(dataset[split]['relations_type'])
+        Y_stype_test = np.array(dataset[split]['sources_type'])
+        Y_ttype_test = np.array(dataset[split]['targets_type'])
+        Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
+
+        # if they are not used, creates a mock (necessary for compatibility with other stuff)
+        numdata = len(Y_links_test)
+        if distance > 0:
+            X_dist_test = dataset[split]['distance']
+        else:
+            X_dist_test = np.zeros((numdata, 2))
+
+        X3_test = [X_source_test, X_target_test, X_dist_test]
+
+        print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
+        print("Length: " + str(len(X3_test[0])))
+
+        split = 'validation'
+        X_source_validation = dataset[split]['source_props']
+        del dataset[split]['source_props']
+        X_target_validation = dataset[split]['target_props']
+        del dataset[split]['target_props']
+        Y_links_validation = np.array(dataset[split]['links'])
+        Y_rtype_validation = np.array(dataset[split]['relations_type'])
+        Y_stype_validation = np.array(dataset[split]['sources_type'])
+        Y_ttype_validation = np.array(dataset[split]['targets_type'])
+        Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
+
+        # if they are not used, creates a mock (necessary for compatibility with other stuff)
+        numdata = len(Y_links_validation)
+        if distance > 0:
+            X_dist_validation = dataset[split]['distance']
+        else:
+            X_dist_validation = np.zeros((numdata, 2))
+
+        X3_validation = [X_source_validation, X_target_validation, X_dist_validation, ]
+
+        print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
+        print("Length: " + str(len(X3_validation[0])))
+        print(str(time.ctime()) + "\t\tCREATING MODEL...")
+
+        bow = None
+        if feature_type == 'bow':
+            dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+            vocabulary_path = os.path.join(dataset_path, 'glove', dataset_version, 'glove.embeddings.npz')
+            if not os.path.exists(vocabulary_path):
+                vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+            vocabulary_list = np.load(vocabulary_path)
+            embed_list = vocabulary_list['embeds']
+            word_list = vocabulary_list['vocab']
+
+            bow = np.zeros((len(word_list) + 1, DIM))
+            for index in range(len(word_list)):
+                bow[index + 1] = embed_list[index]
+            print(str(time.ctime()) + "\t\t\tEMBEDDINGS LOADED...")
+
+        realname = netname
+
+        # multi-iteration evaluation setting
+        final_scores = {'train': [], 'test': [], 'validation': []}
+        evaluation_headline = ""
+        evaluation_headline = dataset_info[dataset_name]["evaluation_headline_short"]
+
+        save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, realname)
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+
+    if netnum ==7:
+        model = networks.build_net_7(bow=bow,
+                        link_as_sum=link_as_sum,
+                        propos_length=max_prop_len,
+                        regularizer_weight=regularizer_weight,
+                        dropout_embedder=dropout_embedder,
+                        dropout_resnet=dropout_resnet,
+                        embedding_size=embedding_size,
+                        embedder_layers=embedder_layers,
+                        resnet_layers=resnet_layers,
+                        res_size=res_size,
+                        final_size=final_size,
+                        outputs=output_units,
+                        bn_embed=bn_embed,
+                        bn_res=bn_res,
+                        bn_final=bn_final,
+                        single_LSTM=single_LSTM,
+                        pooling=pooling,
+                        text_pooling=text_pooling,
+                        pooling_type=pooling_type,
+                        dropout_final=dropout_final,
+                        same_DE_layers=same_layers,
+                        distance=distance_num,
+                        temporalBN=temporalBN,)
+    elif netnum== 11:
+        model = networks.build_net_11(bow=bow,
+                             link_as_sum=link_as_sum,
+                             propos_length=max_prop_len,
+                             regularizer_weight=regularizer_weight,
+                             dropout_embedder=dropout_embedder,
+                             dropout_resnet=dropout_resnet,
+                             embedding_size=embedding_size,
+                             embedder_layers=embedder_layers,
+                             resnet_layers=resnet_layers,
+                             res_size=res_size,
+                             final_size=final_size,
+                             outputs=output_units,
+                             bn_embed=bn_embed,
+                             bn_res=bn_res,
+                             bn_final=bn_final,
+                             single_LSTM=single_LSTM,
+                             dropout_final=dropout_final,
+                             same_DE_layers=same_layers,
+                             distance=distance_num,
+                             temporalBN=temporalBN, )
+
+
+    netfolder = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
+
+    for iteration in range(iterations+1):
+
+        print("Evaluating networks: " + str(iteration+1) + "/" + str(iterations+1))
+        sys.stdout.flush()
+
+        # explore all the possible epochs to fine the last one (the first one found)
+        last_epoch = MAXEPOCHS
+        last_path = ""
+
+        for epoch in range(last_epoch, 0, -1):
+            netpath = os.path.join(netfolder, netname + "_" + str(iteration) + '_weights.%03d.h5' % epoch)
+
+            print(netpath)
+
+            if os.path.exists(netpath):
+                last_path = netpath
+
+                print(str(time.ctime()) + "\tLOADING NETWORK: " + last_path)
+
+                if save_weights_only:
+                    model.load_weights(last_path)
+
+                    print(" YEEEESSSSSSSSSSSSS")
+
+                    model_name = netname + '_modelv2.json'
+                    json_model = model.to_json()
+                    with open(os.path.join(save_dir, model_name), 'w') as outfile:
+                        json.dump(json_model, outfile)
+
+                    exit()
+    exit()
+
+
+
+def RCT_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True):
 
     dataset_name = "RCT"
     training_dataset_version = "neo"
@@ -974,7 +1224,7 @@ def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, t
 
 
 
-def cdcp_routine(netname='cdcp111', retrocompatibility=True, distance=5, ensemble=True, token_wise=False):
+def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
 
     dataset_name = 'cdcp_ACL17'
     training_dataset_version = 'new_3'
@@ -1002,297 +1252,7 @@ def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, to
     perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=True)
 
 
-def generate_confusion_matrix(netname, dataset_name, dataset_version, feature_type='bow', context=True, distance=True):
-
-    name = netname
-    print(str(time.ctime()) + "\tLAUNCHING EVALUATION " + name)
-    print(str(time.ctime()) + "\tLOADING DATASET " + dataset_name)
-    dataset, max_text_len, max_prop_len = training.load_dataset(dataset_name=dataset_name,
-                                                       dataset_version=dataset_version,
-                                                       dataset_split='total',
-                                                       feature_type=feature_type)
-    print(str(time.ctime()) + "\tDATASET LOADED...")
-
-    sys.stdout.flush()
-
-    print(str(time.ctime()) + "\tPROCESSING DATA AND MODEL...")
-
-    split = 'train'
-    X_marks_train = dataset[split]['mark']
-    X_dist_train = dataset[split]['distance']
-    X_text_train = dataset[split]['texts']
-    dataset[split]['texts'] = 0
-    X_source_train = dataset[split]['source_props']
-    dataset[split]['source_props'] = 0
-    X_target_train = dataset[split]['target_props']
-    dataset[split]['target_props'] = 0
-    Y_links_train = np.array(dataset[split]['links'])
-    Y_rtype_train = np.array(dataset[split]['relations_type'], dtype=np.float32)
-    Y_stype_train = np.array(dataset[split]['sources_type'])
-    Y_ttype_train = np.array(dataset[split]['targets_type'])
-    X_train = [X_text_train, X_source_train, X_target_train]
-    Y_train = [Y_links_train, Y_rtype_train, Y_stype_train, Y_ttype_train]
-    X3_train = [X_text_train, X_source_train, X_target_train, X_dist_train, X_marks_train]
-
-    print(str(time.ctime()) + "\t\tTRAINING DATA PROCESSED...")
-
-    split = 'test'
-    X_text_test = dataset[split]['texts']
-    dataset[split]['texts'] = 0
-    X_source_test = dataset[split]['source_props']
-    dataset[split]['source_props'] = 0
-    X_target_test = dataset[split]['target_props']
-    dataset[split]['target_props'] = 0
-    Y_links_test = np.array(dataset[split]['links'])
-    Y_rtype_test = np.array(dataset[split]['relations_type'])
-    Y_stype_test = np.array(dataset[split]['sources_type'])
-    Y_ttype_test = np.array(dataset[split]['targets_type'])
-    X_test = [X_text_test, X_source_test, X_target_test]
-    Y_test = [Y_links_test, Y_rtype_test, Y_stype_test, Y_ttype_test]
-
-    X_marks_test = dataset[split]['mark']
-    X_dist_test = dataset[split]['distance']
-    X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test]
-
-
-    print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
-
-    split = 'validation'
-    X_text_validation = dataset[split]['texts']
-    dataset[split]['texts'] = 0
-    X_source_validation = dataset[split]['source_props']
-    dataset[split]['source_props'] = 0
-    X_target_validation = dataset[split]['target_props']
-    dataset[split]['target_props'] = 0
-    Y_links_validation = np.array(dataset[split]['links'])
-    Y_rtype_validation = np.array(dataset[split]['relations_type'])
-    Y_stype_validation = np.array(dataset[split]['sources_type'])
-    Y_ttype_validation = np.array(dataset[split]['targets_type'])
-    X_validation = [X_text_validation, X_source_validation, X_target_validation]
-    Y_validation = [Y_links_validation, Y_rtype_validation, Y_stype_validation, Y_ttype_validation]
-
-    X_marks_validation = dataset[split]['mark']
-    X_dist_validation = dataset[split]['distance']
-    X3_validation = [X_text_validation, X_source_validation, X_target_validation, X_dist_validation,
-                     X_marks_validation]
-
-    print(str(time.ctime()) + "\t\tVALIDATION DATA PROCESSED...")
-    print(str(time.ctime()) + "\t\tCREATING MODEL...")
-
-    fmeasure_0 = get_avgF1([0])
-    fmeasure_1 = get_avgF1([1])
-    fmeasure_2 = get_avgF1([2])
-    fmeasure_3 = get_avgF1([3])
-    fmeasure_4 = get_avgF1([4])
-    fmeasure_0_1_2_3 = get_avgF1([0, 1, 2, 3])
-    fmeasure_0_1_2_3_4 = get_avgF1([0, 1, 2, 3, 4])
-    fmeasure_0_2 = get_avgF1([0, 2])
-    fmeasure_0_1_2 = get_avgF1([0, 1, 2])
-    fmeasure_0_1 = get_avgF1([0, 1, 2])
-
-    fmeasures = [fmeasure_0, fmeasure_1, fmeasure_2, fmeasure_3, fmeasure_4, fmeasure_0_1_2_3, fmeasure_0_1_2_3_4,
-                 fmeasure_0_2, fmeasure_0_1_2, fmeasure_0_1]
-
-    # for using them during model loading
-    custom_objects = {}
-    for fmeasure in fmeasures:
-        custom_objects[fmeasure.__name__] = fmeasure
-
-    crop0 = networks.create_crop_fn(1, 0, 1)
-    crop1 = networks.create_crop_fn(1, 1, 2)
-    crop2 = networks.create_crop_fn(1, 2, 3)
-    crop3 = networks.create_crop_fn(1, 3, 4)
-    crop4 = networks.create_crop_fn(1, 4, 5)
-
-    crops = [crop0, crop1, crop2, crop3, crop4]
-    for crop in crops:
-        custom_objects[crop.__name__] = crop
-
-    save_dir = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
-
-    last_epoch = MAXEPOCHS
-
-    last_path = ""
-
-    # for using them during model loading
-    custom_objects = {}
-    for fmeasure in fmeasures:
-        custom_objects[fmeasure.__name__] = fmeasure
-
-    for crop in crops:
-        custom_objects[crop.__name__] = crop
-
-    model_path = os.path.join(save_dir, netname + '_model.json')
-
-    model = None
-
-    save_weights_only = False
-    if os.path.exists(model_path):
-        save_weights_only = True
-
-        with open(model_path, "r") as f:
-            string = json.load(f)
-            model = model_from_json(string, custom_objects=custom_objects)
-
-    for epoch in range(last_epoch, 0, -1):
-        if save_weights_only:
-            netpath = os.path.join(save_dir, netname + '_weights.%03d.h5' % epoch)
-        else:
-            netpath = os.path.join(save_dir, netname + '_completemodel.%03d.h5' % epoch)
-        if os.path.exists(netpath):
-            last_path = netpath
-
-            print(str(time.ctime()) + "\tLOADING NETWORK: " + last_path)
-
-            if save_weights_only:
-                model.load_weights(last_path)
-            else:
-                model = load_model(last_path, custom_objects=custom_objects)
-            break
-
-
-    print("\n\n\tLOADED NETWORK: " + last_path + "\n")
-
-    if training.DEBUG:
-        plot_model(model, netname, show_shapes=True)
-
-    if context and distance:
-        X = {'test': X3_test,
-             'train': X3_train,
-             'validation': X3_validation}
-    elif distance:
-        X = {'test': X3_test[1:-1],
-             'train': X3_train[1:-1],
-             'validation': X3_validation[1:-1]}
-    elif context:
-        X = {'test': X3_test[:-2] + X3_test[-1:],
-             'train': X3_train[:-2] + X3_train[-1:],
-             'validation': X3_validation[:-2] + X3_validation[-1:]}
-    else:
-        X = {'test': X3_test[1:-2],
-             'train': X3_train[1:-2],
-             'validation': X3_validation[1:-2]}
-
-    Y = {'test': Y_test,
-         'train': Y_train,
-         'validation': Y_validation}
-
-    testfile = open(os.path.join(save_dir, name + "_confusion.txt"), 'w')
-
-    print("\n-----------------------\n")
-
-    for split in ['test', 'validation', 'train']:
-        # 2 dim
-        # ax0 = samples
-        # ax1 = classes
-        Y_pred = model.predict(X[split])
-
-        # begin of the evaluation of the single propositions scores
-        sids = dataset[split]['s_id']
-        tids = dataset[split]['t_id']
-
-        # dic
-        # each values has 2 dim
-        # ax0: ids
-        # ax1: classes
-        s_pred_scores = {}
-        s_test_scores = {}
-        t_pred_scores = {}
-        t_test_scores = {}
-
-
-        for index in range(len(sids)):
-            sid = sids[index]
-            tid = tids[index]
-
-            if sid not in s_pred_scores.keys():
-                s_pred_scores[sid] = []
-                s_test_scores[sid] = []
-            s_pred_scores[sid].append(Y_pred[2][index])
-            s_test_scores[sid].append(Y[split][2][index])
-
-            if tid not in t_pred_scores.keys():
-                t_pred_scores[tid] = []
-                t_test_scores[tid] = []
-            t_pred_scores[tid].append(Y_pred[3][index])
-            t_test_scores[tid].append(Y[split][3][index])
-
-        Y_pred_prop_real_list = []
-        Y_test_prop_real_list = []
-
-        for p_id in t_pred_scores.keys():
-            Y_pred_prop_real_list.append(np.concatenate([s_pred_scores[p_id], t_pred_scores[p_id]]))
-            Y_test_prop_real_list.append(np.concatenate([s_test_scores[p_id], t_test_scores[p_id]]))
-
-        # 3 dim
-        # ax0: ids
-        # ax1: samples
-        # ax2: classes
-        Y_pred_prop_real_list = np.array(Y_pred_prop_real_list)
-        Y_test_prop_real_list = np.array(Y_test_prop_real_list)
-
-        Y_pred_prop_real = []
-        Y_test_prop_real = []
-        for index in range(len(Y_pred_prop_real_list)):
-            Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
-            Y_test_prop_real.append(np.sum(Y_test_prop_real_list[index], axis=-2))
-
-
-        Y_pred_prop_real = np.array(Y_pred_prop_real)
-        Y_test_prop_real = np.array(Y_test_prop_real)
-        # end of the evaluation of the single propositions scores
-
-
-        """
-        Y_pred_prop_real = []
-        Y_test_prop_real = []
-        for index in range(len(Y_pred_prop_real_list)):
-            Y_pred_prop_real = np.sum(Y_pred_prop_real_list[index], axis=2)
-            Y_test_prop_real = np.sum(Y_test_prop_real_list[index], axis=2)
-        """
-
-        # Y_pred_prop = np.concatenate([Y_pred[2], Y_pred[3]])
-        # Y_test_prop = np.concatenate([Y[split][2], Y[split][3]])
-
-        Y_pred_prop_real = np.argmax(Y_pred_prop_real, axis=-1)
-        Y_test_prop_real = np.argmax(Y_test_prop_real, axis=-1)
-
-        # Y_pred_prop = np.argmax(Y_pred_prop, axis=-1)
-        # Y_test_prop = np.argmax(Y_test_prop, axis=-1)
-
-        Y_pred_links = np.argmax(Y_pred[0], axis=-1)
-        Y_test_links = np.argmax(Y[split][0], axis=-1)
-
-        Y_pred_rel = np.argmax(Y_pred[1], axis=-1)
-        Y_test_rel = np.argmax(Y[split][1], axis=-1)
-
-        confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
-        confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
-        # confusion_prop = confusion_matrix(Y_test_prop, Y_pred_prop)
-        confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
-
-        testfile.write("\n")
-        testfile.write(split)
-        testfile.write("\n\nlink\n")
-        testfile.write(str(confusion_link))
-        testfile.write("\n\nrel\n")
-        testfile.write(str(confusion_rel))
-        # testfile.write("\n\nprop\n")
-        # testfile.write(str(confusion_prop))
-        testfile.write("\n\nprop real\n")
-        testfile.write(str(confusion_prop_real))
-        testfile.write("\n\n")
-
-        testfile.flush()
-    testfile.close()
-
-
 if __name__ == '__main__':
-    # cdcp_routine()
-
-    # drinv_routine()
-
-    # RCT_routine(netname='RCT11')
 
     parser = argparse.ArgumentParser(description="Evaluate a neural network approach.")
     parser.add_argument("netname", help="The name of the network")

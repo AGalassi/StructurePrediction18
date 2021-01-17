@@ -1,7 +1,7 @@
 __author__ = "Andrea Galassi"
 __copyright__ = "Copyright 2018, Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.0.1"
+__version__ = "0.3.0"
 __email__ = "a.galassi@unibo.it"
 
 import os
@@ -9,11 +9,11 @@ import pandas
 import numpy as np
 import sys
 import time
-import random
 import evaluate_net
 import json
 import hyperopt as hopt
 import tensorflow as tf
+import argparse
 
 from hyperopt.mongoexp import MongoTrials
 from dataset_config import dataset_info
@@ -27,7 +27,6 @@ from training_utils import TimingCallback, create_lr_annealing_function, get_avg
 from glove_loader import DIM
 from sklearn.metrics import f1_score
 from tensorflow.keras import backend as K
-# from keras.utils.vis_utils import plot_model
 
 DEBUG = False
 
@@ -60,7 +59,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, dataset_split + '.pkl')
-    embed_path = os.path.join(dataset_path, feature_type, dataset_version)
+    embed_path = os.path.join(dataset_path, "embeddings", "glove300", dataset_version)
 
     df = pandas.read_pickle(dataframe_path)
 
@@ -202,7 +201,7 @@ def perform_training(name = 'prova999',
                     epochs = 1000,
                      distance_train_limit=-1,
                     feature_type = 'bow',
-                    patience = 200,
+                    patience = 100,
                     loss_weights = [20, 20, 1, 1],
                     lr_alfa = 0.003,
                     lr_kappa = 0.001,
@@ -1240,8 +1239,8 @@ def UKP_routine():
     evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True, token_wise=True)
 
 
-
-def cdcp_routine():
+"""
+def cdcp_routine_calibration():
 
     dataset_name = 'cdcp_ACL17'
     dataset_version = 'new_3'
@@ -1307,11 +1306,11 @@ def cdcp_routine():
                         netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, name)
 
                         evaluate_net.perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=False, distance=5, ensemble=True)
-
+"""
 
 
 # cdcp new routine
-def cdcp_routine2():
+def cdcp_routine():
 
     dataset_name = 'cdcp_ACL17'
     dataset_version = 'new_3'
@@ -1619,17 +1618,30 @@ def ECHR_routine():
 
 if __name__ == '__main__':
 
+    global DIM
+    DIM = 300
+
     #RCT_routine()
     
     # cdcp_routine2()
 
     # UKP_routine()
     UKP_routine()
+    parser = argparse.ArgumentParser(description="Perform training procedure")
+    parser.add_argument('-c', '--corpus',
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        help="corpus", default="cdcp")
 
-    # drinv_routine()
+    args = parser.parse_args()
 
-    #ECHR_routine()
-    # evaluate_net.ECHR_routine()
+    corpus = args.corpus
 
-    # cdcp_opt_search()
+    if corpus.lower() == "rct":
+        RCT_routine()
+    elif corpus.lower() == "cdcp":
+        cdcp_routine()
+    elif corpus.lower() == "drinv":
+        drinv_routine()
+    elif corpus.lower() == "ukp":
+        UKP_routine()
 
