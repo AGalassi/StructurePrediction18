@@ -1,9 +1,21 @@
 # StructurePrediction18
 
-Use of deep networks for Argument Structure Prediction.
+Use of residual deep networks, ensemble learning, and attention for Argument Structure Prediction.
+
+This code can be used to train a set of neural networks to jointly perform Link Prediction, Relation Classification, and Component Classification on Argument Mining corpora.
+Currently 4 corpora are supported:
+- [CDCP](https://facultystaff.richmond.edu/~jpark/)
+- [AbstRCT](https://gitlab.com/tomaye/abstrct/)
+- [UKP Persuasive Essays v2](https://www.informatik.tu-darmstadt.de/ukp/research_6/data/argumentation_mining_1/argument_annotated_essays_version_2/index.en.jsp)
+- [DrInventor](https://github.com/anlausch/sciarg_resource_analysis) (with some adaptation)
+
 
 ## Results and citing
-The results of this work have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201)
+
+The results of one of the first architecture implemented in this repository have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201). Such models (called net_7 in the code), along with the paper, are available in the Publications folder.
+
+The results with the new models have not been published yet.
+
 
 Please, if you use any of this material, cite our work as:
 ```
@@ -16,6 +28,7 @@ Please, if you use any of this material, cite our work as:
   address = "Brussels, Belgium",
   publisher = "Association for Computational Linguistics",
   url = "https://www.aclweb.org/anthology/W18-5201",
+  doi = "10.18653/v1/W18-5201",
   pages = "1--10",
 }
 ```
