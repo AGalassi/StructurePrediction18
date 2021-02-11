@@ -1,8 +1,12 @@
 __author__ = "Andrea Galassi"
 __copyright__ = "Copyright 2018, Andrea Galassi"
 __license__ = "BSD 3-clause"
-__version__ = "0.3.0"
+__version__ = "0.5.0"
 __email__ = "a.galassi@unibo.it"
+
+"""
+Code for the training process
+"""
 
 import os
 import pandas
@@ -25,8 +29,6 @@ from training_utils import TimingCallback, create_lr_annealing_function, get_avg
 from glove_loader import DIM
 from sklearn.metrics import f1_score
 from tensorflow.keras import backend as K
-
-DEBUG = False
 
 train_info = {}
 global_counter = 0
@@ -150,11 +152,6 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             max_prop_len = embed_length
         dataset[split]['target_props'].append(embeddings)
 
-
-        if DEBUG and (len(dataset['validation']['target_props'])>10 and len(dataset['test']['target_props'])>5 and
-            len(dataset['train']['target_props'])>10) :
-            break
-
     print(str(time.ctime()) + '\t\tPADDING...')
 
     sys.stdout.flush()
@@ -256,9 +253,6 @@ def perform_training(name = 'try999',
         value = parameters[parameter]
         paramfile.write(parameter + " = " + str(value) + "\n")
     paramfile.close()
-
-    if DEBUG:
-        epochs = 3
 
     output_units = ()
     min_text = 0
@@ -472,10 +466,6 @@ def perform_training(name = 'try999',
                                 same_DE_layers=same_layers,
                                 distance=distance_num,
                                 temporalBN=temporalBN,)
-
-        if DEBUG:
-            # plot_model(model, to_file=name + '.png', show_shapes=True)
-            print()
 
         relations_labels = dataset_info[dataset_name]["link_as_sum"][0]
         not_a_link_labels = dataset_info[dataset_name]["link_as_sum"][1]
