@@ -1357,12 +1357,6 @@ if __name__ == '__main__':
     global DIM
     DIM = 300
 
-    #RCT_routine()
-    
-    # cdcp_routine2()
-
-    # UKP_routine()
-    UKP_routine()
     parser = argparse.ArgumentParser(description="Perform training procedure")
     parser.add_argument('-c', '--corpus',
                         choices=["rct", "drinv", "cdcp", "echr", "ukp"],
