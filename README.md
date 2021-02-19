@@ -34,14 +34,13 @@ Please, if you use any of this material, cite our work as:
 ```
 
 ## Pipeline and other files
-To use this framework, follow this pipeline:
-- dataframe_creator.py contains functions to process the textual and annotation files into dataframes
-- glove_loader.py contains functions to tokenize words and create a file with pre-trained embeddings which are smaller than the original glove file
-- embedder.py contains functions to map each string of the dataframe into a sequence of numbers, according to word positions in the glove file
-- training.py contains functions to perform the training
+To use this framework, follow this pipeline, using the -c option to specify the desired dataset (cdcp, rct, ukp, drinv).
+- dataframe_creator.py contains functions to process the textual and annotation files into dataframes.
+- glove_loader.py contains functions to tokenize words and create a file with pre-trained embeddings which are smaller than the original glove file.
+- embedder.py contains functions to map each string of the dataframe into a sequence of numbers, according to word positions in the glove file.
+- training.py contains functions to perform the training. The hyper-parameters are embedded in the code. Any change requires to manually modify the "routine" functions.
+- evaluate_net.py contains functions to evaluate an already trained network. It offers additional options, among which the option -t to perform the token-wise evaluation.
 
 Out of the pipeline:
 - networks.py contains neural network models
 - training_utils.py contains custom function that will be used during the training
-- evaluate_net.py contains functions to evaluate an already trained network
-
