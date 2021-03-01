@@ -53,6 +53,7 @@ and
 ```
 
 ## Pipeline and other files
+
 To use this framework, follow this pipeline, using the -c option to specify the desired dataset (cdcp, rct, ukp, drinv).
 - dataframe_creator.py contains functions to process the textual and annotation files into dataframes.
 - glove_loader.py contains functions to tokenize words and create a file with pre-trained embeddings which are smaller than the original glove file.
@@ -63,3 +64,5 @@ To use this framework, follow this pipeline, using the -c option to specify the 
 Out of the pipeline:
 - networks.py contains neural network models
 - training_utils.py contains custom functions that will be used during the training
+
+The GloVe vvocabulary file, required for the use of the framework, is not included in this repository. Simply download it from the GloVe website and add it to the working directory.
