@@ -62,7 +62,8 @@ To use this framework, follow this pipeline, using the -c option to specify the 
 - evaluate_net.py contains functions to evaluate an already trained network. It offers additional options, among which the option -t to perform the token-wise evaluation.
 
 Out of the pipeline:
+- print_dataset_details.py prints details regarding a dataset: statistics about the classes and the lists of the document ids for each split
 - networks.py contains neural network models
 - training_utils.py contains custom functions that will be used during the training
 
-The GloVe vvocabulary file, required for the use of the framework, is not included in this repository. Simply download it from the GloVe website and add it to the working directory.
+The GloVe vvocabulary file, required for the use of the framework, is not included in this repository. Simply download it from the GloVe website and add it to the working directory. The name of the file must be 'glove.840B.300d.txt'.
