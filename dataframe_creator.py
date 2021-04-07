@@ -1892,7 +1892,7 @@ if __name__ == '__main__':
     distance = args.distance
 
     if corpus.lower() == "rct":
-        routine_RCT_corpus
+        routine_RCT_corpus()
     elif corpus.lower() == "cdcp":
         routine_CDCP_corpus()
     elif corpus.lower() == "drinv":
