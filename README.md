@@ -66,4 +66,4 @@ Out of the pipeline:
 - networks.py contains neural network models
 - training_utils.py contains custom functions that will be used during the training
 
-The GloVe vvocabulary file, required for the use of the framework, is not included in this repository. Simply download it from the GloVe website and add it to the working directory. The name of the file must be 'glove.840B.300d.txt'.
+The GloVe vocabulary file, required for the use of the framework, is not included in this repository. Simply download it from the GloVe website and add it to the working directory. The name of the file must be 'glove.840B.300d.txt'.
