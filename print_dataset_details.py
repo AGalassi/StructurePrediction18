@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create a new dataframe")
 
     parser.add_argument('-c', '--corpus',
-                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp", "scidtb"],
                         help="Corpus", default="cdcp")
 
     args = parser.parse_args()
@@ -94,6 +94,9 @@ if __name__ == '__main__':
     elif corpus.lower() == "ukp":
         dataset_name = 'AAEC_v2'
         dataset_version = 'new_2'
+    elif corpus.lower() == "scidtb":
+        dataset_name = 'scidtb_argmin_annotations'
+        dataset_version = 'only_arg_v1'
     else:
         print("Datset not yet supported")
 

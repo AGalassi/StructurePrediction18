@@ -30,6 +30,7 @@ from glove_loader import DIM
 from sklearn.metrics import f1_score
 from tensorflow.keras import backend as K
 
+DEBUG = False
 train_info = {}
 global_counter = 0
 
@@ -40,7 +41,7 @@ K.set_session(tf.Session(config=config))
 
 def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_version='new_2',
                  feature_type='embeddings', min_text_len=0, min_prop_len=0, distance=5,
-                 distance_train_limit=-1):
+                 distance_train_limit=-1, embed_name="glove300"):
 
     if distance < 0:
         distance = 0
@@ -59,7 +60,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, dataset_split + '.pkl')
-    embed_path = os.path.join(dataset_path, "embeddings", "glove300", dataset_version)
+    embed_path = os.path.join(dataset_path, "embeddings", embed_name, dataset_version)
 
     df = pandas.read_pickle(dataframe_path)
 
@@ -79,6 +80,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
 
         if distance > 0:
             dataset[split]['distance'] = []
+            dataset[split]['difference'] = []
 
         dataset[split]['s_id'] = []
         dataset[split]['t_id'] = []
@@ -137,6 +139,7 @@ def load_dataset(dataset_split='total', dataset_name='cdcp_ACL17', dataset_versi
             elif difference < 0:
                 difference_array[distance + difference: distance] = [1] * -difference
             dataset[split]['distance'].append(difference_array)
+            dataset[split]['difference'].append(difference)
 
         file_path = os.path.join(embed_path, source_ID + '.npz')
         embeddings = np.load(file_path)['arr_0']
@@ -234,7 +237,10 @@ def perform_training(name = 'try999',
                      iterations=1,
                      merge="a_self",
                      classification="softmax",
-                     clean_previous_networks=True,):
+                     clean_previous_networks=True,
+                     embed_name="glove300",
+                     overwrite=False,
+                     log_time=False):
 
     embedding_size = int(DIM/embedding_scale)
     res_size = int(DIM/res_scale)
@@ -280,7 +286,8 @@ def perform_training(name = 'try999',
                                                        min_text_len=min_text,
                                                        min_prop_len=min_prop,
                                                        distance=distance_num,
-                                                       distance_train_limit=distance_train_limit)
+                                                       distance_train_limit=distance_train_limit,
+                                                       embed_name=embed_name)
     print(str(time.ctime()) + "\tDATASET LOADED...")
     sys.stdout.flush()
 
@@ -361,9 +368,9 @@ def perform_training(name = 'try999',
     bow = None
     if feature_type == 'bow':
         dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-        vocabulary_path = os.path.join(dataset_path, 'glove', dataset_version,'glove.embeddings.npz')
+        vocabulary_path = os.path.join(dataset_path, 'resources', embed_name, dataset_version,'glove.embeddings.npz')
         if not os.path.exists(vocabulary_path):
-            vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+            vocabulary_path = os.path.join(dataset_path, 'resources', embed_name, 'glove.embeddings.npz')
         vocabulary_list = np.load(vocabulary_path)
         embed_list = vocabulary_list['embeds']
         word_list = vocabulary_list['vocab']
@@ -388,15 +395,24 @@ def perform_training(name = 'try999',
         os.makedirs(save_dir)
 
     # CLEAR FOLDER
-    filelist = [f for f in os.listdir(save_dir) if f.endswith(".h5")]
-    for f in filelist:
-        os.remove(os.path.join(save_dir, f))
+    if overwrite:
+        filelist = [f for f in os.listdir(save_dir) if f.endswith(".h5")]
+        for f in filelist:
+            os.remove(os.path.join(save_dir, f))
 
+    train_times = []
 
     # train and test iterations
     for i in range(iterations):
 
         name = realname + "_" + str(i)
+        model_name = realname + '_model.json'
+        log_path = os.path.join(save_dir, name + '_training.log')
+
+        # if the training of this iteration was already completed, skip it
+        if os.path.isfile(log_path) and not overwrite:
+            continue
+
         model = None
         if network == 7 or network == "7":
             model = build_net_7(bow=bow,
@@ -573,9 +589,9 @@ def perform_training(name = 'try999',
         elif monitor == 'links':
             monitor = 'val_link_' + fmeasure_0.__name__
 
-        log_path = os.path.join(save_dir, name + '_training.log')
+
         logger = CSVLogger(log_path, separator='\t', append=False)
-        timer = TimingCallback()
+
 
         if true_validation:
             # modify the lr each epoch
@@ -634,11 +650,21 @@ def perform_training(name = 'try999',
 
 
             last_epoch = 0
+
+            starttime = time.time()
+
+            timer = TimingCallback()
+
+
             for epoch in range(1, epochs+1):
                 print("\nEPOCH: " + str(epoch))
                 lr_annealing_fn = create_lr_annealing_function(initial_lr=lr_alfa, k=lr_kappa, fixed_epoch=epoch)
                 lr_scheduler = LearningRateScheduler(lr_annealing_fn)
-                callbacks = [lr_scheduler, logger, timer]
+
+                callbacks = [lr_scheduler, logger]
+                if log_time:
+                    callbacks.append(timer)
+
                 model.fit(x=X3_train,
                           # y=Y_links_train,
                           y=Y_train,
@@ -746,6 +772,8 @@ def perform_training(name = 'try999',
                 val_file.flush()
                 last_epoch = epoch
 
+            endtime = time.time()
+
             val_file.close()
             waited = 0
 
@@ -771,11 +799,16 @@ def perform_training(name = 'try999',
                                        verbose=2,
                                        mode='max')
 
-            callbacks = [checkpoint, early_stop, lr_scheduler, logger, timer]
+            callbacks = [lr_scheduler, logger, checkpoint, early_stop]
+            if log_time:
+                timer = TimingCallback()
+                callbacks.append(timer)
 
             print(str(time.ctime()) + "\tSTARTING TRAINING")
 
             sys.stdout.flush()
+
+            starttime = time.time()
 
             history = model.fit(x=X3_train,
                                 # y=Y_links_train,
@@ -788,11 +821,16 @@ def perform_training(name = 'try999',
                                 callbacks=callbacks
                                 )
 
-            print(str(time.ctime()) + "\tTRAINING FINISHED")
-
+            endtime = time.time()
             last_epoch = len(history.epoch)
 
+        print(str(time.ctime()) + "\tTRAINING FINISHED")
+
         # END OF THE TRAINING PHASE
+
+        train_time = endtime-starttime
+
+        print("\t\tSECONDS PASSED: " + str(train_time))
         print("\n-----------------------\n")
         # START OF THE EVALUATION PHASE
 
@@ -990,10 +1028,15 @@ def perform_training(name = 'try999',
 
             testfile.flush()
 
+        with open(log_path, "a") as train_file:
+            train_file.write("\n\nTraining time:\n" + str(train_time))
+        testfile.write("\n\nTraining time:\n" + str(train_time))
         testfile.close()
+        train_times.append(train_time)
 
         # END OF A ITERATION
 
+    train_time = np.average(train_times)
     # FINAL EVALUATION
     testfile = open(os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version,
                                  realname + "_eval.txt"), 'w')
@@ -1010,6 +1053,8 @@ def perform_training(name = 'try999',
         testfile.write(string + "\n")
 
         testfile.flush()
+
+    testfile.write("\n\nTraining time:\n" + str(train_time))
     testfile.close()
 
 
@@ -1244,6 +1289,69 @@ def cdcp_routine():
 
 
 
+def scidtb_routine():
+
+    dataset_name = 'scidtb_argmin_annotations'
+    dataset_version = 'only_arg_v1'
+    split = 'total'
+    i = 0
+
+    i += 1
+    name = 'scidtb11'+ str(i)
+
+    perform_training(
+        name=name,
+        save_weights_only=True,
+        epochs=10000,
+        feature_type='bow',
+        patience=100,
+        loss_weights=[0, 10, 1, 1],
+        lr_alfa=0.005,
+        lr_kappa=0.001,
+        beta_1=0.9,
+        beta_2=0.9999,
+        res_scale=60, # res_siz =5
+        resnet_layers=(1, 2),
+        embedding_scale=6, # embedding_size=50
+        embedder_layers=4,
+        final_scale=15, # final_size=20
+        space_scale=10,
+        batch_size=500,
+        regularizer_weight=0.0001,
+        dropout_resnet=0.1,
+        dropout_embedder=0.1,
+        dropout_final=0.1,
+        bn_embed=True,
+        bn_res=True,
+        bn_final=True,
+        network=11,
+        monitor="links",
+        true_validation=True,
+        temporalBN=False,
+        same_layers=False,
+        distance=5,
+        iterations=10,
+        merge=None,
+        single_LSTM=True,
+        pooling=10,
+        text_pooling=50,
+        pooling_type='avg',
+        classification="softmax",
+        dataset_name=dataset_name,
+        dataset_version=dataset_version,
+        dataset_split=split,
+        clean_previous_networks=True,
+    )
+
+    netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, name)
+
+    evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True)
+    evaluate_net.perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=False, distance=5, ensemble=True, token_wise=True)
+
+
+
+
+
 
 
 
@@ -1359,7 +1467,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Perform training procedure")
     parser.add_argument('-c', '--corpus',
-                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp", "scidtb"],
                         help="corpus", default="cdcp")
 
     args = parser.parse_args()
@@ -1374,4 +1482,6 @@ if __name__ == '__main__':
         drinv_routine()
     elif corpus.lower() == "ukp":
         UKP_routine()
+    elif corpus.lower() == "scidtb":
+        scidtb_routine()
 

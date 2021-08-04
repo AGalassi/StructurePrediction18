@@ -32,7 +32,8 @@ MAXITERATIONS = 20
 
 
 def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='bow', retrocompatibility=False, distance=5,
-                       ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link", token_wise=False):
+                       ensemble=None, ensemble_top_n=1.00, ensemble_top_criterion="link", token_wise=False, error_analysis=False,
+                       visualize_attention=False, embed_name="glove300"):
     return_value = 0
 
     # name of the network
@@ -62,17 +63,18 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                                                                 feature_type=feature_type,
                                                                 distance=distance,
                                                                 min_text_len=min_text,
-                                                                min_prop_len=min_prop,)
+                                                                min_prop_len=min_prop,
+                                                                embed_name=embed_name)
+
 
     # for token-wise evaluation, memorize the number of tokens in each proposition
     num_of_tokens = {}
-    if token_wise:
-        for split in ['train', 'test', 'validation']:
-            for index in range(len(dataset[split]['t_id'])):
-                prop_id = dataset[split]['t_id'][index]
-                if prop_id not in num_of_tokens.keys():
-                    target_prop = dataset[split]['target_props'][index]
-                    num_of_tokens[prop_id] = len(target_prop) - len(np.where(target_prop == 0)[0])
+    for split in ['train', 'test', 'validation']:
+        for index in range(len(dataset[split]['t_id'])):
+            prop_id = dataset[split]['t_id'][index]
+            if prop_id not in num_of_tokens.keys():
+                target_prop = dataset[split]['target_props'][index]
+                num_of_tokens[prop_id] = len(target_prop) - len(np.where(target_prop == 0)[0])
 
     print(str(time.ctime()) + "\tDATASET LOADED...")
 
@@ -148,7 +150,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             X_text_test = np.zeros((numdata, 2))
             X3_test = [X_text_test, X_source_test, X_target_test, X_dist_test, X_marks_test, ]
         else:
-            X3_test = [ X_source_test, X_target_test, X_dist_test]
+            X3_test = [X_source_test, X_target_test, X_dist_test]
 
 
         print(str(time.ctime()) + "\t\tTEST DATA PROCESSED...")
@@ -315,9 +317,234 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             iterations = iteration
             break
 
-
     X = None
     Y = None
+
+    components_id_list = {}
+    components_id_list["train"] = []
+    components_id_list["test"] = []
+    components_id_list["validation"] = []
+
+    def create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real, split, error_analysis):
+
+        report = ""
+
+        # F1s
+        score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
+        score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
+        score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
+        score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
+
+        score_f1_rel_completeM = f1_score(Y_test_rel, Y_pred_rel, average='macro')
+        score_f1_non_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[not_a_link_labels[-1]])
+
+        score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
+        score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
+        score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
+
+        score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
+        score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
+
+        # Precision-recall-fscore-support
+        score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
+        score_prec_prop = score_prfs_prop[0]
+        score_rec_prop = score_prfs_prop[1]
+        score_fscore_prop = score_prfs_prop[2]
+        score_supp_prop = score_prfs_prop[3]
+
+        score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                               average='macro')
+        score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
+        score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
+        score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
+
+        score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
+                                                               average='micro')
+        score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
+        score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
+        score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
+
+        iteration_scores = []
+        iteration_scores.append(score_f1_AVG_all_real[0])
+        iteration_scores.append(score_f1_AVG_LP_real[0])
+        iteration_scores.append(score_f1_link[0])
+
+        if split == "validation":
+            return_value = score_f1_link[0]
+
+        iteration_scores.append(score_f1_rel_AVGM)
+        for score in score_f1_rel:
+            iteration_scores.append(score)
+        iteration_scores.append(score_f1_prop_AVGM_real)
+        for score in score_f1_prop_real:
+            iteration_scores.append(score)
+        iteration_scores.append(score_f1_prop_AVGm_real)
+
+        iteration_scores.append(score_prec_prop_AVGM)
+        for score in score_prec_prop:
+            iteration_scores.append(score)
+        iteration_scores.append(score_prec_prop_AVGm)
+
+        iteration_scores.append(score_rec_prop_AVGM)
+        for score in score_rec_prop:
+            iteration_scores.append(score)
+        iteration_scores.append(score_rec_prop_AVGm)
+
+        # iteration_scores.append(score_fscore_prop_AVGM)
+        # for score in score_fscore_prop:
+        #     iteration_scores.append(score)
+        # iteration_scores.append(score_fscore_prop_AVGm)
+
+        for score in score_supp_prop:
+            iteration_scores.append(score)
+
+        iteration_scores.append(score_f1_non_link[0])
+
+        iteration_scores.append(score_f1_rel_completeM)
+        iteration_scores.append(score_f1_non_rel[0])
+
+        final_scores[split].append(iteration_scores)
+
+        # writing single iteration scores
+        string = split
+        for value in iteration_scores:
+            string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
+
+        print(string)
+        shortrep = string
+
+        report += "\n\n"
+        report += split
+
+        report += "\nLinks\n"
+        report += classification_report(Y_test_links, Y_pred_links,
+                                        labels=range(2),
+                                        target_names=["YES", "NO"])
+        report += "\n"
+
+        report += "\nRelations\n"
+
+        rel_types = []
+        for idx in relations_labels:
+            rel_type = this_ds_info["rel_types"][idx]
+            rel_types.append(rel_type)
+            # print("\t" + str(rel_type))
+        rel_types.append("None")
+        rel_idx = relations_labels.copy()
+        rel_idx.append(not_a_link_labels[-1])
+        # print(relations_labels)
+        # print(rel_idx)
+        # print(rel_types)
+
+        report += classification_report(Y_test_rel, Y_pred_rel,
+                                        labels=rel_idx,
+                                        target_names=rel_types)
+        report += "\n"
+
+        report += "\nComponents\n"
+        report += classification_report(Y_test_prop_real, Y_pred_prop_real,
+                                        labels=range(len(this_ds_info["prop_types"])),
+                                        target_names=this_ds_info["prop_types"])
+        report += "\n"
+
+        # CONFUSION MATRICES (the code for normalized matrices is in comment cause it requires python
+        confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
+        # confusion_link2 = confusion_matrix(Y_test_links, Y_pred_links, normalize='true')
+        confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
+        # confusion_rel2 = confusion_matrix(Y_test_rel, Y_pred_rel, normalize='true')
+        confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
+        # confusion_prop_real2 = confusion_matrix(Y_test_prop_real, Y_pred_prop_real, normalize='true')
+        report += "\n\nlink\n"
+        report += str(confusion_link)
+        # report += "\n"
+        # report += str(confusion_link2)
+        report += "\n\nrel\n"
+        report += str(confusion_rel)
+        # report += "\n"
+        # report += str(confusion_rel2)
+        report += "\n\nprop real\n"
+        report += str(confusion_prop_real)
+        # report += "\n"
+        # report += str(confusion_prop_real2)
+        report += "\n\n"
+
+
+        if error_analysis:
+            # error analysis
+            error_analysis_string = ""
+            length_corrects = [0] * (max_prop_len + 1)
+            length_total = [0] * (max_prop_len + 1)
+            length_norm = [0] * (max_prop_len + 1)
+
+            correct_predictions_comp = np.equal(Y_test_prop_real, Y_pred_prop_real)
+            for index in range(len(correct_predictions_comp)):
+                comp_id = components_id_list[split][index]
+                length = num_of_tokens[comp_id]
+                if correct_predictions_comp[index]:
+                    length_corrects[length] += 1
+                length_total[length] += 1
+
+            for index in range(max_prop_len+1):
+                if length_total[index] > 0:
+                    length_norm[index] = length_corrects[index] / length_total[index]
+                else:
+                    length_norm[index] = -99
+                    length_corrects[index] = -99
+
+            error_analysis_string += "Comp length\t"
+            error_analysis_string += "\t".join(map(str, range(max_prop_len + 1)))
+            # error_analysis_string += "\ttotal"
+            error_analysis_string += "\nComp number\t"
+            error_analysis_string += "\t".join(map(str, length_total))
+            # error_analysis_string += "\t" + str(sum(length_total))
+            error_analysis_string += "\nComp correctness\t"
+            error_analysis_string += "\t".join(map(str, length_corrects))
+            # error_analysis_string += "\t" + str(sum(length_corrects))
+            error_analysis_string += "\nComp norm\t"
+            error_analysis_string += "\t".join(map(str, length_norm))
+
+            correct_predictions_link = np.equal(Y_test_links, Y_pred_links)
+            truelink = np.equal(Y_test_links, [0]*len(Y_test_links))
+            difference_corrects = [0] * (distance*2 + 1)
+            difference_total = [0] * (distance*2 + 1)
+            difference_norm = [0] * (distance*2 + 1)
+            differences = dataset[split]['difference']
+
+            for index in range(len(correct_predictions_link)):
+                difference = differences[index]
+                if difference > distance:
+                    difference = distance
+                elif difference < -distance:
+                    difference = -distance
+                difference += 5
+                if truelink[index]:
+                    if correct_predictions_link[index]:
+                        difference_corrects[difference] += 1
+                    difference_total[difference] += 1
+
+            for index in range(distance*2 + 1):
+                if difference_total[index] > 0:
+                    difference_norm[index] = difference_corrects[index] / difference_total[index]
+                else:
+                    difference_norm[index] = -99
+                    difference_corrects[index] = -99
+
+            error_analysis_string += "\n\nLink distance\t"
+            error_analysis_string += "\t".join(map(str, range(-distance, distance+1)))
+            # error_analysis_string += "\ttotal"
+            error_analysis_string += "\nLink number\t"
+            error_analysis_string += "\t".join(map(str, difference_total))
+            # error_analysis_string += "\t" + str(sum(difference_total))
+            error_analysis_string += "\nLink correctness\t"
+            error_analysis_string += "\t".join(map(str, difference_corrects))
+            # error_analysis_string += "\t" + str(sum(difference_corrects))
+            error_analysis_string += "\nLink norm\t"
+            error_analysis_string += "\t".join(map(str, difference_norm))
+            error_analysis_string += "\n\n"
+
+            report += error_analysis_string
+
+        return shortrep, report
 
     # train and test iterations
     for iteration in range(iterations+1):
@@ -391,159 +618,49 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
         extensive_report = ""
 
-
-
-        def create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real):
-
-            report = ""
-
-            # F1s
-            score_f1_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[0])
-            score_f1_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=relations_labels)
-            score_f1_rel_AVGM = f1_score(Y_test_rel, Y_pred_rel, average='macro', labels=relations_labels)
-            score_f1_non_link = f1_score(Y_test_links, Y_pred_links, average=None, labels=[1])
-
-
-            score_f1_rel_completeM = f1_score(Y_test_rel, Y_pred_rel, average='macro')
-            score_f1_non_rel = f1_score(Y_test_rel, Y_pred_rel, average=None, labels=[not_a_link_labels[-1]])
-
-
-            score_f1_prop_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average=None)
-            score_f1_prop_AVGM_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='macro')
-            score_f1_prop_AVGm_real = f1_score(Y_test_prop_real, Y_pred_prop_real, average='micro')
-
-            score_f1_AVG_LP_real = np.mean([score_f1_link, score_f1_prop_AVGM_real])
-            score_f1_AVG_all_real = np.mean([score_f1_link, score_f1_prop_AVGM_real, score_f1_rel_AVGM])
-
-            # Precision-recall-fscore-support
-            score_prfs_prop = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real, average=None)
-            score_prec_prop = score_prfs_prop[0]
-            score_rec_prop = score_prfs_prop[1]
-            score_fscore_prop = score_prfs_prop[2]
-            score_supp_prop = score_prfs_prop[3]
-
-            score_prfs_prop_AVGM = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
-                                                                   average='macro')
-            score_prec_prop_AVGM = score_prfs_prop_AVGM[0]
-            score_rec_prop_AVGM = score_prfs_prop_AVGM[1]
-            score_fscore_prop_AVGM = score_prfs_prop_AVGM[2]
-
-            score_prfs_prop_AVGm = precision_recall_fscore_support(Y_test_prop_real, Y_pred_prop_real,
-                                                                   average='micro')
-            score_prec_prop_AVGm = score_prfs_prop_AVGm[0]
-            score_rec_prop_AVGm = score_prfs_prop_AVGm[1]
-            score_fscore_prop_AVGm = score_prfs_prop_AVGm[2]
-
-            iteration_scores = []
-            iteration_scores.append(score_f1_AVG_all_real[0])
-            iteration_scores.append(score_f1_AVG_LP_real[0])
-            iteration_scores.append(score_f1_link[0])
-
-            if split == "validation":
-                return_value = score_f1_link[0]
-
-            iteration_scores.append(score_f1_rel_AVGM)
-            for score in score_f1_rel:
-                iteration_scores.append(score)
-            iteration_scores.append(score_f1_prop_AVGM_real)
-            for score in score_f1_prop_real:
-                iteration_scores.append(score)
-            iteration_scores.append(score_f1_prop_AVGm_real)
-
-            iteration_scores.append(score_prec_prop_AVGM)
-            for score in score_prec_prop:
-                iteration_scores.append(score)
-            iteration_scores.append(score_prec_prop_AVGm)
-
-            iteration_scores.append(score_rec_prop_AVGM)
-            for score in score_rec_prop:
-                iteration_scores.append(score)
-            iteration_scores.append(score_rec_prop_AVGm)
-
-            # iteration_scores.append(score_fscore_prop_AVGM)
-            # for score in score_fscore_prop:
-            #     iteration_scores.append(score)
-            # iteration_scores.append(score_fscore_prop_AVGm)
-
-            for score in score_supp_prop:
-                iteration_scores.append(score)
-
-            iteration_scores.append(score_f1_non_link[0])
-
-            iteration_scores.append(score_f1_rel_completeM)
-            iteration_scores.append(score_f1_non_rel[0])
-
-
-            final_scores[split].append(iteration_scores)
-
-            # writing single iteration scores
-            string = split
-            for value in iteration_scores:
-                string += "\t" + ("{:10.4f}".format(value)).replace(" ", "")
-
-            print(string)
-            shortrep = string
-
-            report += "\n\n"
-            report += split
-
-            report += "\nLinks\n"
-            report += classification_report(Y_test_links, Y_pred_links,
-                                                      labels=range(2),
-                                                      target_names=["YES", "NO"])
-            report += "\n"
-
-            report += "\nRelations\n"
-
-            rel_types = []
-            for idx in relations_labels:
-                rel_type = this_ds_info["rel_types"][idx]
-                rel_types.append(rel_type)
-                print("\t" + str(rel_type))
-            rel_types.append("None")
-            rel_idx = relations_labels.copy()
-            rel_idx.append(not_a_link_labels[-1])
-            print(relations_labels)
-            print(rel_idx)
-            print(rel_types)
-
-            report += classification_report(Y_test_rel, Y_pred_rel,
-                                                      labels=rel_idx,
-                                                      target_names=rel_types)
-            report += "\n"
-
-            report += "\nComponents\n"
-            report += classification_report(Y_test_prop_real, Y_pred_prop_real,
-                                                      labels=range(len(this_ds_info["prop_types"])),
-                                                      target_names=this_ds_info["prop_types"])
-            report += "\n"
-
-            # CONFUSION MATRICES (the code for normalized matrices is in comment cause it requires python
-            confusion_link = confusion_matrix(Y_test_links, Y_pred_links)
-            #confusion_link2 = confusion_matrix(Y_test_links, Y_pred_links, normalize='true')
-            confusion_rel = confusion_matrix(Y_test_rel, Y_pred_rel)
-            #confusion_rel2 = confusion_matrix(Y_test_rel, Y_pred_rel, normalize='true')
-            confusion_prop_real = confusion_matrix(Y_test_prop_real, Y_pred_prop_real)
-            #confusion_prop_real2 = confusion_matrix(Y_test_prop_real, Y_pred_prop_real, normalize='true')
-            report += "\n\nlink\n"
-            report += str(confusion_link)
-            #report += "\n"
-            #report += str(confusion_link2)
-            report += "\n\nrel\n"
-            report += str(confusion_rel)
-            #report += "\n"
-            #report += str(confusion_rel2)
-            report += "\n\nprop real\n"
-            report += str(confusion_prop_real)
-            #report += "\n"
-            #report += str(confusion_prop_real2)
-            report += "\n\n"
-
-            return shortrep, report
-
-
-
         for split in ['test', 'validation', 'train']:
+
+            # TODO: see if this works!
+            if visualize_attention:
+
+                dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+                vocabulary_path = os.path.join(dataset_path, 'resources', embed_name, dataset_version,
+                                               'glove.embeddings.npz')
+                if not os.path.exists(vocabulary_path):
+                    vocabulary_path = os.path.join(dataset_path, 'resources', embed_name, 'glove.embeddings.npz')
+                vocabulary_list = np.load(vocabulary_path)
+                embed_list = vocabulary_list['embeds']
+                word_list = vocabulary_list['vocab']
+
+                source_attention_layer = model.get_layer("att_weights_reshape_source")
+                target_attention_layer = model.get_layer("att_weights_reshape_target")
+                source_scores = source_attention_layer(X[split][0:1])
+                target_scores = target_attention_layer(X[split][0:1])
+
+                source_sentences = []
+                target_sentences = []
+
+                for instance in X[split][0:1][0]:
+                    sentence = []
+                    for index in instance:
+                        word = word_list[index]
+                        sentence.append(word)
+                    source_sentences.append(sentence)
+
+                for instance in X[split][0:1][1]:
+                    sentence = []
+                    for index in instance:
+                        word = word_list[index]
+                        sentence.append(word)
+                    target_sentences.append(sentence)
+
+                for index in range(len(source_sentences)):
+                    print(str(source_sentences[index]))
+                    print(str(source_scores[index]))
+                    print(str(target_sentences[index]))
+                    print(str(target_scores[index]))
+                exit()
+
 
             if len(X[split][0]) <= 1:
                 continue
@@ -553,7 +670,6 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             # ax1 = classes
 
             Y_pred = model.predict(X[split])
-
 
             # every proposition is evaluated multiple times. all these evaluation must be merged together.
             # merging is performed choosing the class that has received the highest probability score summing all the cases
@@ -593,33 +709,39 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
             Y_pred_prop_real_list = []
             Y_test_prop_real_list = []
 
-            components_id_list = []
+            if len(components_id_list[split]) == 0:
+                for p_id in sorted(t_pred_scores.keys()):
+                    components_id_list[split].append(p_id)
 
             # merges sources and targets
-            for p_id in t_pred_scores.keys():
+            for p_id in sorted(t_pred_scores.keys()):
                 Y_pred_prop_real_list.append(np.concatenate([s_pred_scores[p_id], t_pred_scores[p_id]]))
                 Y_test_prop_real_list.append(np.concatenate([s_test_scores[p_id], t_test_scores[p_id]]))
-                components_id_list.append(p_id)
 
             # 3 dim
             # ax0: ids
             # ax1: samples
             # ax2: classes
+            # value: score associated to the class
             Y_pred_prop_real_list = np.array(Y_pred_prop_real_list)
             Y_test_prop_real_list = np.array(Y_test_prop_real_list)
 
             Y_pred_prop_real = []
             Y_test_prop_real = []
-            # sum the prediction scores for each class
+            # for each id, sum the prediction scores for each class across the samples
             for index in range(len(Y_pred_prop_real_list)):
                 Y_pred_prop_real.append(np.sum(Y_pred_prop_real_list[index], axis=-2))
                 Y_test_prop_real.append(np.sum(Y_test_prop_real_list[index], axis=-2))
 
-            # select the class that has received the highest probability
+            # 2 dim: ids, classes; value: score for each class
             Y_pred_scores_prop_real = np.array(Y_pred_prop_real)
             Y_test_scores_prop_real = np.array(Y_test_prop_real)
+
+
+            # select the class that has received the highest probability
             Y_pred_prop_real = np.argmax(Y_pred_scores_prop_real, axis=-1)
             Y_test_prop_real = np.argmax(Y_test_scores_prop_real, axis=-1)
+
             # --- end of the evaluation of the single propositions scores
 
             Y_pred_links = np.argmax(Y_pred[0], axis=-1)
@@ -634,8 +756,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 print("Splitting token for token-wise")
                 # test and predictions are sorted according to components_id_list
 
-                if len(components_id_list) != len(Y_pred_prop_real):
-                    print(len(components_id_list))
+                if len(components_id_list[split]) != len(Y_pred_prop_real):
+                    print(len(components_id_list[split]))
                     print(len(Y_pred_prop_real))
                     print("ERROR!!! Components_id_list must be as long as the list of the predictions!!!")
                     sys.exit(40)
@@ -645,8 +767,8 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_test_tok_real = []
 
                 # expand each element for the number of tokens
-                for index in range(len(components_id_list)):
-                    id_prop = components_id_list[index]
+                for index in range(len(components_id_list[split])):
+                    id_prop = components_id_list[split][index]
                     prop_pred = Y_pred_prop_real[index]
                     prop_test = Y_test_prop_real[index]
                     prop_score = Y_pred_scores_prop_real[index]
@@ -702,8 +824,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
             # predictions computed! Computing measures!
 
-            shortrep, report = create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real)
-
+            shortrep, report = create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real, Y_pred_prop_real, split, error_analysis)
             extensive_report += report
 
             testfile.write(shortrep)
@@ -834,7 +955,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
                 Y_test_rel = ensemble_rel_truth[split]
 
                 shortrep, report = create_report(Y_test_links, Y_pred_links, Y_test_rel, Y_pred_rel, Y_test_prop_real,
-                                                 Y_pred_prop_real)
+                                                 Y_pred_prop_real, split, error_analysis)
 
 
                 report += "\n\nkrippendorff's alpha\n"
@@ -850,6 +971,7 @@ def perform_evaluation(netfolder, dataset_name, dataset_version, feature_type='b
 
                 testfile.flush()
                 sys.stdout.flush()
+
 
         print("------------------\n\n------------------\n\n")
 
@@ -994,7 +1116,8 @@ def regenerate_network(netname="cdcp7net2018", dataset_name='cdcp_ACL17', datase
                                                            min_text_len=min_text,
                                                            min_prop_len=min_prop,
                                                            distance=distance_num,
-                                                           distance_train_limit=distance_train_limit)
+                                                           distance_train_limit=distance_train_limit,
+                                                                    embed_name="glove300")
         print(str(time.ctime()) + "\tDATASET LOADED...")
         sys.stdout.flush()
 
@@ -1074,9 +1197,10 @@ def regenerate_network(netname="cdcp7net2018", dataset_name='cdcp_ACL17', datase
         bow = None
         if feature_type == 'bow':
             dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
-            vocabulary_path = os.path.join(dataset_path, 'glove', dataset_version, 'glove.embeddings.npz')
+            vocabulary_path = os.path.join(dataset_path, 'resources', "glove300", dataset_version,
+                                           'glove.embeddings.npz')
             if not os.path.exists(vocabulary_path):
-                vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+                vocabulary_path = os.path.join(dataset_path, 'resources', "glove300", 'glove.embeddings.npz')
             vocabulary_list = np.load(vocabulary_path)
             embed_list = vocabulary_list['embeds']
             word_list = vocabulary_list['vocab']
@@ -1180,7 +1304,7 @@ def regenerate_network(netname="cdcp7net2018", dataset_name='cdcp_ACL17', datase
 
 
 
-def RCT_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True):
+def RCT_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True, error_analysis=False):
 
     dataset_name = "RCT"
     training_dataset_version = "neo"
@@ -1189,18 +1313,18 @@ def RCT_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=
 
     test_dataset_version = "neo"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
 
     test_dataset_version = "mixed"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
 
     test_dataset_version = "glaucoma"
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
 
 
-def drinv_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True):
+def drinv_routine(netname="RCT11", retrocompatibility=False, distance=5, ensemble=True, token_wise=True, error_analysis=False):
 
     dataset_name = 'DrInventor'
     dataset_version = 'arg10'
@@ -1208,10 +1332,10 @@ def drinv_routine(netname="RCT11", retrocompatibility=False, distance=5, ensembl
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
 
 
-def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
+def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False, error_analysis=False):
 
     dataset_name = 'ECHR2018'
     dataset_version = 'arg0'
@@ -1219,12 +1343,12 @@ def ECHR_routine(netname, retrocompatibility=False, distance=5, ensemble=True, t
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
 
 
 
 
-def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
+def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemble=True, token_wise=False, error_analysis=False):
 
     dataset_name = 'cdcp_ACL17'
     training_dataset_version = 'new_3'
@@ -1233,12 +1357,12 @@ def cdcp_routine(netname='cdcp111', retrocompatibility=False, distance=5, ensemb
 
     netpath = os.path.join(os.getcwd(), 'network_models', dataset_name, training_dataset_version, netname)
 
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=token_wise, error_analysis=error_analysis)
     # perform_evaluation(netpath, dataset_name, test_dataset_version, context=False, distance=5,
     #                    ensemble=True, ensemble_top_criterion="link", ensemble_top_n=0.3)
 
 
-def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False):
+def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, token_wise=False, error_analysis=False):
 
     dataset_name = 'AAEC_v2'
     training_dataset_version = 'new_2'
@@ -1249,7 +1373,7 @@ def UKP_routine(netname, retrocompatibility=False, distance=5, ensemble=True, to
 
     perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility,
                        distance=distance, ensemble=ensemble, token_wise=token_wise)
-    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=True)
+    perform_evaluation(netpath, dataset_name, test_dataset_version, retrocompatibility=retrocompatibility, distance=distance, ensemble=ensemble, token_wise=True, error_analysis=error_analysis)
 
 
 if __name__ == '__main__':
@@ -1266,6 +1390,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--ensemble', help="Use of an ensemble of networks", action="store_true")
     parser.add_argument('-t', '--token', help="Perform token-wise component classification (instead of component-wise)", action="store_true")
     parser.add_argument('-x', '--default', help="Perform the evaluation on the dataset with the default options configured for that specific dataset", action="store_true")
+    parser.add_argument('-a', '--analysis', help="Perform error analysis", action="store_true")
 
     args = parser.parse_args()
 
@@ -1275,6 +1400,7 @@ if __name__ == '__main__':
     ensemble = args.ensemble
     retrocompatibility = args.retrocompatibility
     token_wise = args.token
+    error_analysis = args.analysis
     default = args.default
 
     if default:
@@ -1288,13 +1414,13 @@ if __name__ == '__main__':
             UKP_routine(netname)
     else:
         if corpus.lower() == "rct":
-            RCT_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+            RCT_routine(netname, retrocompatibility, distance, ensemble, token_wise, error_analysis)
         elif corpus.lower() == "cdcp":
-            cdcp_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+            cdcp_routine(netname, retrocompatibility, distance, ensemble, token_wise, error_analysis)
         elif corpus.lower() == "drinv":
-            drinv_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+            drinv_routine(netname, retrocompatibility, distance, ensemble, token_wise, error_analysis)
         elif corpus.lower() == "ukp":
-            UKP_routine(netname, retrocompatibility, distance, ensemble, token_wise)
+            UKP_routine(netname, retrocompatibility, distance, ensemble, token_wise, error_analysis)
 
 
 

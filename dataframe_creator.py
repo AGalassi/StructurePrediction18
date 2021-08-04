@@ -25,6 +25,7 @@ def split_propositions(text, propositions_offsets):
         propositions.append(text[offsets[0]:offsets[1]])
     return propositions
 
+
 def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, dataset_type='train', validation=0, reflexive=False):
     data_path = os.path.join(dataset_path, dataset_version, dataset_type)
 
@@ -184,6 +185,266 @@ def create_preprocessed_cdcp_pickle(dataset_path, dataset_version, link_types, d
     print("_______________")
 
 
+def create_scidtb_pickle(dataset_path, dataset_version, documents_path,
+                         asymmetric_link_types, symmetric_link_types, a_non_link_types, s_non_link_types,
+                         test=0.0, validation=0.0, reflexive=False):
+    print()
+
+    for key in sorted(locals().keys()):
+        print(str(key) + ":\t" + str(locals()[key]))
+
+    token_counter = 0
+    sentence_counter = 0
+
+
+    assert (validation >= 0 and validation <= 1)
+    assert (test >= 0 and test <= 1)
+
+    relation_types = []
+    relation_types.extend(asymmetric_link_types)
+    relation_types.extend(a_non_link_types)
+    relation_types.extend(symmetric_link_types)
+    relation_types.extend(s_non_link_types)
+
+    row_list_sent = {"train":[], "test":[], "validation":[]}
+    row_list = {"train":[], "test":[], "validation":[]}
+    rel_count = {"train":{}, "test":{}, "validation":{}}
+    prop_count = {"train":{}, "test":{}, "validation":{}}
+    link_count = {"train":0, "test":0, "validation":0}
+
+    data = {'prop_labels': {},
+            'T_ids': [],
+            'propositions': {},
+            }
+
+
+    rows_by_id = {}
+
+
+    documents_paths_list = []
+    documents_names_list = os.listdir(documents_path)
+    for document_name in documents_names_list:
+        documents_paths_list.append(os.path.join(documents_path, document_name))
+    del documents_names_list
+    print(str(len(documents_paths_list)) + " documents found for " + documents_path)
+
+
+    sentences_rows = []
+
+    for document_path in documents_paths_list:
+
+        document_name = os.path.basename(document_path)
+        if ".conll" not in document_name:
+            continue
+        doc_ID = int(document_name.split("-")[1][:])
+
+        split = "train"
+        if validation > 0 or test > 0:
+            p = random.random()
+            if p < validation:
+                split = 'validation'
+            elif validation < p < test + validation:
+                split = "test"
+
+        original_file = open(document_path, 'r', encoding="utf-8")
+
+        raw_text = original_file.read()
+        original_file.close()
+
+        sentence = ""
+        current_label = ""
+        count = 0
+        sent_id = 0
+
+        sent_ids = []
+
+        for line in raw_text.split('\n'):
+            if len(line)<5:
+                continue
+
+            token_counter += 1
+            sentence_splits = line.split()
+            text = sentence_splits[0]
+            label = sentence_splits[1]
+
+            if label[0] == "B" or sentence == "":
+                # if it is the first line
+                if len(sentence) > 1:
+                    current_label = current_label.replace("-", ".")
+                    current_label = current_label.replace("..", ".-")
+
+                    labels_splits = current_label.split(".")
+                    source_type = labels_splits[1]
+                    relation_type = labels_splits[2]
+                    source_to_target = False
+                    target_offset = labels_splits[3]
+                    source_id = str(doc_ID) + "_" + str(sent_id)
+                    target_id = ""
+
+                    if relation_type in relation_types:
+                        target_id = str(doc_ID) + "_" + str(sent_id + int(target_offset))
+                    else:
+                        relation_type = None
+                    if (relation_type in asymmetric_link_types) or (relation_type in symmetric_link_types):
+                        source_to_target = True
+
+                    sentences_row = {'text_ID': doc_ID,
+                                    'source_ID': source_id,
+                                    'target_ID': target_id,
+                                    'source_type': source_type,
+                                    'relation_type': relation_type,
+                                    'source_to_target': source_to_target,
+                                    'set': split,
+                                    'source_length': count,
+                                    'source_proposition': sentence,
+                                    }
+                    rows_by_id[source_id] = sentences_row
+                    sentences_rows.append(sentences_row)
+                    sent_ids.append(source_id)
+                    sent_id += 1
+
+                sentence = text
+                current_label = label
+                count = 0
+            elif label[0] == "O":
+                print("WHAAAT?!? There's a O!!!")
+                exit(-4)
+            else:
+                assert current_label[1:] == label[1:]
+                sentence += "  " + text
+                count += 1
+        # include last sentence
+        if len(sentence) > 1:
+            current_label = current_label.replace("-", ".")
+            current_label = current_label.replace("..", ".-")
+
+            labels_splits = current_label.split(".")
+            source_type = labels_splits[1]
+            relation_type = labels_splits[2]
+            source_to_target = False
+            target_offset = labels_splits[3]
+            source_id = str(doc_ID) + "_" + str(sent_id)
+            target_id = ""
+
+            if relation_type in relation_types:
+                target_id = str(doc_ID) + "_" + str(sent_id + int(target_offset))
+            else:
+                relation_type = None
+            if (relation_type in asymmetric_link_types) or (relation_type in symmetric_link_types):
+                source_to_target = True
+
+            sentences_row = {'text_ID': doc_ID,
+                            'source_ID': source_id,
+                            'target_ID': target_id,
+                            'source_type': source_type,
+                            'relation_type': relation_type,
+                            'source_to_target': source_to_target,
+                            'set': split,
+                            'source_length': count,
+                            'source_proposition': sentence,
+                            }
+            rows_by_id[source_id] = sentences_row
+            sentences_rows.append(sentences_row)
+            sent_ids.append(source_id)
+            sent_id += 1
+
+
+
+        if len(sent_ids) == 1:
+            print("Document " + str(doc_ID) + " has only 1 sentence!")
+
+        # addition to couples dataframe
+        for sent_id_source in sent_ids:
+
+            source_row = rows_by_id[sent_id_source]
+
+            for sent_id_target in sent_ids:
+
+                if sent_id_source == sent_id_target and not reflexive:
+                    continue
+
+                target_row = rows_by_id[sent_id_target]
+
+                relation_type = None
+                relation1to2 = False
+
+                if source_row["target_ID"] == sent_id_target:
+                    relation_type = source_row["relation_type"]
+                    relation1to2 = source_row["source_to_target"]
+                elif target_row["target_ID"] == sent_id_source:
+                    relation_type = "inv_" + str(target_row["relation_type"])
+
+                dataframe_row = {'text_ID': str(doc_ID),
+                                 'source_proposition': source_row["source_proposition"],
+                                 'source_ID': str(sent_id_source),
+                                 'target_proposition': target_row["source_proposition"],
+                                 'target_ID': str(sent_id_target),
+                                 'source_type': source_row["source_type"],
+                                 'target_type': target_row["source_type"],
+                                 'relation_type': relation_type,
+                                 'source_to_target': relation1to2,
+                                 'source_length': source_row["source_length"],
+                                 'target_length': target_row["source_length"],
+                                 'set': split
+                                 }
+
+                row_list[split].append(dataframe_row)
+
+                # CONTATORI
+                """
+                if relation_type not in rel_count.keys():
+                    rel_count[relation_type] = 0
+                rel_count[relation_type] += 1
+
+                if relation1to2 == True:
+                    link_count += 1
+                """
+
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+    if not os.path.exists(pickles_path):
+        os.makedirs(pickles_path)
+
+    if len(sentences_rows) > 0:
+        dataframe = pandas.DataFrame(sentences_rows)
+
+        dataframe = dataframe[['text_ID',
+                               'source_proposition',
+                               'source_ID',
+                               # 'target_proposition',
+                               'target_ID',
+                               'source_type',
+                               # 'target_type',
+                               'relation_type',
+                               'source_to_target',
+                               'source_length',
+                               # 'target_length',
+                               'set']]
+
+        dataframe_path = os.path.join(pickles_path, "sentences.pkl")
+        dataframe.to_pickle(dataframe_path)
+
+
+    for split in ["train", "validation", "test"]:
+        if len(row_list[split]) > 0:
+            dataframe = pandas.DataFrame(row_list[split])
+
+            dataframe = dataframe[['text_ID',
+                                   'source_ID',
+                                   'target_ID',
+                                   'source_type',
+                                   'target_type',
+                                   'relation_type',
+                                   'source_to_target',
+                                   'source_length',
+                                   'target_length',
+                                   'source_proposition',
+                                   'target_proposition',
+                                   'set']]
+
+            dataframe_path = os.path.join(pickles_path, str(split) + ".pkl")
+            dataframe.to_pickle(dataframe_path)
+    print("TOKENS!")
+    print(token_counter)
 
 ukp_train_ids = [1, 2, 3, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                  22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
@@ -1873,6 +2134,31 @@ def routine_UKP_corpus():
         print('_______________________')
 
 
+def routine_scidtb_corpus():
+    link_types = ["support", "attack"]
+    asymmetric_non_link_types = []
+    # asymmetric_non_link_types = ["detail", "additional", "sequence"]
+    dataset_name = "scidtb_argmin_annotations"
+    dataset_version = "only_arg_v1"
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    document_path = os.path.join(os.getcwd(), 'Datasets', dataset_name, "original_data")
+    pickles_path = os.path.join(dataset_path, 'pickles', dataset_version)
+
+    create_scidtb_pickle(dataset_path, dataset_version, document_path, link_types, [], asymmetric_non_link_types, [],
+                         test=0.2, validation=0.2, reflexive=False)
+
+
+    create_total_dataframe(pickles_path)
+
+    for split in ('train', 'test', 'validation', 'total'):
+        print(split)
+        dataframe_path = os.path.join(dataset_path, 'pickles', dataset_version, split + '.pkl')
+
+        print_dataframe_details(dataframe_path)
+        print('_______________________')
+        print('_______________________')
+
 
 
 if __name__ == '__main__':
@@ -1880,7 +2166,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create a new dataframe")
 
     parser.add_argument('-c', '--corpus',
-                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp", "scidtb"],
                         help="Corpus", default="cdcp")
     parser.add_argument('-d', '--distance',
                         help="The maximum distance considered to create pairs. Used only for some corpora.", default=10)
@@ -1899,6 +2185,8 @@ if __name__ == '__main__':
         routine_DrInventor_corpus(distance)
     elif corpus.lower() == "ukp":
         routine_UKP_corpus()
+    elif corpus.lower() == "scidtb":
+        routine_scidtb_corpus()
     else:
         print("Datset not yet supported")
 

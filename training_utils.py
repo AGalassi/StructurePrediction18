@@ -26,6 +26,7 @@ class TimingCallback(Callback):
     def __init__(self):
         self.logs = []
         self.starttime = time.time()
+        self.lasttime = time.time()
 
     def on_epoch_begin(self, epoch, logs={}):
         self.lasttime = time.time()
@@ -34,8 +35,8 @@ class TimingCallback(Callback):
         currtime = time.time()
         from_begin = (currtime-self.starttime)/60
         last_epoch = (currtime-self.lasttime)/60
-        print("Last epoch has lasted: " + str(last_epoch))
-        print("Training is lasting: " + str(from_begin))
+        print("Last epoch has lasted: " + str(last_epoch) + " minutes")
+        print("Training is lasting: " + str(from_begin) + " minutes")
 
 
 class RealValidationCallback(Callback):

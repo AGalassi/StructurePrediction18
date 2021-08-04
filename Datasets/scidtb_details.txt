@@ -1,0 +1,160 @@
+train
+  text_ID source_ID  ...                                 target_proposition    set
+0    1041    1041_0  ...  In  this  paper  ,  we  prove  that  different...  train
+1    1041    1041_0  ...  In  multi-predicate  role  labeling  ,  there ...  train
+2    1041    1041_0  ...  To  address  these  issues  ,  in  the  stage ...  train
+3    1041    1041_0  ...  in  the  stage  of  argument  classification  ...  train
+4    1041    1041_0  ...  We  conducted  experiments  on  two  standard ...  train
+
+[5 rows x 12 columns]
+
+total relations
+1240
+
+False    1153
+True       87
+Name: source_to_target, dtype: int64
+
+inv_support    87
+support        87
+Name: relation_type, dtype: int64
+
+text_ID
+40
+
+source_ID
+233
+
+233
+proposal       72
+assertion      58
+result         51
+means          40
+observation     7
+description     5
+Name: source_type, dtype: int64
+LIST OF DOCUMENT IDs
+text_ID
+['1041', '1051', '1016', '1006', '1034', '1029', '1053', '1061', '1023', '1010', '1044', '1019', '1028', '1020', '1005', '1018', '1048', '1047', '1021', '1039', '1033', '1011', '1004', '1042', '1060', '1014', '1025', '1015', '1046', '1050', '1017', '1030', '1002', '1009', '1036', '1027', '1013', '1052', '1008', '1049']
+_______________________
+_______________________
+test
+  text_ID source_ID  ...                                 target_proposition   set
+0    1040    1040_0  ...  The  approach  relies  on  an  idea  of  proje...  test
+1    1040    1040_0  ...  These  latent  cross-lingual  concepts  are  i...  test
+2    1040    1040_0  ...  Word  meaning  is  represented  as  a  probabi...  test
+3    1040    1040_0  ...  We  present  new  models  that  modulate  the ...  test
+4    1040    1040_0  ...  Results  on  the  task  of  suggesting  word  ...  test
+
+[5 rows x 12 columns]
+
+total relations
+388
+
+False    366
+True      22
+Name: source_to_target, dtype: int64
+
+support        22
+inv_support    22
+Name: relation_type, dtype: int64
+
+text_ID
+12
+
+source_ID
+72
+
+72
+proposal       25
+assertion      17
+means          14
+result         12
+observation     3
+description     1
+Name: source_type, dtype: int64
+LIST OF DOCUMENT IDs
+text_ID
+['1040', '1022', '1032', '1007', '1056', '1055', '1003', '1057', '1059', '1045', '1037', '1058']
+_______________________
+_______________________
+validation
+  text_ID  ...         set
+0    1026  ...  validation
+1    1026  ...  validation
+2    1026  ...  validation
+3    1026  ...  validation
+4    1026  ...  validation
+
+[5 rows x 12 columns]
+
+total relations
+256
+
+False    239
+True      17
+Name: source_to_target, dtype: int64
+
+support        17
+inv_support    17
+Name: relation_type, dtype: int64
+
+text_ID
+8
+
+source_ID
+48
+
+48
+assertion      13
+proposal       13
+result         11
+means           9
+observation     1
+description     1
+Name: source_type, dtype: int64
+LIST OF DOCUMENT IDs
+text_ID
+['1026', '1031', '1012', '1043', '1038', '1054', '1024', '1035']
+_______________________
+_______________________
+total
+     text_ID  ...    set
+1002    1002  ...  train
+1003    1002  ...  train
+1004    1002  ...  train
+1005    1002  ...  train
+1006    1002  ...  train
+
+[5 rows x 12 columns]
+
+total relations
+1884
+
+False    1758
+True      126
+Name: source_to_target, dtype: int64
+
+inv_support    126
+support        126
+Name: relation_type, dtype: int64
+
+text_ID
+60
+
+source_ID
+353
+
+353
+proposal       110
+assertion       88
+result          74
+means           63
+observation     11
+description      7
+Name: source_type, dtype: int64
+LIST OF DOCUMENT IDs
+text_ID
+['1002', '1003', '1004', '1005', '1006', '1007', '1008', '1009', '1010', '1011', '1012', '1013', '1014', '1015', '1016', '1017', '1018', '1019', '1020', '1021', '1022', '1023', '1024', '1025', '1026', '1027', '1028', '1029', '1030', '1031', '1032', '1033', '1034', '1035', '1036', '1037', '1038', '1039', '1040', '1041', '1042', '1043', '1044', '1045', '1046', '1047', '1048', '1049', '1050', '1051', '1052', '1053', '1054', '1055', '1056', '1057', '1058', '1059', '1060', '1061']
+_______________________
+_______________________

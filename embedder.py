@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pickle
 import argparse
-from glove_loader import DIM, SEPARATORS, STOPWORDS, REPLACINGS
+from glove_loader import SEPARATORS, STOPWORDS, REPLACINGS
 
 def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='texts', type='bow'):
     df = pandas.read_pickle(dataframe_path)
@@ -150,9 +150,15 @@ def save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode='text
     print("Finished")
 
 
-def RCT_routine():
-    global MAX
+def RCT_routine(size):
+    if size == 300:
+        embed_name = "glove300"
+    elif size == 25:
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
 
+    global MAX
     MAX = 0
 
     dataset_name = "RCT"
@@ -164,15 +170,23 @@ def RCT_routine():
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
-        embeddings_path = os.path.join(dataset_path, type, version)
+        embeddings_path = os.path.join(dataset_path, "embeddings", embed_name, version)
         # load glove vocabulary and embeddings
-        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+        vocabulary_path = os.path.join(dataset_path, "resources", embed_name, 'glove.embeddings.npz')
 
         save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
     print("MAX = " + str(MAX))
 
 
-def DrInventor_routine():
+def DrInventor_routine(size):
+    if size == 300:
+        embed_name = "glove300"
+    elif size == 25:
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+
+
     global MAX
     MAX = 0
 
@@ -185,16 +199,23 @@ def DrInventor_routine():
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
-        embeddings_path = os.path.join(dataset_path, type, version)
+        embeddings_path = os.path.join(dataset_path, "embeddings", embed_name, version)
         # load glove vocabulary and embeddings
-        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+        vocabulary_path = os.path.join(dataset_path, "resources", embed_name, 'glove.embeddings.npz')
 
         save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
     print("MAX = " + str(MAX))
 
 
 
-def UKP_routine():
+def UKP_routine(size):
+    if size == 300:
+        embed_name = "glove300"
+    elif size == 25:
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+
     global MAX
 
     MAX = 0
@@ -208,15 +229,22 @@ def UKP_routine():
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
-        embeddings_path = os.path.join(dataset_path, type, version)
+        embeddings_path = os.path.join(dataset_path, "embeddings", embed_name, version)
         # load glove vocabulary and embeddings
-        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+        vocabulary_path = os.path.join(dataset_path, "resources", embed_name, 'glove.embeddings.npz')
 
         save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
     print("MAX = " + str(MAX))
 
 
-def cdcp_routine():
+def cdcp_routine(size):
+    if size == 300:
+        embed_name = "glove300"
+    elif size == 25:
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+
     global MAX
 
     MAX = 0
@@ -230,9 +258,38 @@ def cdcp_routine():
 
         dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
 
-        embeddings_path = os.path.join(dataset_path, type, version)
+        embeddings_path = os.path.join(dataset_path, "embeddings", embed_name, version)
         # load glove vocabulary and embeddings
-        vocabulary_path = os.path.join(dataset_path, 'glove', 'glove.embeddings.npz')
+        vocabulary_path = os.path.join(dataset_path, "resources", embed_name, 'glove.embeddings.npz')
+
+        save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
+    print("MAX = " + str(MAX))
+
+
+def scidtb_routine(size):
+    if size == 300:
+        embed_name = "glove300"
+    elif size == 25:
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+
+    global MAX
+
+    MAX = 0
+
+    dataset_name = "scidtb_argmin_annotations"
+    type = "bow"
+    mode = "propositions"
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    for version in ["only_arg_v1"]:
+
+        dataframe_path = os.path.join(dataset_path, 'pickles', version, 'total.pkl')
+
+        embeddings_path = os.path.join(dataset_path, "embeddings", embed_name, version)
+        # load glove vocabulary and embeddings
+        vocabulary_path = os.path.join(dataset_path, "resources", embed_name, 'glove.embeddings.npz')
 
         save_embeddings(dataframe_path, vocabulary_path, embeddings_path, mode, type)
     print("MAX = " + str(MAX))
@@ -264,22 +321,27 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Creates embeddings for the dataset")
 
     parser.add_argument('-c', '--corpus',
-                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp", "scidtb"],
                         help="Corpus", default="cdcp")
-
+    parser.add_argument('-s', '--size', help="embedding size",
+                        choices=[25, 300],
+                        type=int, default=300)
 
     args = parser.parse_args()
 
     corpus = args.corpus
+    size = args.size
 
     if corpus.lower() == "rct":
-        RCT_routine()
+        RCT_routine(size)
     elif corpus.lower() == "cdcp":
-        cdcp_routine()
+        cdcp_routine(size)
     elif corpus.lower() == "drinv":
-        DrInventor_routine()
+        DrInventor_routine(size)
     elif corpus.lower() == "ukp":
-        UKP_routine()
+        UKP_routine(size)
+    elif corpus.lower() == "scidtb":
+        scidtb_routine(size)
     else:
         print("Datset not yet supported")
 

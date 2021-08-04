@@ -38,7 +38,7 @@ STOPWORDS = ['.', ',', ':', ';']
 def load_glove(vocabulary_source_path):
 
     print("Loading Glove")
-    f = open(vocabulary_source_path, 'r', encoding="utf8")
+    f = open(vocabulary_source_path, 'r', encoding="utf-8")
     model = {}
 
     for line in f:
@@ -60,6 +60,7 @@ def load_glove(vocabulary_source_path):
 
 
 def vocabulary_creator(model, vocabulary_destination_path, dataframe_path):
+
 
 
     df = pandas.read_pickle(dataframe_path)
@@ -93,7 +94,8 @@ def vocabulary_creator(model, vocabulary_destination_path, dataframe_path):
 
 
     logfile.close()
-    orphans.remove('')
+    if '' in orphans:
+        orphans.remove('')
 
 
     # print vocabulary file
@@ -219,9 +221,14 @@ def document_tokenizer_and_embedder(documents, model,
                       str(len(orphans)) + '\n')
 
     for separator in separators:
+
         # print("Separator: " + separator)
         orphans, vocabulary = regular_split(orphans, vocabulary, model, separator)
-        vocabulary[separator] = model[separator]
+
+        if separator not in model.keys():
+            orphans.add(separator)
+        else:
+            vocabulary[separator] = model[separator]
         # print("Orphans: " + str(len(orphans)))
 
         if not logfile == None:
@@ -248,7 +255,16 @@ def regular_split(old_orphans, vocabulary, model, separator):
 
 
 def DrInventor_routine():
-    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+    if size == 300:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.840B.300d.txt')
+        embed_name = "glove300"
+    elif size == 25:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.twitter.27B.25d.txt')
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+    global DIM
+    DIM = size
 
     dataset_name = 'DrInventor'
     dataset_version = 'arg10'
@@ -256,7 +272,7 @@ def DrInventor_routine():
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove')
+    glove_path = os.path.join(dataset_path, "resources", embed_name)
 
     model = load_glove(vocabulary_source_path)
 
@@ -284,15 +300,52 @@ def ECHR_routine():
 
 
 
-def RCT_routine():
-    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+def scidtb_routine(size):
+    if size == 300:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.840B.300d.txt')
+        embed_name = "glove300"
+    elif size == 25:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.twitter.27B.25d.txt')
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+    global DIM
+    DIM = size
+
+    dataset_name = 'scidtb_argmin_annotations'
+    dataset_version = 'only_arg_v1'
+
+    dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
+    pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
+    dataframe_path = os.path.join(pickles_path, 'total.pkl')
+    glove_path = os.path.join(dataset_path, "resources", embed_name)
+
+
+    model = load_glove(vocabulary_source_path)
+
+    m1 = model.copy()
+
+    vocabulary_creator(m1, glove_path, dataframe_path)
+
+
+def RCT_routine(size):
+    if size == 300:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.840B.300d.txt')
+        embed_name = "glove300"
+    elif size == 25:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.twitter.27B.25d.txt')
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+    global DIM
+    DIM = size
 
     dataset_name = 'RCT'
 
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles'))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove')
+    glove_path = os.path.join(dataset_path, "resources", embed_name)
 
 
     model = load_glove(vocabulary_source_path)
@@ -303,7 +356,16 @@ def RCT_routine():
 
 
 def cdcp_routine():
-    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+    if size == 300:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.840B.300d.txt')
+        embed_name = "glove300"
+    elif size == 25:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.twitter.27B.25d.txt')
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+    global DIM
+    DIM = size
 
     dataset_name = 'cdcp_ACL17'
     dataset_version = 'new_3'
@@ -311,7 +373,7 @@ def cdcp_routine():
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove')
+    glove_path = os.path.join(dataset_path, "resources", embed_name)
 
 
     model = load_glove(vocabulary_source_path)
@@ -323,7 +385,16 @@ def cdcp_routine():
 
 
 def UKP_routine():
-    vocabulary_source_path = os.path.join(os.getcwd(), 'glove.840B.300d.txt')
+    if size == 300:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.840B.300d.txt')
+        embed_name = "glove300"
+    elif size == 25:
+        vocabulary_source_path = os.path.join(os.getcwd(), "resources", 'glove.twitter.27B.25d.txt')
+        embed_name = "glove25"
+    else:
+        raise Exception("Wrong embedding size")
+    global DIM
+    DIM = size
 
     dataset_name = 'AAEC_v2'
     dataset_version = 'new_2R'
@@ -331,7 +402,7 @@ def UKP_routine():
     dataset_path = os.path.join(os.getcwd(), 'Datasets', dataset_name)
     pickles_path = os.path.join(os.path.join(dataset_path, 'pickles', dataset_version))
     dataframe_path = os.path.join(pickles_path, 'total.pkl')
-    glove_path = os.path.join(dataset_path, 'glove')
+    glove_path = os.path.join(dataset_path, "resources", embed_name)
 
 
     model = load_glove(vocabulary_source_path)
@@ -349,21 +420,27 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Loads glove embeddings related to the dataset")
 
     parser.add_argument('-c', '--corpus',
-                        choices=["rct", "drinv", "cdcp", "echr", "ukp"],
+                        choices=["rct", "drinv", "cdcp", "echr", "ukp", "scidtb"],
                         help="Corpus", default="cdcp")
+    parser.add_argument('-s', '--size', help="embedding size",
+                        choices=[25, 300],
+                        type=int, default=300)
 
 
     args = parser.parse_args()
 
     corpus = args.corpus
+    size = args.size
 
     if corpus.lower() == "rct":
-        RCT_routine()
+        RCT_routine(size)
     elif corpus.lower() == "cdcp":
-        cdcp_routine()
+        cdcp_routine(size)
     elif corpus.lower() == "drinv":
-        DrInventor_routine()
+        DrInventor_routine(size)
     elif corpus.lower() == "ukp":
-        UKP_routine()
+        UKP_routine(size)
+    elif corpus.lower() == "scidtb":
+        scidtb_routine(size)
     else:
         print("Datset not yet supported")

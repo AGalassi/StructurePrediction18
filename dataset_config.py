@@ -141,6 +141,49 @@ dataset_info = {"AAEC_v2":      {"output_units": (2, 5, 3, 3),
                                  "rel_types": ['supports', 'inv_supports', 'attacks', 'inv_attacks', "None"],
                                 },
 
+                "scidtb_argmin_annotations":        {"output_units": (2, 5, 6, 6),
+                                 "min_text": 2, # wrong, never measured
+                                 "min_prop": 95,
+                                 "link_as_sum": [[0, 2], [1, 3, 4]],
+                                 "categorical_prop": {'proposal': [1, 0, 0, 0, 0, 0],
+                                                      'assertion': [0, 1, 0, 0, 0, 0],
+                                                      'result': [0, 0, 1, 0, 0, 0],
+                                                      'observation': [0, 0, 0, 1, 0, 0],
+                                                      'means': [0, 0, 0, 0, 1, 0],
+                                                      'description': [0, 0, 0, 0, 0, 1],
+                                                     },
+                                 "categorical_link": {'support': [1, 0, 0, 0, 0],
+                                                      'inv_support': [0, 1, 0, 0, 0],
+                                                      'attack': [0, 0, 1, 0, 0],
+                                                      'inv_attack': [0, 0, 0, 1, 0],
+                                                      None: [0, 0, 0, 0, 1],
+                                                     },
+                                  # TODO: FIX THIS
+                                 "evaluation_headline_short": ("set\t"
+                                                               "F1 AVG all\tF1 AVG LP\tF1 Link\t"
+                                                               "F1 R AVG dir\tF1 R reason\tF1 R evidence\t" +
+                                                               "F1 P AVG\t" +
+                                                               "F1 P policy\tF1 P fact\tF1 P testimony\t" +
+                                                               "F1 P value\tF1 P reference\tF1 P avg\n\n"),
+                                 "evaluation_headline": ("set\t"
+                                                         "F1 AVG all\t"
+                                                         "F1 AVG LP\t"
+                                                         "F1 Link\t"
+                                                         "F1 R AVG dir\tF1 R support\tF1 R attack\tF1 P AVG\t"
+                                                         "F1 P proposal\tF1 P assertion\tF1 P result\tF1 P observation\tF1 P means\tF1 P description\t"
+                                                         "f1 P avg\t"
+                                                         "PR P AVG\t"
+                                                         "Pr P proposal\tPr P assertion\tPr P result\tPr P observation\tPr P means\tPr P description\t"
+                                                         "pr P avg\t"
+                                                         "REC P AVG\t"
+                                                         "Rec P proposal\tRec P assertion\tRec P result\tRec P observation\tRec P means\tRec P description\t"
+                                                         "rec P avg\t"
+                                                         "Supp P proposal\tSupp P assertion\tSupp P result\tSupp P observation\tSupp P means\tSupp P description\t"
+                                                         "F1 nonLink\tF1_R_avg\tF1_R_not-rel\n\n"),
+                                 "prop_types": ['proposal', 'assertion', 'result', 'observation', 'means', 'description'],
+                                 "rel_types": ['supports', 'inv_supports', 'attacks', 'inv_attacks', "None"],
+                                },
+
                 "DrInventor":   {"output_units": (2, 6, 3, 3),
                                  "min_text": 2, # wrong, never measured
                                  "min_prop": 106,
