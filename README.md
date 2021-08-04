@@ -8,8 +8,9 @@ Currently, 4 corpora are supported:
 - [AbstRCT](https://gitlab.com/tomaye/abstrct/)
 - [UKP Persuasive Essays v2](https://www.informatik.tu-darmstadt.de/ukp/research_6/data/argumentation_mining_1/argument_annotated_essays_version_2/index.en.jsp)
 - [DrInventor](https://github.com/anlausch/sciarg_resource_analysis) (with some adaptation)
+- [Scidtb](http://scientmin.taln.upf.edu/argmin/scidtb_argmin_annotations.tgz)
 
-Such corpora are not included in this repository. Only mock files are present so as to indicate where to place the documents to run the code.
+**Such corpora are not included in this repository. Only mock files are present so as to indicate where to place the documents to run the code.**
 
 ## Results and citing
 
