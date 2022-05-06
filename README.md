@@ -4,7 +4,7 @@ Use of residual deep networks, ensemble learning, and attention for Argument Str
 
 This code can be used to train a set of neural networks to jointly perform Link Prediction, Relation Classification, and Component Classification on Argument Mining corpora.
 Currently, 4 corpora are supported:
-- [CDCP](https://facultystaff.richmond.edu/~jpark/)
+- [CDCP](https://facultystaff.richmond.edu/~jpark/) (version with transitive closure and no nested proposition)
 - [AbstRCT](https://gitlab.com/tomaye/abstrct/)
 - [UKP Persuasive Essays v2](https://www.informatik.tu-darmstadt.de/ukp/research_6/data/argumentation_mining_1/argument_annotated_essays_version_2/index.en.jsp)
 - [DrInventor](https://github.com/anlausch/sciarg_resource_analysis) (with some adaptation)
