@@ -1,4 +1,4 @@
-# StructurePrediction18
+# ResAttArg: Residual Attentive Deep Netoworks for Argument Structure Prediction.
 
 Use of residual deep networks, ensemble learning, and attention for Argument Structure Prediction.
 
