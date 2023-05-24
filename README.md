@@ -15,8 +15,8 @@ Currently, 4 corpora are supported:
 ## Results and citing
 
 The results of the ResAttArg architecture (net_11 in the code) and the new results of the ResAtt architecture 
-(net_7 in the code) are available as preprint [Multi-Task Attentive Residual Networks for Argument Mining](https://arxiv.org/abs/2102.12227).
-Such preprint is available in the publication folder.
+(net_7 in the code) are available as a open access journal article [Multi-Task Attentive Residual Networks for Argument Mining]([https://arxiv.org/abs/2102.12227](https://ieeexplore.ieee.org/document/10122594).
+The article is available in the Publications folder.
 
 The first results of the ResAtt architectures have been published in [Argumentative Link Prediction using Residual Networks and Multi-Objective Learning](https://www.aclweb.org/anthology/W18-5201).
 Such models, along with the paper, are available in the Publications folder.
