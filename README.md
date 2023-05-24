@@ -24,18 +24,15 @@ Such models, along with the paper, are available in the Publications folder.
 
 Please, if you use any of this material, cite our work both as:
 ```
-@article{Galassi2021
-  author    = {Andrea Galassi and
-               Marco Lippi and
-               Paolo Torroni},
-  title     = {Multi-Task Attentive Residual Networks for Argument Mining},
-  journal   = {CoRR},
-  volume    = {abs/2102.12227},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2102.12227},
-  archivePrefix = {arXiv},
-  eprint    = {2102.12227},
-}
+@ARTICLE{10122594,
+  author={Galassi, Andrea and Lippi, Marco and Torroni, Paolo},
+  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 
+  title={Multi-Task Attentive Residual Networks for Argument Mining}, 
+  year={2023},
+  volume={31},
+  number={},
+  pages={1877-1892},
+  doi={10.1109/TASLP.2023.3275040}}
 ```
 and
 ```
